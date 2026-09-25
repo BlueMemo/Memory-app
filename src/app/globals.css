@@ -65,12 +65,61 @@ button {
 /* ---------- Site header ---------- */
 
 .site-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "brand tabs lang";
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 20px;
+  gap: 12px 24px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--line);
+}
+
+.site-header .brand {
+  grid-area: brand;
+}
+
+.site-header .lang-switch {
+  grid-area: lang;
+}
+
+.tabs {
+  grid-area: tabs;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs a {
+  padding: 7px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.tabs a:hover {
+  color: var(--ink);
+}
+
+.tabs a.active {
+  color: var(--ink);
+  background: var(--line);
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "brand lang"
+      "tabs tabs";
+    padding: 10px 16px;
+  }
+  .tabs {
+    margin: 0 -6px;
+  }
 }
 
 .brand {
@@ -159,12 +208,10 @@ button {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
-  text-decoration: none;
-  transition: transform 0.15s, border-color 0.15s;
+  transition: border-color 0.15s;
 }
 
 .deck-tile:hover {
-  transform: translateY(-2px);
   border-color: var(--accent);
 }
 
@@ -172,6 +219,14 @@ button {
   margin: 12px 0 6px;
   font-size: 1.2rem;
   line-height: 1.25;
+}
+
+.deck-tile h3 a {
+  text-decoration: none;
+}
+
+.deck-tile h3 a:hover {
+  text-decoration: underline;
 }
 
 .deck-tile p {
@@ -183,13 +238,112 @@ button {
 .tile-footer {
   margin-top: auto;
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 8px;
   font-size: 0.9rem;
 }
 
 .tile-open {
+  display: inline-block;
+  margin-top: 14px;
   color: var(--accent);
   font-weight: 600;
+  text-decoration: none;
+}
+
+.tile-open:hover {
+  text-decoration: underline;
+}
+
+.save-btn {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.save-btn:hover {
+  border-color: var(--accent);
+}
+
+.save-btn.saved {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.deck-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-intro {
+  padding: 16px 0 8px;
+}
+
+.page-intro h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  letter-spacing: -0.02em;
+}
+
+.page-intro p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 20px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.fine-print {
+  margin-top: 32px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.about-section {
+  margin-top: 32px;
+}
+
+.about-section h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.about-section p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.about-section strong {
+  color: var(--accent);
+}
+
+.placeholder {
+  padding: 14px 16px;
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
 }
 
 .tags {

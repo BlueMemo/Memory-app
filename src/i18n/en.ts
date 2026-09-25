@@ -3,19 +3,64 @@
 export const en = {
   siteName: "Memory App",
   languageName: "English",
-  header: { decks: "Decks", language: "Language" },
-  home: {
-    title: "Remember anything, with your imagination",
-    lead: "Flashcards built around visualization: turn what you want to learn into vivid images and place them in your mind.",
-    officialDecks: "Official decks",
+  header: {
+    language: "Language",
+    navLabel: "Main",
+    discover: "Discover Decks",
+    library: "My Library",
+    about: "About us",
+  },
+  decks: {
     official: "Official",
     ordered: "Memory route · in order",
     unordered: "Associations",
     cardCount: "{n} cards",
     open: "Open deck",
+    save: "☆ Save to library",
+    saved: "★ Saved",
+    savedTitle: "Saved in your library. Click to remove.",
+  },
+  discover: {
+    title: "Remember anything, with your imagination",
+    lead: "Flashcards built around visualization: turn what you want to learn into vivid images and place them in your mind.",
+    officialDecks: "Official decks",
+    communityDecks: "Community decks",
+    communitySoon: "Soon you'll find decks shared by other learners here, and be able to share your own.",
+  },
+  library: {
+    title: "My Library",
+    lead: "The decks you've saved, ready to practise.",
+    savedDecks: "Saved decks",
+    empty: "Your library is empty. Save a deck with ☆ and it will show up here.",
+    emptyCta: "Discover decks →",
+    deviceNote: "Your library is saved in this browser for now. With accounts (coming later) it will follow you to every device.",
+  },
+  about: {
+    title: "About us",
+    lead: "We're building a place to practise memorizing anything with visualization, the way memory champions do, made simple enough for everyday learning.",
+    sections: [
+      {
+        title: "The technique",
+        body: "Instead of repeating facts until they stick, you turn each thing you want to remember into a vivid, often absurd image: an **association object**. Your brain holds on to pictures and stories far better than to lists.",
+      },
+      {
+        title: "Memory routes",
+        body: "When order matters, like rankings, timelines or the bones of the body, you place the images one by one along a **route through a place you know well**, such as your home. Walking the route in your mind brings them back in order.",
+      },
+      {
+        title: "Associations",
+        body: "When order doesn't matter, like words in a new language, each card gets **its own scene** with a sound-alike hint. Picture the scene and the answer follows.",
+      },
+      {
+        title: "Why mostly text?",
+        body: "We deliberately use very few pictures. **The images you create in your own imagination** are the ones you remember best.",
+      },
+    ],
+    teamTitle: "Who we are",
+    teamPlaceholder: "[Team story goes here: who you are, why you started and where you're headed.]",
   },
   deck: {
-    back: "← All decks",
+    back: "← Discover decks",
     start: "Start practising",
     inside: "What's inside",
     contentLanguage: "Deck language: {lang}",

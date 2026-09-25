@@ -21,6 +21,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   Keep UI concerns out of it; it is covered by `practice.test.ts`.
 - `src/components/PracticeSession.tsx`: renders the flow; keyboard shortcuts live here.
 - `src/decks/`: official decks as TypeScript data. User decks will come from a database later.
+- Pages (tabs in `SiteHeader`): `/discover` (official + future community decks; `/` redirects here),
+  `/library` (saved decks), `/about`, plus `/decks/[deckId]` and `/decks/[deckId]/practice`.
+- `src/lib/library.ts`: saved deck ids in browser storage (guest mode) until accounts exist.
+- The About page's "Who we are" text is a placeholder waiting for the team's own story.
 - `src/i18n/`: site text. `en.ts` is the source of truth; `sv.ts` must have the same keys. Deck content has
   its own `language` and is never translated by the site.
 

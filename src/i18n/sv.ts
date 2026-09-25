@@ -3,19 +3,64 @@ import type { Dict } from "./en";
 export const sv: Dict = {
   siteName: "Memory App",
   languageName: "Svenska",
-  header: { decks: "Kortlekar", language: "Språk" },
-  home: {
-    title: "Kom ihåg vad som helst, med hjälp av fantasin",
-    lead: "Flashcards byggda kring visualisering: gör om det du vill lära dig till levande bilder och placera dem i ditt minne.",
-    officialDecks: "Officiella kortlekar",
+  header: {
+    language: "Språk",
+    navLabel: "Huvudmeny",
+    discover: "Upptäck kortlekar",
+    library: "Mitt bibliotek",
+    about: "Om oss",
+  },
+  decks: {
     official: "Officiell",
     ordered: "Minnesväg · i ordning",
     unordered: "Associationer",
     cardCount: "{n} kort",
     open: "Öppna kortleken",
+    save: "☆ Spara i biblioteket",
+    saved: "★ Sparad",
+    savedTitle: "Sparad i ditt bibliotek. Klicka för att ta bort.",
+  },
+  discover: {
+    title: "Kom ihåg vad som helst, med hjälp av fantasin",
+    lead: "Flashcards byggda kring visualisering: gör om det du vill lära dig till levande bilder och placera dem i ditt minne.",
+    officialDecks: "Officiella kortlekar",
+    communityDecks: "Kortlekar från användare",
+    communitySoon: "Snart hittar du kortlekar som andra har delat här, och kan dela dina egna.",
+  },
+  library: {
+    title: "Mitt bibliotek",
+    lead: "Kortlekarna du har sparat, redo att öva på.",
+    savedDecks: "Sparade kortlekar",
+    empty: "Ditt bibliotek är tomt. Spara en kortlek med ☆ så dyker den upp här.",
+    emptyCta: "Upptäck kortlekar →",
+    deviceNote: "Ditt bibliotek sparas i den här webbläsaren tills vidare. Med konton (kommer senare) följer det med dig till alla enheter.",
+  },
+  about: {
+    title: "Om oss",
+    lead: "Vi bygger en plats där du kan öva på att memorera vad som helst med visualisering, som minnesmästare gör, men enkelt nog för vardagligt lärande.",
+    sections: [
+      {
+        title: "Tekniken",
+        body: "I stället för att upprepa fakta tills de fastnar gör du om varje sak du vill komma ihåg till en levande, ofta absurd bild: ett **associationsobjekt**. Hjärnan håller fast vid bilder och berättelser mycket bättre än vid listor.",
+      },
+      {
+        title: "Minnesvägar",
+        body: "När ordningen spelar roll, som rankningar, tidslinjer eller kroppens skelett, placerar du bilderna en i taget längs en **väg genom en plats du känner väl**, till exempel ditt hem. När du går vägen i tanken kommer de tillbaka i rätt ordning.",
+      },
+      {
+        title: "Associationer",
+        body: "När ordningen inte spelar roll, som ord på ett nytt språk, får varje kort **en egen scen** med en ledtråd som låter likt. Föreställ dig scenen så följer svaret.",
+      },
+      {
+        title: "Varför mest text?",
+        body: "Vi använder medvetet väldigt få bilder. **Bilderna du skapar i din egen fantasi** är de du minns bäst.",
+      },
+    ],
+    teamTitle: "Vilka vi är",
+    teamPlaceholder: "[Här kommer teamets berättelse: vilka ni är, varför ni startade och vart ni är på väg.]",
   },
   deck: {
-    back: "← Alla kortlekar",
+    back: "← Upptäck kortlekar",
     start: "Börja öva",
     inside: "Innehåll",
     contentLanguage: "Kortlekens språk: {lang}",
