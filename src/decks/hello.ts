@@ -1,0 +1,37 @@
+import type { Deck } from "@/lib/types";
+
+export const helloTenLanguages: Deck = {
+  id: "hello-10-languages",
+  title: 'Say "Hello" in 10 languages',
+  description: "One vivid scene per language, each hiding a sound-alike word, from Spanish to Russian.",
+  language: "en",
+  kind: "unordered",
+  official: true,
+  instructions: [
+    "For each language, the word “Hello” will be accompanied by a cue for an imaginary visualization.",
+    "Don’t try to memorize the cue word for word. Instead, try to **visualize the image** described by the cue.",
+  ],
+  testQuestion: { other: 'How do you say "hello" in {prompt}?' },
+  cards: [
+    { id: "es", prompt: "Spanish", answer: "Hola", details: "say: OH-lah", object: "Cola",
+      visualization: "A Mexican man with a sombrero waves with a cOLA." },
+    { id: "fr", prompt: "French", answer: "Bonjour", details: "say: bohn-ZHOOR", object: "Bone shoes",
+      visualization: "A Frenchman on the Eiffel Tower waves over Paris wearing BONE SHOES." },
+    { id: "de", prompt: "German", answer: "Hallo", details: "say: HAH-loh", object: "Hello Kitty",
+      visualization: "A German man in lederhosen, holding a beer, waves at you with HELLO Kitty under his belt." },
+    { id: "it", prompt: "Italian", answer: "Ciao", details: "say: CHOW", object: "A show",
+      visualization: "An Italian man waves from the Colosseum before putting on a SHOW." },
+    { id: "ja", prompt: "Japanese", answer: "Konnichiwa", details: "こんにちは · say: kohn-nee-chee-wah", object: "Itching with an ice cone",
+      visualization: "A Japanese man starts ITCHING himself with an ice CONE while eating sushi." },
+    { id: "zh", prompt: "Mandarin", answer: "Nǐ hǎo", details: "你好 · say: nee HOW", object: "A new house",
+      visualization: "Imagine a Chinese man waving from his NEW HOUSE, holding a pair of chopsticks." },
+    { id: "ko", prompt: "Korean", answer: "Annyeong", details: "안녕 · say: ahn-NYONG", object: "An onion",
+      visualization: "Imagine a K-pop band performing and waving from the stage while holding a big ONION." },
+    { id: "ar", prompt: "Arabic", answer: "Salam alaykum", details: "سلام عليكم · say: sah-LAHM ah-LAY-kum", object: "Salami and bacon",
+      visualization: "Imagine a man wearing a turban, waving a SALAMI AND BACON." },
+    { id: "hi", prompt: "Hindi", answer: "Namaste", details: "नमस्ते · say: nuh-muh-STAY", object: "Naming every state",
+      visualization: "An Indian woman in a sari is trying to NAME every STATE on the test." },
+    { id: "ru", prompt: "Russian", answer: "Privet", details: "Привет · say: pree-VYET", object: "A private jet",
+      visualization: "Imagine Putin waving from his PRIVet JET." },
+  ],
+};
