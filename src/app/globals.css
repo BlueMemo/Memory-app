@@ -486,6 +486,26 @@ button {
   margin-bottom: 12px;
 }
 
+.exit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+
+.exit-btn:hover {
+  border-color: var(--again);
+  color: var(--again);
+}
+
 .practice-main {
   width: 100%;
   display: flex;
@@ -516,7 +536,7 @@ button {
 
 .progress {
   width: 100%;
-  max-width: 420px;
+  max-width: 490px;
   display: flex;
   gap: 6px;
   margin-bottom: 20px;
@@ -628,7 +648,7 @@ button {
 .learn-wrap {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 490px;
 }
 
 .learn-wrap.has-bubble {
@@ -636,7 +656,7 @@ button {
 }
 
 .learn-card {
-  min-height: 300px;
+  min-height: 350px;
 }
 
 .learn-card.note {
@@ -797,9 +817,9 @@ ul.overview-list {
 
 .scene {
   width: 100%;
-  max-width: 420px;
+  max-width: 490px;
   aspect-ratio: 4 / 3;
-  min-height: 330px;
+  min-height: 385px;
   perspective: 1200px;
   cursor: pointer;
 }
@@ -843,8 +863,8 @@ ul.overview-list {
 
 .info {
   width: 100%;
-  max-width: 420px;
-  min-height: 315px;
+  max-width: 490px;
+  min-height: 365px;
   cursor: pointer;
   border-width: 1px;
 }
@@ -891,7 +911,7 @@ ul.overview-list {
 
 .summary {
   width: 100%;
-  max-width: 420px;
+  max-width: 490px;
   text-align: center;
 }
 
@@ -1021,6 +1041,13 @@ ul.overview-list {
   color: var(--muted);
 }
 
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .field .hint {
   font-size: 0.8rem;
   color: var(--muted);
@@ -1144,6 +1171,65 @@ ul.overview-list {
   font-size: 2rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.tile-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.image-add-btn {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.image-add-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.image-add-preview {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.image-add-preview img {
+  width: 22px;
+  height: 22px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.image-remove {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 5px;
+}
+
+.image-remove:hover {
+  color: var(--again);
+}
+
+.card-image {
+  display: block;
+  max-width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 12px auto 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

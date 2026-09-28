@@ -32,7 +32,17 @@ export function LibraryView() {
         </li>
         {userDecks.map((deck) => (
           <li key={deck.id}>
-            <DeckTile deck={deck} action={<DeleteDeckButton deckId={deck.id} />} />
+            <DeckTile
+              deck={deck}
+              action={
+                <div className="tile-actions">
+                  <Link href={`/library/edit/${deck.id}`} className="save-btn">
+                    {t.editDeck}
+                  </Link>
+                  <DeleteDeckButton deckId={deck.id} />
+                </div>
+              }
+            />
           </li>
         ))}
       </ul>

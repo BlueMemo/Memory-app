@@ -20,6 +20,10 @@ export interface Card {
   /** A free-form note from the deck author. */
   note?: string;
   illustration?: { name: IllustrationName; side?: "left" | "right" };
+  /** Learner-supplied images (data URLs), shown alongside the matching text during practice. */
+  promptImage?: string;
+  answerImage?: string;
+  visualizationImage?: string;
 }
 
 /** An instruction card shown during the walk-through, before the card at `beforeCard` (0-based). */

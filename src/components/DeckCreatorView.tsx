@@ -4,32 +4,49 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { dictionaries, languages, useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
+import { readImageFile } from "@/lib/images";
 import { fill } from "@/lib/practice";
-import { addUserDeck } from "@/lib/userDecks";
+import { useMounted } from "@/lib/useMounted";
+import { addUserDeck, updateUserDeck, useUserDeck } from "@/lib/userDecks";
 import type { Card, Deck, Lang } from "@/lib/types";
+import { DeckNotFound } from "./DeckNotFound";
 
 type WizardStep = "details" | "cards" | "review";
 type Kind = Deck["kind"];
 type T = Dict["creator"];
 
-export function DeckCreatorView() {
+export function DeckCreatorView({ editDeckId }: { editDeckId?: string }) {
+  if (!editDeckId) return <DeckCreatorForm />;
+  return <EditDeckLoader deckId={editDeckId} />;
+}
+
+function EditDeckLoader({ deckId }: { deckId: string }) {
+  const deck = useUserDeck(deckId);
+  const mounted = useMounted();
+  if (deck) return <DeckCreatorForm key={deck.id} initialDeck={deck} />;
+  if (!mounted) return null;
+  return <DeckNotFound />;
+}
+
+function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
   const { lang: siteLang, t: dict } = useI18n();
   const t = dict.creator;
   const router = useRouter();
+  const editing = !!initialDeck;
 
   const [step, setStep] = useState<WizardStep>("details");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [kind, setKind] = useState<Kind>("unordered");
-  const [orderLabel, setOrderLabel] = useState("");
-  const [language, setLanguage] = useState<Lang>(siteLang);
-  const [cards, setCards] = useState<Card[]>([]);
+  const [title, setTitle] = useState(initialDeck?.title ?? "");
+  const [description, setDescription] = useState(initialDeck?.description ?? "");
+  const [kind, setKind] = useState<Kind>(initialDeck?.kind ?? "unordered");
+  const [orderLabel, setOrderLabel] = useState(initialDeck?.orderLabel ?? "");
+  const [language, setLanguage] = useState<Lang>(initialDeck?.language ?? siteLang);
+  const [cards, setCards] = useState<Card[]>(initialDeck?.cards ?? []);
 
   const detailsValid = title.trim() !== "" && description.trim() !== "";
 
-  const createDeck = () => {
+  const finalize = () => {
     const deck: Deck = {
-      id: `user-${crypto.randomUUID()}`,
+      id: initialDeck?.id ?? `user-${crypto.randomUUID()}`,
       title: title.trim(),
       description: description.trim(),
       language,
@@ -41,13 +58,14 @@ export function DeckCreatorView() {
           : [t.defaultInstructionsUnordered1, t.defaultInstructionsUnordered2],
       cards,
     };
-    addUserDeck(deck);
+    if (editing) updateUserDeck(deck);
+    else addUserDeck(deck);
     router.push(`/decks/${deck.id}`);
   };
 
   return (
     <main className="page">
-      <h1 className="deck-title">{t.title}</h1>
+      <h1 className="deck-title">{editing ? t.editTitle : t.title}</h1>
       <div className="tags wizard-steps">
         <span className={`tag${step === "details" ? " accent" : ""}`}>{t.stepDetails}</span>
         <span className={`tag${step === "cards" ? " accent" : ""}`}>{t.stepCards}</span>
@@ -90,8 +108,9 @@ export function DeckCreatorView() {
           description={description}
           kind={kind}
           cards={cards}
+          submitLabel={editing ? t.saveChanges : t.createDeck}
           onBack={() => setStep("cards")}
-          onCreate={createDeck}
+          onCreate={finalize}
         />
       )}
     </main>
@@ -187,6 +206,8 @@ function DetailsStep(props: {
   );
 }
 
+const emptyForm = { prompt: "", answer: "", visualization: "", note: "" };
+
 function CardsStep({
   t,
   kind,
@@ -204,37 +225,57 @@ function CardsStep({
 }) {
   const ordered = kind === "ordered";
   const firstFieldRef = useRef<HTMLInputElement>(null);
-  const [prompt, setPrompt] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [object, setObject] = useState("");
-  const [visualization, setVisualization] = useState("");
-  const [details, setDetails] = useState("");
-  const [note, setNote] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [promptImage, setPromptImage] = useState<string | undefined>();
+  const [answerImage, setAnswerImage] = useState<string | undefined>();
+  const [visualizationImage, setVisualizationImage] = useState<string | undefined>();
 
-  const canAdd = answer.trim() !== "" && (ordered || prompt.trim() !== "");
+  const canSubmit = form.answer.trim() !== "" && (ordered || form.prompt.trim() !== "");
 
-  const addCard = () => {
-    if (!canAdd) return;
-    const card: Card = {
-      id: crypto.randomUUID(),
-      answer: answer.trim(),
-      ...(ordered ? {} : { prompt: prompt.trim() }),
-      ...(object.trim() ? { object: object.trim() } : {}),
-      ...(visualization.trim() ? { visualization: visualization.trim() } : {}),
-      ...(details.trim() ? { details: details.trim() } : {}),
-      ...(note.trim() ? { note: note.trim() } : {}),
-    };
-    setCards([...cards, card]);
-    setPrompt("");
-    setAnswer("");
-    setObject("");
-    setVisualization("");
-    setDetails("");
-    setNote("");
+  const resetForm = () => {
+    setForm(emptyForm);
+    setPromptImage(undefined);
+    setAnswerImage(undefined);
+    setVisualizationImage(undefined);
+  };
+
+  const startEdit = (card: Card) => {
+    setEditingId(card.id);
+    setForm({ prompt: card.prompt ?? "", answer: card.answer, visualization: card.visualization ?? "", note: card.note ?? "" });
+    setPromptImage(card.promptImage);
+    setAnswerImage(card.answerImage);
+    setVisualizationImage(card.visualizationImage);
     firstFieldRef.current?.focus();
   };
 
-  const removeCard = (id: string) => setCards(cards.filter((c) => c.id !== id));
+  const cancelEdit = () => {
+    setEditingId(null);
+    resetForm();
+  };
+
+  const submitCard = () => {
+    if (!canSubmit) return;
+    const card: Card = {
+      id: editingId ?? crypto.randomUUID(),
+      answer: form.answer.trim(),
+      ...(ordered ? {} : { prompt: form.prompt.trim() }),
+      ...(form.visualization.trim() ? { visualization: form.visualization.trim() } : {}),
+      ...(form.note.trim() ? { note: form.note.trim() } : {}),
+      ...(promptImage ? { promptImage } : {}),
+      ...(answerImage ? { answerImage } : {}),
+      ...(visualizationImage ? { visualizationImage } : {}),
+    };
+    setCards(editingId ? cards.map((c) => (c.id === editingId ? card : c)) : [...cards, card]);
+    setEditingId(null);
+    resetForm();
+    firstFieldRef.current?.focus();
+  };
+
+  const removeCard = (id: string) => {
+    setCards(cards.filter((c) => c.id !== id));
+    if (editingId === id) cancelEdit();
+  };
   const moveCard = (index: number, dir: -1 | 1) => {
     const j = index + dir;
     if (j < 0 || j >= cards.length) return;
@@ -248,65 +289,74 @@ function CardsStep({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          addCard();
+          submitCard();
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
-            addCard();
+            submitCard();
           }
         }}
       >
         {!ordered && (
           <div className="field">
-            <label htmlFor="card-prompt">{t.promptLabel}</label>
+            <div className="field-label-row">
+              <label htmlFor="card-prompt">{t.promptLabel}</label>
+              <ImageAddButton t={t} title={t.promptImageLabel} value={promptImage} onChange={setPromptImage} />
+            </div>
             <input
               id="card-prompt"
               ref={firstFieldRef}
               type="text"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              value={form.prompt}
+              onChange={(e) => setForm({ ...form, prompt: e.target.value })}
               placeholder={t.promptPlaceholder}
             />
           </div>
         )}
+
         <div className="field">
-          <label htmlFor="card-answer">{ordered ? t.answerLabelOrdered : t.answerLabel}</label>
+          <div className="field-label-row">
+            <label htmlFor="card-answer">{ordered ? t.answerLabelOrdered : t.answerLabel}</label>
+            <ImageAddButton t={t} title={t.answerImageLabel} value={answerImage} onChange={setAnswerImage} />
+          </div>
           <input
             id="card-answer"
             ref={ordered ? firstFieldRef : undefined}
             type="text"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
+            value={form.answer}
+            onChange={(e) => setForm({ ...form, answer: e.target.value })}
             placeholder={t.answerPlaceholder}
           />
         </div>
+
         <div className="field">
-          <label htmlFor="card-object">{t.objectLabel}</label>
-          <input id="card-object" type="text" value={object} onChange={(e) => setObject(e.target.value)} placeholder={t.objectPlaceholder} />
-          <span className="hint">{t.objectHint}</span>
-        </div>
-        <div className="field">
-          <label htmlFor="card-visualization">{t.visualizationLabel}</label>
+          <div className="field-label-row">
+            <label htmlFor="card-visualization">{t.memoryQueueLabel}</label>
+            <ImageAddButton t={t} title={t.memoryQueueImageLabel} value={visualizationImage} onChange={setVisualizationImage} />
+          </div>
           <textarea
             id="card-visualization"
-            value={visualization}
-            onChange={(e) => setVisualization(e.target.value)}
-            placeholder={t.visualizationPlaceholder}
+            value={form.visualization}
+            onChange={(e) => setForm({ ...form, visualization: e.target.value })}
+            placeholder={t.memoryQueuePlaceholder}
           />
+          <span className="hint">{t.memoryQueueHint}</span>
         </div>
-        <div className="field">
-          <label htmlFor="card-details">{t.detailsLabel}</label>
-          <input id="card-details" type="text" value={details} onChange={(e) => setDetails(e.target.value)} placeholder={t.detailsPlaceholder} />
-        </div>
+
         <div className="field">
           <label htmlFor="card-note">{t.noteLabel}</label>
-          <input id="card-note" type="text" value={note} onChange={(e) => setNote(e.target.value)} />
+          <input id="card-note" type="text" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
         </div>
         <div className="controls left">
-          <button type="submit" className="btn accent" disabled={!canAdd}>
-            {t.addCard}
+          <button type="submit" className="btn accent" disabled={!canSubmit}>
+            {editingId ? t.updateCard : t.addCard}
           </button>
+          {editingId && (
+            <button type="button" className="link-button" onClick={cancelEdit}>
+              {t.cancelEdit}
+            </button>
+          )}
         </div>
         <p className="keys">{t.addCardKeys}</p>
       </form>
@@ -319,6 +369,9 @@ function CardsStep({
               <span className="muted">{i + 1}</span>
               <span>{ordered ? c.answer : `${c.prompt} → ${c.answer}`}</span>
               <span className="row-actions">
+                <button type="button" className="icon-btn" title={t.editCard} onClick={() => startEdit(c)}>
+                  ✎
+                </button>
                 {ordered && (
                   <>
                     <button type="button" className="icon-btn" title={t.moveUp} disabled={i === 0} onClick={() => moveCard(i, -1)}>
@@ -356,12 +409,60 @@ function CardsStep({
   );
 }
 
+/** A compact, optional-looking add-on next to a field's label, rather than a field of its own. */
+function ImageAddButton({
+  t,
+  title,
+  value,
+  onChange,
+}: {
+  t: T;
+  title: string;
+  value: string | undefined;
+  onChange: (v: string | undefined) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <span className="image-add">
+      {value ? (
+        <span className="image-add-preview">
+          <img src={value} alt="" />
+          <button type="button" className="image-remove" title={t.removeImage} onClick={() => onChange(undefined)}>
+            ×
+          </button>
+        </span>
+      ) : (
+        <button type="button" className="image-add-btn" title={title} onClick={() => inputRef.current?.click()}>
+          + {t.chooseImage}
+        </button>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (!file) return;
+          try {
+            onChange(await readImageFile(file));
+          } catch {
+            // Unreadable image file: leave the field as it was.
+          }
+        }}
+      />
+    </span>
+  );
+}
+
 function ReviewStep({
   t,
   title,
   description,
   kind,
   cards,
+  submitLabel,
   onBack,
   onCreate,
 }: {
@@ -370,6 +471,7 @@ function ReviewStep({
   description: string;
   kind: Kind;
   cards: Card[];
+  submitLabel: string;
   onBack: () => void;
   onCreate: () => void;
 }) {
@@ -396,7 +498,7 @@ function ReviewStep({
           {t.back}
         </button>
         <button className="btn accent" onClick={onCreate}>
-          {t.createDeck}
+          {submitLabel}
         </button>
       </div>
     </section>

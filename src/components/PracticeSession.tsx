@@ -84,7 +84,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
   return (
     <div className="practice">
       <div className="practice-top">
-        <Link href={`/decks/${deck.id}`} className="link-muted">
+        <Link href={`/decks/${deck.id}`} className="exit-btn">
           {t.exit}
         </Link>
       </div>
@@ -333,9 +333,11 @@ function WalkStep({ deck, step, t }: { deck: Deck; step: Step; t: T }) {
       {bubble && <ThoughtBubble name={bubble.name} side={bubble.side} />}
       <div className="face learn-card deal">
         <span className="badge">{ordered ? fill(t.stop, { n }) : card.prompt}</span>
+        {!ordered && <CardImage src={card.promptImage} />}
         {own ? (
           <>
             <p className="big">{t.ownObject}</p>
+            <CardImage src={card.answerImage} />
             <p className="learn-text muted">
               {fill(ordered ? t.ownObjectOrdered : t.ownObjectUnordered, { answer: card.answer })}
             </p>
@@ -344,26 +346,48 @@ function WalkStep({ deck, step, t }: { deck: Deck; step: Step; t: T }) {
         ) : ordered ? (
           <>
             {card.visualization ? (
-              <p className="big sentence">{renderCapsHighlight(card.visualization)}</p>
+              <>
+                <p className="big sentence">{renderCapsHighlight(card.visualization)}</p>
+                <CardImage src={card.visualizationImage} />
+              </>
             ) : (
               <>
                 <p className="big">{card.object}</p>
                 <p className="learn-text muted">{t.placeHint}</p>
               </>
             )}
-            {showAnswer && <AnswerLine card={card} />}
+            {showAnswer && (
+              <>
+                <AnswerLine card={card} />
+                <CardImage src={card.answerImage} />
+              </>
+            )}
           </>
         ) : (
           <>
             <p className="big">{card.answer}</p>
+            <CardImage src={card.answerImage} />
             {card.details && <p className="sub">{card.details}</p>}
             <p className="learn-text muted">{renderCapsHighlight(card.visualization ?? card.object ?? "")}</p>
+            <CardImage src={card.visualizationImage} />
           </>
         )}
         {card.note && <CardNote note={card.note} t={t} />}
       </div>
     </div>
   );
+}
+
+function CardImage({ src }: { src?: string }) {
+  if (!src) return null;
+  return <img src={src} alt="" className="card-image" />;
+}
+
+/** For ordered decks: the object placed at a stop, or the memory queue sentence when there's no short object word. */
+function ordinalAssociation(card: Card): ReactNode {
+  if (card.object) return card.object;
+  if (card.visualization) return renderCapsHighlight(card.visualization);
+  return undefined;
 }
 
 function AnswerLine({ card }: { card: Card }) {
@@ -425,23 +449,34 @@ function FlipCard(props: {
       ? t.revisionOrderedCue
       : t.revisionUnorderedCue;
 
-  let back: { title: string; sub?: string; line?: ReactNode };
+  let back: { title: ReactNode; titleClass?: string; sub?: string; line?: ReactNode; image?: string };
   if (test) {
     back = {
       title: card.answer,
       sub: card.details,
       line: card.object
         ? fill(t.objectLine, { object: card.object })
-        : card.suggestion && fill(t.ownObjectExample, { example: card.suggestion }),
+        : card.visualization
+          ? renderCapsHighlight(card.visualization)
+          : card.suggestion && fill(t.ownObjectExample, { example: card.suggestion }),
+      image: card.answerImage,
     };
   } else if (ordered) {
+    const association = ordinalAssociation(card);
     back = {
-      title: card.object ?? t.ownObject,
-      sub: fill(card.object ? t.standsFor : t.ownAssociation, { answer: card.answer }),
-      line: !card.object && card.suggestion ? fill(t.forExample, { example: card.suggestion }) : undefined,
+      title: association ?? t.ownObject,
+      titleClass: !card.object && card.visualization ? "sentence" : undefined,
+      sub: fill(association ? t.standsFor : t.ownAssociation, { answer: card.answer }),
+      line: !association && card.suggestion ? fill(t.forExample, { example: card.suggestion }) : undefined,
+      image: card.visualizationImage ?? card.answerImage,
     };
   } else {
-    back = { title: card.answer, sub: card.details, line: card.visualization && renderCapsHighlight(card.visualization) };
+    back = {
+      title: card.answer,
+      sub: card.details,
+      line: card.visualization && renderCapsHighlight(card.visualization),
+      image: card.answerImage ?? card.visualizationImage,
+    };
   }
 
   return (
@@ -459,11 +494,13 @@ function FlipCard(props: {
       <div className={`card${flipped ? " flipped" : ""}`}>
         <div className="face front" aria-hidden={flipped}>
           <p className="big">{frontTitle}</p>
+          {!ordered && <CardImage src={card.promptImage} />}
           <p className="cue">{frontCue}</p>
           <p className="hint">{t.clickToFlip}</p>
         </div>
         <div className="face back" aria-hidden={!flipped}>
-          <p className="big">{back.title}</p>
+          <p className={`big${back.titleClass ? ` ${back.titleClass}` : ""}`}>{back.title}</p>
+          <CardImage src={back.image} />
           {back.sub && <p className="sub">{back.sub}</p>}
           {back.line && <p className="learn-text muted">{back.line}</p>}
           {card.note && <CardNote note={card.note} t={t} />}
@@ -500,9 +537,14 @@ function Results(props: {
           const card = cardById(id);
           const n = positionOf(id);
           const ok = state.grades[id] === "known";
-          const reminder = ordered
-            ? `${fill(t.stop, { n })}: ${card.object ?? (card.suggestion ? fill(t.ownObjectExample, { example: card.suggestion }) : t.ownObject)}`
-            : renderCapsHighlight(card.visualization ?? card.object ?? "");
+          const association = ordinalAssociation(card);
+          const reminder = ordered ? (
+            <>
+              {fill(t.stop, { n })}: {association ?? (card.suggestion ? fill(t.ownObjectExample, { example: card.suggestion }) : t.ownObject)}
+            </>
+          ) : (
+            renderCapsHighlight(card.visualization ?? card.object ?? "")
+          );
           return (
             <li key={id}>
               <span className={ok ? "mark-ok" : "mark-miss"}>{ok ? "✓" : "✗"}</span>

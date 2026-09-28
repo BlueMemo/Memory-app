@@ -33,6 +33,11 @@ export function DeckView({ deck }: { deck: Deck }) {
           {t.deck.start}
         </Link>
         {deck.official && <SaveDeckButton deckId={deck.id} />}
+        {!deck.official && (
+          <Link href={`/library/edit/${deck.id}`} className="btn nav">
+            {t.deck.editDeck}
+          </Link>
+        )}
       </div>
 
       <h2 className="section-title">{t.deck.inside}</h2>

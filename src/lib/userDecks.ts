@@ -69,6 +69,10 @@ export function addUserDeck(deck: Deck) {
   writeDecks([deck, ...readDecks()]);
 }
 
+export function updateUserDeck(deck: Deck) {
+  writeDecks(readDecks().map((d) => (d.id === deck.id ? deck : d)));
+}
+
 export function deleteUserDeck(id: string) {
   writeDecks(readDecks().filter((d) => d.id !== id));
 }
