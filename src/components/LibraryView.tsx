@@ -4,15 +4,19 @@ import Link from "next/link";
 import { getDeck } from "@/decks";
 import { useI18n } from "@/i18n";
 import { useSavedDeckIds } from "@/lib/library";
+import { useUserDecks } from "@/lib/userDecks";
 import type { Deck } from "@/lib/types";
+import { CreateDeckTile } from "./CreateDeckTile";
 import { DeckTile } from "./DeckTile";
+import { DeleteDeckButton } from "./DeleteDeckButton";
 
 export function LibraryView() {
   const t = useI18n().t.library;
   // Skip ids of decks that no longer exist (e.g. an official deck that was removed).
-  const decks = useSavedDeckIds()
+  const savedDecks = useSavedDeckIds()
     .map(getDeck)
     .filter((d): d is Deck => d !== undefined);
+  const userDecks = useUserDecks();
 
   return (
     <main className="page">
@@ -21,8 +25,20 @@ export function LibraryView() {
         <p>{t.lead}</p>
       </section>
 
+      <h2 className="section-title">{t.yourDecks}</h2>
+      <ul className="deck-grid">
+        <li>
+          <CreateDeckTile />
+        </li>
+        {userDecks.map((deck) => (
+          <li key={deck.id}>
+            <DeckTile deck={deck} action={<DeleteDeckButton deckId={deck.id} />} />
+          </li>
+        ))}
+      </ul>
+
       <h2 className="section-title">{t.savedDecks}</h2>
-      {decks.length === 0 ? (
+      {savedDecks.length === 0 ? (
         <div className="empty-state">
           <p>{t.empty}</p>
           <Link href="/discover" className="tile-open">
@@ -31,7 +47,7 @@ export function LibraryView() {
         </div>
       ) : (
         <ul className="deck-grid">
-          {decks.map((deck) => (
+          {savedDecks.map((deck) => (
             <li key={deck.id}>
               <DeckTile deck={deck} />
             </li>

@@ -997,6 +997,155 @@ ul.overview-list {
   }
 }
 
+/* ---------- Deck creator ---------- */
+
+.wizard-steps {
+  margin: 12px 0 28px;
+}
+
+.controls.left {
+  justify-content: flex-start;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  max-width: 480px;
+}
+
+.field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.field .hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.field input,
+.field textarea,
+.field select {
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  width: 100%;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.kind-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  max-width: 640px;
+}
+
+.kind-option {
+  text-align: left;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.kind-option:hover {
+  border-color: var(--accent);
+}
+
+.kind-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.kind-option strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.kind-option span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 2px;
+  justify-self: end;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 6px;
+}
+
+.icon-btn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  background: none;
+}
+
+.save-btn.danger:hover {
+  border-color: var(--again);
+  color: var(--again);
+}
+
+.create-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 160px;
+  height: 100%;
+  border: 2px dashed var(--line);
+  border-radius: 16px;
+  color: var(--muted);
+  text-decoration: none;
+  text-align: center;
+}
+
+.create-tile:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.create-plus {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

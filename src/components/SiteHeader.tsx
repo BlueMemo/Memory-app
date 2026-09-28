@@ -8,10 +8,15 @@ export function SiteHeader() {
   const { lang, t, setLang } = useI18n();
   const pathname = usePathname();
 
+  // Deck pages are reached from Discover or from the learner's own Library; user-created decks
+  // are the only ones whose id starts with "user-" (see lib/userDecks.ts), so that prefix is
+  // enough to tell which tab a deck page belongs to without loading the deck itself.
+  const deckId = pathname.match(/^\/decks\/([^/]+)/)?.[1];
+  const onUserDeck = deckId?.startsWith("user-") ?? false;
+
   const tabs = [
-    // Deck pages are reached from Discover, so that tab stays active there.
-    { href: "/discover", label: t.header.discover, active: pathname === "/discover" || pathname.startsWith("/decks/") },
-    { href: "/library", label: t.header.library, active: pathname === "/library" },
+    { href: "/discover", label: t.header.discover, active: pathname === "/discover" || (!!deckId && !onUserDeck) },
+    { href: "/library", label: t.header.library, active: pathname.startsWith("/library") || (!!deckId && onUserDeck) },
     { href: "/about", label: t.header.about, active: pathname === "/about" },
   ];
 

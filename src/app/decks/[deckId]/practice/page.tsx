@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { PracticeSession } from "@/components/PracticeSession";
+import { UserDeckGate } from "@/components/UserDeckGate";
 import { getDeck, officialDecks } from "@/decks";
-
-export const dynamicParams = false;
 
 export function generateStaticParams() {
   return officialDecks.map((d) => ({ deckId: d.id }));
@@ -11,12 +9,13 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/decks/[deckId]/practice">): Promise<Metadata> {
   const { deckId } = await params;
-  return { title: getDeck(deckId)?.title };
+  const title = getDeck(deckId)?.title;
+  return title ? { title } : {};
 }
 
 export default async function PracticePage({ params }: PageProps<"/decks/[deckId]/practice">) {
   const { deckId } = await params;
   const deck = getDeck(deckId);
-  if (!deck) notFound();
-  return <PracticeSession deck={deck} />;
+  if (deck) return <PracticeSession deck={deck} />;
+  return <UserDeckGate deckId={deckId} mode="practice" />;
 }

@@ -9,10 +9,12 @@ import { SaveDeckButton } from "./SaveDeckButton";
 export function DeckView({ deck }: { deck: Deck }) {
   const { lang, t } = useI18n();
   const ordered = deck.kind === "ordered";
+  const backHref = deck.official ? "/discover" : "/library";
+  const backLabel = deck.official ? t.deck.back : t.deck.backToLibrary;
   return (
     <main className="page narrow">
-      <Link href="/discover" className="link-muted">
-        {t.deck.back}
+      <Link href={backHref} className="link-muted">
+        {backLabel}
       </Link>
 
       <div className="tags deck-tags">
@@ -30,7 +32,7 @@ export function DeckView({ deck }: { deck: Deck }) {
         <Link href={`/decks/${deck.id}/practice`} className="btn accent big-btn">
           {t.deck.start}
         </Link>
-        <SaveDeckButton deckId={deck.id} />
+        {deck.official && <SaveDeckButton deckId={deck.id} />}
       </div>
 
       <h2 className="section-title">{t.deck.inside}</h2>

@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
 import type { Deck } from "@/lib/types";
 import { SaveDeckButton } from "./SaveDeckButton";
 
-export function DeckTile({ deck }: { deck: Deck }) {
+/** `action` overrides the default save toggle, e.g. with a delete button for decks the learner made themselves. */
+export function DeckTile({ deck, action }: { deck: Deck; action?: ReactNode }) {
   const t = useI18n().t.decks;
   const href = `/decks/${deck.id}`;
   return (
@@ -21,7 +23,7 @@ export function DeckTile({ deck }: { deck: Deck }) {
       <p>{deck.description}</p>
       <div className="tile-footer">
         <span className="muted">{fill(t.cardCount, { n: deck.cards.length })}</span>
-        <SaveDeckButton deckId={deck.id} />
+        {action ?? <SaveDeckButton deckId={deck.id} />}
       </div>
       <Link href={href} className="tile-open">
         {t.open} →
