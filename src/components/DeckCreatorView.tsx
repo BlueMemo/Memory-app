@@ -41,10 +41,11 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
   const [orderLabel, setOrderLabel] = useState(initialDeck?.orderLabel ?? "");
   const [language, setLanguage] = useState<Lang>(initialDeck?.language ?? siteLang);
   const [cards, setCards] = useState<Card[]>(initialDeck?.cards ?? []);
+  const [saving, setSaving] = useState(false);
 
   const detailsValid = title.trim() !== "" && description.trim() !== "";
 
-  const finalize = () => {
+  const finalize = async () => {
     const deck: Deck = {
       id: initialDeck?.id ?? `user-${crypto.randomUUID()}`,
       title: title.trim(),
@@ -58,8 +59,9 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
           : [t.defaultInstructionsUnordered1, t.defaultInstructionsUnordered2],
       cards,
     };
-    if (editing) updateUserDeck(deck);
-    else addUserDeck(deck);
+    setSaving(true);
+    if (editing) await updateUserDeck(deck);
+    else await addUserDeck(deck);
     router.push(`/decks/${deck.id}`);
   };
 
@@ -109,6 +111,7 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
           kind={kind}
           cards={cards}
           submitLabel={editing ? t.saveChanges : t.createDeck}
+          submitting={saving}
           onBack={() => setStep("cards")}
           onCreate={finalize}
         />
@@ -463,6 +466,7 @@ function ReviewStep({
   kind,
   cards,
   submitLabel,
+  submitting,
   onBack,
   onCreate,
 }: {
@@ -472,6 +476,7 @@ function ReviewStep({
   kind: Kind;
   cards: Card[];
   submitLabel: string;
+  submitting: boolean;
   onBack: () => void;
   onCreate: () => void;
 }) {
@@ -494,10 +499,10 @@ function ReviewStep({
       </ul>
 
       <div className="controls">
-        <button className="btn nav" onClick={onBack}>
+        <button className="btn nav" onClick={onBack} disabled={submitting}>
           {t.back}
         </button>
-        <button className="btn accent" onClick={onCreate}>
+        <button className="btn accent" onClick={onCreate} disabled={submitting}>
           {submitLabel}
         </button>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useEffectEvent, useMemo, useReducer, useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useReducer, useState, type ReactNode } from "react";
 import { useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
 import {
@@ -16,6 +16,7 @@ import {
   type SessionState,
   type Step,
 } from "@/lib/practice";
+import { recordPracticeResult } from "@/lib/practiceResults";
 import { renderBold, renderCapsHighlight } from "@/lib/rich-text";
 import type { Card, Deck } from "@/lib/types";
 import { ThoughtBubble } from "./Illustration";
@@ -30,6 +31,14 @@ export function PracticeSession({ deck }: { deck: Deck }) {
   const steps = useMemo(() => buildSteps(deck), [deck]);
   const [state, dispatch] = useReducer(practiceReducer, steps.length, initSession);
   const [showInstructions, setShowInstructions] = useState(false);
+  const recordedRound = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (state.phase === "results" && recordedRound.current !== state.round) {
+      recordedRound.current = state.round;
+      recordPracticeResult(deck.id, knownCount(state), state.queue.length);
+    }
+  }, [state, deck.id]);
 
   const ordered = deck.kind === "ordered";
   const allIds = deck.cards.map((c) => c.id);

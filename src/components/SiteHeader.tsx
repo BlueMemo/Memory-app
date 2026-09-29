@@ -3,6 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { dictionaries, languages, useI18n } from "@/i18n";
+import { useUser } from "@/lib/supabase/useUser";
+import { AuthSync } from "./AuthSync";
+
+function AuthStatus() {
+  const t = useI18n().t;
+  const { user, loading, configured } = useUser();
+  if (!configured || loading) return null;
+  return (
+    <Link href="/account" className="link-muted auth-status">
+      {user ? (user.email ?? t.account.signedInAs) : t.header.signIn}
+    </Link>
+  );
+}
 
 export function SiteHeader() {
   const { lang, t, setLang } = useI18n();
@@ -22,6 +35,7 @@ export function SiteHeader() {
 
   return (
     <header className="site-header">
+      <AuthSync />
       <Link href="/discover" className="brand">
         {t.siteName}
       </Link>
@@ -37,18 +51,21 @@ export function SiteHeader() {
           </Link>
         ))}
       </nav>
-      <div className="lang-switch" role="group" aria-label={t.header.language}>
-        {languages.map((l) => (
-          <button
-            key={l}
-            className={l === lang ? "active" : ""}
-            aria-pressed={l === lang}
-            title={dictionaries[l].languageName}
-            onClick={() => setLang(l)}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
+      <div className="header-right">
+        <AuthStatus />
+        <div className="lang-switch" role="group" aria-label={t.header.language}>
+          {languages.map((l) => (
+            <button
+              key={l}
+              className={l === lang ? "active" : ""}
+              aria-pressed={l === lang}
+              title={dictionaries[l].languageName}
+              onClick={() => setLang(l)}
+            >
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
       </div>
     </header>
   );
