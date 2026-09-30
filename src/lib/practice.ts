@@ -64,6 +64,21 @@ export function initSession(stepCount: number): SessionState {
   return { phase: "intro", step: 0, stepCount, queue: [], pos: 0, flipped: false, grades: {}, round: 0 };
 }
 
+/** Starts straight in revision, skipping the walkthrough — for a deck you've already learned before. */
+export function initReviewSession(deck: Deck, stepCount: number, random: () => number = Math.random): SessionState {
+  const allIds = deck.cards.map((c) => c.id);
+  return {
+    phase: "revision",
+    step: 0,
+    stepCount,
+    queue: orderCards(deck, allIds, random),
+    pos: 0,
+    flipped: false,
+    grades: {},
+    round: 1,
+  };
+}
+
 export function practiceReducer(state: SessionState, action: Action): SessionState {
   switch (action.type) {
     case "begin":

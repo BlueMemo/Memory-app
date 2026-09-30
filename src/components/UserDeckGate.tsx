@@ -11,11 +11,19 @@ import { PracticeSession } from "./PracticeSession";
  * for any id that isn't an official deck. `mounted` avoids flashing "not found" before hydration,
  * since the deck only becomes visible once we can read it from localStorage on the client.
  */
-export function UserDeckGate({ deckId, mode }: { deckId: string; mode: "view" | "practice" }) {
+export function UserDeckGate({
+  deckId,
+  mode,
+  startInReview,
+}: {
+  deckId: string;
+  mode: "view" | "practice";
+  startInReview?: boolean;
+}) {
   const deck = useUserDeck(deckId);
   const mounted = useMounted();
 
-  if (deck) return mode === "view" ? <DeckView deck={deck} /> : <PracticeSession deck={deck} />;
+  if (deck) return mode === "view" ? <DeckView deck={deck} /> : <PracticeSession deck={deck} startInReview={startInReview} />;
   if (!mounted) return null;
   return <DeckNotFound />;
 }

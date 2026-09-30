@@ -5,7 +5,8 @@ import { useState, type FormEvent } from "react";
 import { useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useUser } from "@/lib/supabase/useUser";
+import { checkUsername, claimUsername, isValidUsername } from "@/lib/supabase/profiles";
+import { notifyUsernameChanged, useUser } from "@/lib/supabase/useUser";
 
 type Mode = "signIn" | "signUp" | "forgotPassword";
 type T = Dict["account"];
@@ -22,7 +23,7 @@ function mapAuthError(message: string, t: T): string {
 
 export function AccountView() {
   const t = useI18n().t.account;
-  const { user, loading, configured } = useUser();
+  const { user, username, loading, configured } = useUser();
 
   if (!configured) {
     return (
@@ -43,18 +44,27 @@ export function AccountView() {
         <h1>{t.title}</h1>
         {!user && <p>{t.lead}</p>}
       </section>
-      {user ? <SignedIn t={t} email={user.email ?? ""} /> : <SignedOut t={t} />}
+      {user ? <SignedIn t={t} userId={user.id} email={user.email ?? ""} username={username} /> : <SignedOut t={t} />}
     </main>
   );
 }
 
-function SignedIn({ t, email }: { t: T; email: string }) {
+function SignedIn({ t, userId, email, username }: { t: T; userId: string; email: string; username: string | null }) {
   const [submitting, setSubmitting] = useState(false);
+  const [currentUsername, setCurrentUsername] = useState(username);
+
   return (
     <div>
       <p>
         {t.signedInAs} <strong>{email}</strong>
       </p>
+      {currentUsername ? (
+        <p>
+          {t.yourUsername}: <strong>{currentUsername}</strong>
+        </p>
+      ) : (
+        <ChooseUsername t={t} userId={userId} onSaved={setCurrentUsername} />
+      )}
       <div className="controls left">
         <button
           className="btn nav"
@@ -75,9 +85,65 @@ function SignedIn({ t, email }: { t: T; email: string }) {
   );
 }
 
+function ChooseUsername({ t, userId, onSaved }: { t: T; userId: string; onSaved: (username: string) => void }) {
+  const [username, setUsername] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!isValidUsername(username)) {
+      setError(t.errorUsernameInvalid);
+      return;
+    }
+    setSubmitting(true);
+    const check = await checkUsername(username);
+    if (check !== "available") {
+      setSubmitting(false);
+      setError(check === "taken" ? t.errorUsernameTaken : t.errorGeneric);
+      return;
+    }
+    const { error: claimError } = await claimUsername(userId, username);
+    setSubmitting(false);
+    if (claimError) {
+      setError(t.errorUsernameTaken);
+    } else {
+      notifyUsernameChanged();
+      onSaved(username);
+    }
+  };
+
+  return (
+    <div className="empty-state">
+      <p>{t.chooseUsernameText}</p>
+      <form onSubmit={handleSubmit}>
+        <div className="field">
+          <label htmlFor="claim-username">{t.usernameLabel}</label>
+          <input
+            id="claim-username"
+            type="text"
+            required
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder={t.usernamePlaceholder}
+          />
+        </div>
+        {error && <p className="form-error">{error}</p>}
+        <div className="controls left">
+          <button type="submit" className="btn accent" disabled={submitting}>
+            {t.saveUsername}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function SignedOut({ t }: { t: T }) {
   const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<Status>(null);
@@ -98,12 +164,25 @@ function SignedOut({ t }: { t: T }) {
 
   const handleSignUp = async (e: FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
     setStatus(null);
+    if (!isValidUsername(username)) {
+      setStatus({ type: "error", message: t.errorUsernameInvalid });
+      return;
+    }
+    setSubmitting(true);
+    const check = await checkUsername(username);
+    if (check !== "available") {
+      setSubmitting(false);
+      setStatus({ type: "error", message: check === "taken" ? t.errorUsernameTaken : t.errorGeneric });
+      return;
+    }
     const { error } = await getSupabaseBrowserClient()!.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/account` },
+      options: {
+        data: { username },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`,
+      },
     });
     setSubmitting(false);
     setStatus(
@@ -176,6 +255,19 @@ function SignedOut({ t }: { t: T }) {
             placeholder={t.emailPlaceholder}
           />
         </div>
+        {mode === "signUp" && (
+          <div className="field">
+            <label htmlFor="acct-username">{t.usernameLabel}</label>
+            <input
+              id="acct-username"
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={t.usernamePlaceholder}
+            />
+          </div>
+        )}
         <div className="field">
           <label htmlFor="acct-password">{t.passwordLabel}</label>
           <input

@@ -32,6 +32,9 @@ export function DeckView({ deck }: { deck: Deck }) {
         <Link href={`/decks/${deck.id}/practice`} className="btn accent big-btn">
           {t.deck.start}
         </Link>
+        <Link href={`/decks/${deck.id}/practice?mode=review`} className="btn nav" title={t.deck.jumpToRevisionHint}>
+          {t.deck.jumpToRevision}
+        </Link>
         {deck.official && <SaveDeckButton deckId={deck.id} />}
         {!deck.official && (
           <Link href={`/library/edit/${deck.id}`} className="btn nav">

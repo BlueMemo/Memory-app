@@ -8,6 +8,7 @@ import {
   buildSteps,
   deckTestQuestion,
   fill,
+  initReviewSession,
   initSession,
   knownCount,
   missedIds,
@@ -26,10 +27,14 @@ const SUGGESTION_DELAY_MS = 20_000;
 
 type T = Dict["practice"];
 
-export function PracticeSession({ deck }: { deck: Deck }) {
+export function PracticeSession({ deck, startInReview }: { deck: Deck; startInReview?: boolean }) {
   const t = useI18n().t.practice;
   const steps = useMemo(() => buildSteps(deck), [deck]);
-  const [state, dispatch] = useReducer(practiceReducer, steps.length, initSession);
+  const [state, dispatch] = useReducer(
+    practiceReducer,
+    { deck, stepCount: steps.length, startInReview: !!startInReview },
+    (arg) => (arg.startInReview ? initReviewSession(arg.deck, arg.stepCount) : initSession(arg.stepCount)),
+  );
   const [showInstructions, setShowInstructions] = useState(false);
   const recordedRound = useRef<number | null>(null);
 

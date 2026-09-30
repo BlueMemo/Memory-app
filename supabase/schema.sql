@@ -1,7 +1,8 @@
--- Run this once in the Supabase dashboard: SQL Editor -> New query -> paste -> Run.
--- Sets up the tables accounts need: decks you create, decks you save, and your practice history.
--- These aren't wired into the app's data layer yet (see CLAUDE.md phase 3 notes) but the schema
--- is ready so that follow-up can land without another round-trip to the SQL editor.
+-- Run this in the Supabase dashboard: SQL Editor -> New query -> paste the whole file -> Run.
+-- Every statement here is safe to re-run (create-if-not-exists / create-or-replace), so whenever
+-- this file changes, just re-run the whole thing rather than tracking which parts are new.
+-- Sets up the tables accounts need: decks you create, decks you save, your practice history,
+-- and public profiles (usernames).
 
 create table if not exists public.decks (
   id text primary key,
@@ -19,6 +20,7 @@ create table if not exists public.decks (
 
 alter table public.decks enable row level security;
 
+drop policy if exists "Users manage their own decks" on public.decks;
 create policy "Users manage their own decks"
   on public.decks
   for all
@@ -34,6 +36,7 @@ create table if not exists public.saved_decks (
 
 alter table public.saved_decks enable row level security;
 
+drop policy if exists "Users manage their own saved decks" on public.saved_decks;
 create policy "Users manage their own saved decks"
   on public.saved_decks
   for all
@@ -51,6 +54,7 @@ create table if not exists public.practice_results (
 
 alter table public.practice_results enable row level security;
 
+drop policy if exists "Users manage their own practice results" on public.practice_results;
 create policy "Users manage their own practice results"
   on public.practice_results
   for all
@@ -73,3 +77,47 @@ drop trigger if exists decks_set_updated_at on public.decks;
 create trigger decks_set_updated_at
   before update on public.decks
   for each row execute function public.set_updated_at();
+
+-- Public profiles: usernames shown instead of email, and (once sharing lands) attributed on decks.
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  username text not null unique check (char_length(username) between 3 and 20),
+  created_at timestamptz not null default now()
+);
+
+alter table public.profiles enable row level security;
+
+-- Anyone can look up a username (needed to show "created by X" on shared decks later);
+-- only the owner can create or change their own row.
+drop policy if exists "Profiles are publicly readable" on public.profiles;
+create policy "Profiles are publicly readable"
+  on public.profiles for select
+  using (true);
+
+drop policy if exists "Users manage their own profile" on public.profiles;
+create policy "Users manage their own profile"
+  on public.profiles for insert
+  with check (auth.uid() = id);
+
+drop policy if exists "Users update their own profile" on public.profiles;
+create policy "Users update their own profile"
+  on public.profiles for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+-- Creates a profile automatically from the username passed as `options.data.username` at sign-up,
+-- so new accounts always have one without a client-side round trip that needs an active session
+-- (there isn't one yet at sign-up time, before the confirmation email is clicked).
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, username)
+  values (new.id, new.raw_user_meta_data->>'username');
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();

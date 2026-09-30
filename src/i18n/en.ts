@@ -1,7 +1,7 @@
 // Site text in English. Other languages must provide the same keys (see sv.ts).
 // Placeholders like {n} are filled in with `fill()`; **bold** is rendered where noted.
 export const en = {
-  siteName: "Memory App",
+  siteName: "MemoVerse",
   languageName: "English",
   header: {
     language: "Language",
@@ -10,6 +10,7 @@ export const en = {
     library: "My Library",
     about: "About us",
     signIn: "Sign in",
+    setUsername: "Set a username",
   },
   decks: {
     official: "Official",
@@ -75,6 +76,8 @@ export const en = {
     back: "← Discover decks",
     backToLibrary: "← My Library",
     start: "Start practising",
+    jumpToRevision: "Jump to revision",
+    jumpToRevisionHint: "Skip straight to testing what you remember, no walkthrough.",
     editDeck: "Edit deck",
     inside: "What's inside",
     contentLanguage: "Deck language: {lang}",
@@ -232,6 +235,8 @@ export const en = {
     signUpTab: "Create account",
     emailLabel: "Email",
     emailPlaceholder: "you@example.com",
+    usernameLabel: "Username",
+    usernamePlaceholder: "3-20 letters, numbers or underscores",
     passwordLabel: "Password",
     passwordPlaceholderNew: "At least 6 characters",
     signInButton: "Sign in",
@@ -244,7 +249,11 @@ export const en = {
     resetLinkSent: "Check your email for a reset link.",
     confirmEmailSent: "Check your email to confirm your account, then sign in.",
     signedInAs: "Signed in as",
+    yourUsername: "Username",
     signOut: "Sign out",
+    chooseUsernameTitle: "Choose a username",
+    chooseUsernameText: "Your account doesn't have one yet — pick one to show instead of your email.",
+    saveUsername: "Save username",
     newPasswordTitle: "Choose a new password",
     newPasswordLabel: "New password",
     updatePassword: "Update password",
@@ -257,6 +266,8 @@ export const en = {
     errorWeakPassword: "Password must be at least 6 characters.",
     errorUserExists: "An account with this email already exists. Try signing in instead.",
     invalidResetLink: "This reset link is invalid or has expired.",
+    errorUsernameInvalid: "Usernames are 3-20 letters, numbers or underscores.",
+    errorUsernameTaken: "That username is already taken.",
   },
 };
 

@@ -1,7 +1,7 @@
 import type { Dict } from "./en";
 
 export const sv: Dict = {
-  siteName: "Memory App",
+  siteName: "MemoVerse",
   languageName: "Svenska",
   header: {
     language: "Språk",
@@ -10,6 +10,7 @@ export const sv: Dict = {
     library: "Mitt bibliotek",
     about: "Om oss",
     signIn: "Logga in",
+    setUsername: "Välj ett användarnamn",
   },
   decks: {
     official: "Officiell",
@@ -75,6 +76,8 @@ export const sv: Dict = {
     back: "← Upptäck kortlekar",
     backToLibrary: "← Mitt bibliotek",
     start: "Börja öva",
+    jumpToRevision: "Hoppa till repetition",
+    jumpToRevisionHint: "Gå direkt till att testa vad du minns, utan genomgång.",
     editDeck: "Redigera kortlek",
     inside: "Innehåll",
     contentLanguage: "Kortlekens språk: {lang}",
@@ -232,6 +235,8 @@ export const sv: Dict = {
     signUpTab: "Skapa konto",
     emailLabel: "E-post",
     emailPlaceholder: "du@exempel.se",
+    usernameLabel: "Användarnamn",
+    usernamePlaceholder: "3-20 bokstäver, siffror eller understreck",
     passwordLabel: "Lösenord",
     passwordPlaceholderNew: "Minst 6 tecken",
     signInButton: "Logga in",
@@ -244,7 +249,11 @@ export const sv: Dict = {
     resetLinkSent: "Kolla din e-post för en återställningslänk.",
     confirmEmailSent: "Kolla din e-post för att bekräfta ditt konto och logga sedan in.",
     signedInAs: "Inloggad som",
+    yourUsername: "Användarnamn",
     signOut: "Logga ut",
+    chooseUsernameTitle: "Välj ett användarnamn",
+    chooseUsernameText: "Ditt konto har inget än — välj ett som visas istället för din e-post.",
+    saveUsername: "Spara användarnamn",
     newPasswordTitle: "Välj ett nytt lösenord",
     newPasswordLabel: "Nytt lösenord",
     updatePassword: "Uppdatera lösenord",
@@ -257,5 +266,7 @@ export const sv: Dict = {
     errorWeakPassword: "Lösenordet måste vara minst 6 tecken.",
     errorUserExists: "Det finns redan ett konto med den här e-posten. Försök logga in istället.",
     invalidResetLink: "Den här återställningslänken är ogiltig eller har gått ut.",
+    errorUsernameInvalid: "Användarnamn är 3-20 bokstäver, siffror eller understreck.",
+    errorUsernameTaken: "Det användarnamnet är redan taget.",
   },
 };

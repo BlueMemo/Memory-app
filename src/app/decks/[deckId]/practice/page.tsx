@@ -13,9 +13,10 @@ export async function generateMetadata({ params }: PageProps<"/decks/[deckId]/pr
   return title ? { title } : {};
 }
 
-export default async function PracticePage({ params }: PageProps<"/decks/[deckId]/practice">) {
+export default async function PracticePage({ params, searchParams }: PageProps<"/decks/[deckId]/practice">) {
   const { deckId } = await params;
+  const startInReview = (await searchParams)?.mode === "review";
   const deck = getDeck(deckId);
-  if (deck) return <PracticeSession deck={deck} />;
-  return <UserDeckGate deckId={deckId} mode="practice" />;
+  if (deck) return <PracticeSession deck={deck} startInReview={startInReview} />;
+  return <UserDeckGate deckId={deckId} mode="practice" startInReview={startInReview} />;
 }

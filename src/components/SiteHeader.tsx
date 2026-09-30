@@ -8,11 +8,18 @@ import { AuthSync } from "./AuthSync";
 
 function AuthStatus() {
   const t = useI18n().t;
-  const { user, loading, configured } = useUser();
+  const { user, username, loading, configured } = useUser();
   if (!configured || loading) return null;
+  if (!user) {
+    return (
+      <Link href="/account" className="link-muted auth-status">
+        {t.header.signIn}
+      </Link>
+    );
+  }
   return (
     <Link href="/account" className="link-muted auth-status">
-      {user ? (user.email ?? t.account.signedInAs) : t.header.signIn}
+      {username ?? t.header.setUsername}
     </Link>
   );
 }
