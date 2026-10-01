@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { setActiveUserForLibrary } from "@/lib/library";
+import { setActiveUserForDeckOverrides } from "@/lib/deckOverrides";
 import { setActiveUserForPracticeResults } from "@/lib/practiceResults";
 import { setActiveUserForSrs } from "@/lib/srs/store";
 import { useUser } from "@/lib/supabase/useUser";
@@ -18,6 +19,7 @@ export function AuthSync() {
     setActiveUserForLibrary(id);
     setActiveUserForPracticeResults(id);
     setActiveUserForSrs(id);
+    setActiveUserForDeckOverrides(id);
   }, [user, loading]);
 
   return null;

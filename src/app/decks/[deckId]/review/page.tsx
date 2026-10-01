@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { ReviewSession } from "@/components/ReviewSession";
-import { UserDeckGate } from "@/components/UserDeckGate";
+import { DeckGate } from "@/components/DeckGate";
 import { getDeck, officialDecks } from "@/decks";
 
 export function generateStaticParams() {
@@ -15,7 +14,5 @@ export async function generateMetadata({ params }: PageProps<"/decks/[deckId]/re
 
 export default async function ReviewPage({ params }: PageProps<"/decks/[deckId]/review">) {
   const { deckId } = await params;
-  const deck = getDeck(deckId);
-  if (deck) return <ReviewSession deck={deck} />;
-  return <UserDeckGate deckId={deckId} mode="review" />;
+  return <DeckGate deckId={deckId} officialDeck={getDeck(deckId)} mode="review" />;
 }

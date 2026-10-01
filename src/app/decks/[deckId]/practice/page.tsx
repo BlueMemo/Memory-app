@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { PracticeSession } from "@/components/PracticeSession";
-import { UserDeckGate } from "@/components/UserDeckGate";
+import { DeckGate } from "@/components/DeckGate";
 import { getDeck, officialDecks } from "@/decks";
 
 export function generateStaticParams() {
@@ -16,7 +15,5 @@ export async function generateMetadata({ params }: PageProps<"/decks/[deckId]/pr
 export default async function PracticePage({ params, searchParams }: PageProps<"/decks/[deckId]/practice">) {
   const { deckId } = await params;
   const startInReview = (await searchParams)?.mode === "review";
-  const deck = getDeck(deckId);
-  if (deck) return <PracticeSession deck={deck} startInReview={startInReview} />;
-  return <UserDeckGate deckId={deckId} mode="practice" startInReview={startInReview} />;
+  return <DeckGate deckId={deckId} officialDeck={getDeck(deckId)} mode="practice" startInReview={startInReview} />;
 }

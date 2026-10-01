@@ -7,14 +7,18 @@ import { fill } from "@/lib/practice";
 import type { Deck } from "@/lib/types";
 import { SaveDeckButton } from "./SaveDeckButton";
 
-/** `action` overrides the default save toggle, e.g. with a delete button for decks the learner made themselves. */
-export function DeckTile({ deck, action }: { deck: Deck; action?: ReactNode }) {
+/**
+ * `action` overrides the default save toggle, e.g. with edit/delete buttons in the library.
+ * `edited` marks a saved deck the learner has their own version of.
+ */
+export function DeckTile({ deck, action, edited }: { deck: Deck; action?: ReactNode; edited?: boolean }) {
   const t = useI18n().t.decks;
   const href = `/decks/${deck.id}`;
   return (
     <article className="deck-tile">
       <div className="tags">
         {deck.official && <span className="tag accent">{t.official}</span>}
+        {edited && <span className="tag">{t.edited}</span>}
         <span className="tag">{deck.kind === "ordered" ? t.ordered : t.unordered}</span>
       </div>
       <h3>

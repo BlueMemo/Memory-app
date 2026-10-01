@@ -14,6 +14,22 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Saved decks behave like the learner's own decks, added (2026-10-01)**: decision from the team — "there
+  should be no difference between saved and independently created decks". Saved decks appear in Browse
+  cards, and can be edited there or in the deck editor (Edit button on the deck page and Library tile).
+  Because official (and later shared) decks belong to everyone, editing one stores a **personal version**
+  for that learner (`src/lib/deckOverrides.ts`; guests: localStorage `library.deckOverrides`, accounts:
+  table `deck_overrides`) under the original deck's id, so ★ Saved and its FSRS schedule stay attached.
+  Everyone else still sees the original. Until edited, a saved deck follows the original (incl. fixes);
+  once edited, later changes to the original don't reach it — consistent with the earlier decision that
+  publisher updates don't affect personal copies. "Reset to the original" on the deck page discards the
+  personal version. Shown with an "Edited" tag in the Library/deck page; Discover always shows the original.
+  `src/lib/editableDecks.ts` (`useEditableDecks`, `saveEditedDeck`) is the one place that decides where an
+  edit goes; `components/DeckGate.tsx` (replaces UserDeckGate) picks the right version for deck, practice
+  and review pages. The deck editor and its card form now keep fields they don't edit (an official deck's
+  notes/test questions/instructions; a card's object/details/suggestion/drawing). Editing an unsaved
+  official deck via its URL saves it to the library. **Pending**: re-run `supabase/schema.sql` (adds
+  `deck_overrides`; until then signed-in edits to saved decks only last until the page reloads).
 - **Spaced repetition (FSRS, as in Anki), added (2026-10-01)**: built on `ts-fsrs` (the official
   open-spaced-repetition TypeScript implementation). Modelled on Anki's defaults and behaviour: four
   answers (Again/Hard/Good/Easy, keys 1-4, Space = Good once the answer shows), learning steps `1m 10m`,

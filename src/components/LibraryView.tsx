@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { getDeck, officialDecks } from "@/decks";
+import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
-import { useSavedDeckIds } from "@/lib/library";
+import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
+import { useSavedDecks } from "@/lib/editableDecks";
 import { deckCounts } from "@/lib/srs/core";
 import { isDeckEnabled, useSrsData, useSrsStatus } from "@/lib/srs/store";
 import { useNow } from "@/lib/useNow";
@@ -15,15 +16,16 @@ import { DeckTile } from "./DeckTile";
 import { DeleteDeckButton } from "./DeleteDeckButton";
 import { ImportGuestDataPrompt } from "./ImportGuestDataPrompt";
 import { SrsCounts } from "./ReviewSession";
+import { SaveDeckButton } from "./SaveDeckButton";
 
 export function LibraryView() {
   const t = useI18n().t.library;
   const { user } = useUser();
-  // Skip ids of decks that no longer exist (e.g. an official deck that was removed).
-  const savedDecks = useSavedDeckIds()
-    .map(getDeck)
-    .filter((d): d is Deck => d !== undefined);
+  const savedDecks = useSavedDecks();
   const userDecks = useUserDecks();
+  const overrides = useDeckOverrides();
+  // Official decks can have spaced repetition on without being saved, so all of them are checked for due cards.
+  const officialResolved = officialDecks.map((d) => resolveDeck(d, overrides));
 
   return (
     <main className="page">
@@ -34,11 +36,11 @@ export function LibraryView() {
 
       <ImportGuestDataPrompt />
 
-      <DueForReview decks={[...userDecks, ...officialDecks]} />
+      <DueForReview decks={[...userDecks, ...officialResolved]} />
 
       <div className="section-title-row">
         <h2 className="section-title">{t.yourDecks}</h2>
-        {userDecks.length > 0 && (
+        {userDecks.length + savedDecks.length > 0 && (
           <Link href="/library/cards" className="tile-open">
             {t.browseCards}
           </Link>
@@ -77,7 +79,18 @@ export function LibraryView() {
         <ul className="deck-grid">
           {savedDecks.map((deck) => (
             <li key={deck.id}>
-              <DeckTile deck={deck} />
+              <DeckTile
+                deck={deck}
+                edited={overrides[deck.id] !== undefined}
+                action={
+                  <div className="tile-actions">
+                    <Link href={`/library/edit/${deck.id}`} className="save-btn">
+                      {t.editDeck}
+                    </Link>
+                    <SaveDeckButton deckId={deck.id} />
+                  </div>
+                }
+              />
             </li>
           ))}
         </ul>

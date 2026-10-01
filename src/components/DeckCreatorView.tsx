@@ -4,11 +4,15 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { dictionaries, languages, useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
+import { getDeck } from "@/decks";
+import { resolveDeck, useDeckOverrides, useDeckOverridesStatus } from "@/lib/deckOverrides";
+import { isSharedDeck, saveEditedDeck } from "@/lib/editableDecks";
 import { readImageFile } from "@/lib/images";
+import { toggleSavedDeck, useSavedDeckIds } from "@/lib/library";
 import { fill } from "@/lib/practice";
 import { isDeckEnabled, setDeckSrsEnabled, useSrsData } from "@/lib/srs/store";
 import { useMounted } from "@/lib/useMounted";
-import { addUserDeck, updateUserDeck, useUserDeck } from "@/lib/userDecks";
+import { addUserDeck, useUserDeck } from "@/lib/userDecks";
 import type { Card, Deck, Lang } from "@/lib/types";
 import { DeckNotFound } from "./DeckNotFound";
 
@@ -22,10 +26,19 @@ export function DeckCreatorView({ editDeckId }: { editDeckId?: string }) {
 }
 
 function EditDeckLoader({ deckId }: { deckId: string }) {
-  const deck = useUserDeck(deckId);
+  const userDeck = useUserDeck(deckId);
+  const official = getDeck(deckId);
+  const overrides = useDeckOverrides();
+  const overridesStatus = useDeckOverridesStatus();
   const mounted = useMounted();
-  if (deck) return <DeckCreatorForm key={deck.id} initialDeck={deck} />;
   if (!mounted) return null;
+  if (official) {
+    // Editing a shared deck edits the learner's personal version of it (or starts one from the original).
+    if (overridesStatus === "loading") return null;
+    const deck = resolveDeck(official, overrides);
+    return <DeckCreatorForm key={deck.id} initialDeck={deck} />;
+  }
+  if (userDeck) return <DeckCreatorForm key={userDeck.id} initialDeck={userDeck} />;
   return <DeckNotFound />;
 }
 
@@ -50,26 +63,37 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
   const srsSaved = initialDeck ? isDeckEnabled(srs, initialDeck.id) : srs.settings.enableForNewDecks;
   const [srsChoice, setSrsChoice] = useState<boolean | null>(null);
   const srsOn = srsChoice ?? srsSaved;
+  const savedIds = useSavedDeckIds();
 
   const detailsValid = title.trim() !== "" && description.trim() !== "";
 
   const finalize = async () => {
+    const defaultInstructions =
+      kind === "ordered"
+        ? [t.defaultInstructionsOrdered1, t.defaultInstructionsOrdered2]
+        : [t.defaultInstructionsUnordered1, t.defaultInstructionsUnordered2];
+    // Keep whatever this form doesn't edit (e.g. an official deck's notes, test questions and own
+    // instructions); only switch to the default instructions when the deck changes kind.
     const deck: Deck = {
+      ...initialDeck,
       id: initialDeck?.id ?? `user-${crypto.randomUUID()}`,
       title: title.trim(),
       description: description.trim(),
       language,
       kind,
-      ...(kind === "ordered" && orderLabel.trim() ? { orderLabel: orderLabel.trim() } : {}),
-      instructions:
-        kind === "ordered"
-          ? [t.defaultInstructionsOrdered1, t.defaultInstructionsOrdered2]
-          : [t.defaultInstructionsUnordered1, t.defaultInstructionsUnordered2],
+      instructions: initialDeck && initialDeck.kind === kind ? initialDeck.instructions : defaultInstructions,
       cards,
     };
+    if (kind === "ordered" && orderLabel.trim()) deck.orderLabel = orderLabel.trim();
+    else delete deck.orderLabel;
     setSaving(true);
-    if (editing) await updateUserDeck(deck);
-    else await addUserDeck(deck);
+    if (editing) {
+      await saveEditedDeck(deck);
+      // Editing a shared deck makes it the learner's, so make sure it's in their library.
+      if (isSharedDeck(deck.id) && !savedIds.includes(deck.id)) await toggleSavedDeck(deck.id);
+    } else {
+      await addUserDeck(deck);
+    }
     if (!editing || srsOn !== srsSaved) await setDeckSrsEnabled(deck.id, srsOn);
     router.push(`/decks/${deck.id}`);
   };
@@ -280,16 +304,26 @@ function CardsStep({
 
   const submitCard = () => {
     if (!canSubmit) return;
+    // When editing, start from the existing card so fields this form doesn't show (e.g. an official
+    // card's object, details or drawing) survive; the id stays, so its review schedule does too.
     const card: Card = {
+      ...cards.find((c) => c.id === editingId),
       id: editingId ?? crypto.randomUUID(),
       answer: form.answer.trim(),
-      ...(ordered ? {} : { prompt: form.prompt.trim() }),
-      ...(form.visualization.trim() ? { visualization: form.visualization.trim() } : {}),
-      ...(form.note.trim() ? { note: form.note.trim() } : {}),
-      ...(promptImage ? { promptImage } : {}),
-      ...(answerImage ? { answerImage } : {}),
-      ...(visualizationImage ? { visualizationImage } : {}),
     };
+    const setOrClear = <K extends "prompt" | "visualization" | "note" | "promptImage" | "answerImage" | "visualizationImage">(
+      key: K,
+      value: string | undefined,
+    ) => {
+      if (value) card[key] = value;
+      else delete card[key];
+    };
+    setOrClear("prompt", ordered ? undefined : form.prompt.trim());
+    setOrClear("visualization", form.visualization.trim());
+    setOrClear("note", form.note.trim());
+    setOrClear("promptImage", promptImage);
+    setOrClear("answerImage", answerImage);
+    setOrClear("visualizationImage", visualizationImage);
     setCards(editingId ? cards.map((c) => (c.id === editingId ? card : c)) : [...cards, card]);
     setEditingId(null);
     resetForm();

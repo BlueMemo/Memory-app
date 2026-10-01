@@ -122,6 +122,26 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- ---------- Personal versions of saved decks ----------
+-- When a learner edits a saved (official/shared) deck, their edited copy is kept here under the original
+-- deck's id; everyone else keeps seeing the original. See src/lib/deckOverrides.ts.
+create table if not exists public.deck_overrides (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  deck_id text not null,
+  deck jsonb not null,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, deck_id)
+);
+
+alter table public.deck_overrides enable row level security;
+
+drop policy if exists "Users manage their own deck versions" on public.deck_overrides;
+create policy "Users manage their own deck versions"
+  on public.deck_overrides
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
 -- ---------- Spaced repetition (FSRS, as in Anki) ----------
 -- deck_id/card_id are text and not foreign keys: they can point at official decks (defined in code)
 -- as well as at rows in public.decks.

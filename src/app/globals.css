@@ -1750,6 +1750,12 @@ ul.overview-list {
   color: var(--srs-again);
 }
 
+.link-button.inline {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
 .link-button:disabled {
   opacity: 0.4;
   cursor: default;

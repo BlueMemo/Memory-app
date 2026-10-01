@@ -8,9 +8,9 @@ import { fill } from "@/lib/practice";
 import { cardKey, formatInterval, nextDayStart, State, type StoredCard } from "@/lib/srs/core";
 import { forgetCard, isDeckEnabled, useSrsData } from "@/lib/srs/store";
 import type { Card, Deck } from "@/lib/types";
+import { saveEditedDeck, useEditableDecks } from "@/lib/editableDecks";
 import { useMounted } from "@/lib/useMounted";
 import { useNow } from "@/lib/useNow";
-import { updateUserDeck, useUserDecks } from "@/lib/userDecks";
 
 type Filter = "all" | "due" | "new" | "learning" | "review";
 type SortKey = "deck" | "question" | "answer" | "due";
@@ -26,11 +26,14 @@ interface Row {
 
 const searchText = (c: Card) => [c.prompt, c.answer, c.visualization, c.object, c.note, c.details].filter(Boolean).join(" ").toLowerCase();
 
-/** Like Anki's browser: every card in the learner's own decks, searchable, with an editor for the selected card. */
+/**
+ * Like Anki's browser: every card in the learner's decks — ones they created and ones they saved, treated
+ * alike — searchable, with an editor for the selected card.
+ */
 export function CardBrowserView() {
   const { t: dict } = useI18n();
   const t = dict.browser;
-  const decks = useUserDecks();
+  const decks = useEditableDecks();
   const srs = useSrsData();
   const mounted = useMounted();
   const now = useNow();
@@ -232,14 +235,14 @@ function CardEditor({ row, now, dict, onDeleted }: { row: Row; now: Date; dict: 
     if (form.note.trim()) updated.note = form.note.trim();
     else delete updated.note;
     setSaving(true);
-    await updateUserDeck({ ...deck, cards: deck.cards.map((c) => (c.id === card.id ? updated : c)) });
+    await saveEditedDeck({ ...deck, cards: deck.cards.map((c) => (c.id === card.id ? updated : c)) });
     setSaving(false);
     setSaved(true);
   };
 
   const remove = async () => {
     if (!window.confirm(t.deleteConfirm)) return;
-    await updateUserDeck({ ...deck, cards: deck.cards.filter((c) => c.id !== card.id) });
+    await saveEditedDeck({ ...deck, cards: deck.cards.filter((c) => c.id !== card.id) });
     await forgetCard(deck.id, card.id);
     onDeleted();
   };
