@@ -14,6 +14,27 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Chapters of 10 for big decks, added (2026-10-01)**: decided by the team (resolves the earlier open
+  "large decks" question). Decks with more than 10 cards (`CHAPTER_SIZE` in `src/lib/chapters.ts`) are
+  learned chapter by chapter: each chapter gets the full technique flow, the deck page lists chapters
+  (Learn / Revise per chapter, `?chapter=N`), and a **Final test** covers all cards (`?mode=test`).
+  Stop numbers continue across chapters (chapter 2 starts at stop 11) via `positionOffset` in
+  `PracticeSession`; authors' notes move with their cards. The last chapter can be shorter. A chapter's
+  test results offer "Next chapter →". FSRS reviews are unaffected (whole deck). Not tracked yet: which
+  chapters a learner has finished.
+- **Import v1, added (2026-10-01)**: `/library/import` (linked under "+ Create new deck" in the Library).
+  Paste text or upload/drop a .txt/.csv/.tsv (max 5 MB, read in the browser, never uploaded). Parsing is
+  in `src/lib/import/parse.ts` (tested): auto-detects the separator (tab ; | → = " - " ": " ,), quoted CSV
+  via Papa Parse, Anki's "Notes in Plain Text" export (reads its `#separator/#columns/#html/#deck column`
+  header lines, ignores deck/notetype/tags/guid columns, strips HTML and decodes entities with the
+  `entities` package), strips list numbering, guesses a header row and each column's role
+  (question/answer/memory queue/note/ignore). A list without separators suggests a **memory route**;
+  with a question column, **associations**. Preview table: change column roles, skip rows, edit cells;
+  rows without an answer (or question, for associations) are skipped, duplicates and very long fields are
+  flagged. Up to 5,000 cards; guests get a warning for decks that may not fit browser storage.
+  **Next (v2)**: direct .apkg import (zip + sql.js, field mapping, cloze skipped) — for now .apkg files
+  get a message pointing to Anki's plain-text export. Later: Anki review history → FSRS, media,
+  "add cards from import" to an existing deck.
 - **Saved decks behave like the learner's own decks, added (2026-10-01)**: decision from the team — "there
   should be no difference between saved and independently created decks". Saved decks appear in Browse
   cards, and can be edited there or in the deck editor (Edit button on the deck page and Library tile).
@@ -186,4 +207,4 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
    public list + search, save or "make my own copy"
 5. Test-group launch
 
-Open decision: large decks (50+ cards) will likely be split into chapters of ~10; the engine currently assumes ~10.
+Large decks: decided — chapters of 10 (see Current status).

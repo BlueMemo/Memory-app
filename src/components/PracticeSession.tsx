@@ -10,6 +10,7 @@ import {
   fill,
   initReviewSession,
   initSession,
+  initTestSession,
   knownCount,
   missedIds,
   orderCards,
@@ -27,13 +28,31 @@ const SUGGESTION_DELAY_MS = 20_000;
 
 type T = Dict["practice"];
 
-export function PracticeSession({ deck, startInReview }: { deck: Deck; startInReview?: boolean }) {
+export type StartIn = "beginning" | "review" | "test";
+
+/**
+ * `deck` may be one chapter of a bigger deck (see lib/chapters.ts): `positionOffset` is how many cards come
+ * before it, so stop numbers continue across chapters, and `chapter` drives the label and "next chapter".
+ */
+export function PracticeSession({
+  deck,
+  startIn = "beginning",
+  positionOffset = 0,
+  chapter,
+}: {
+  deck: Deck;
+  startIn?: StartIn;
+  positionOffset?: number;
+  chapter?: { number: number; count: number };
+}) {
   const t = useI18n().t.practice;
   const steps = useMemo(() => buildSteps(deck), [deck]);
-  const [state, dispatch] = useReducer(
-    practiceReducer,
-    { deck, stepCount: steps.length, startInReview: !!startInReview },
-    (arg) => (arg.startInReview ? initReviewSession(arg.deck, arg.stepCount) : initSession(arg.stepCount)),
+  const [state, dispatch] = useReducer(practiceReducer, { deck, stepCount: steps.length, startIn }, (arg) =>
+    arg.startIn === "review"
+      ? initReviewSession(arg.deck, arg.stepCount)
+      : arg.startIn === "test"
+        ? initTestSession(arg.deck, arg.stepCount)
+        : initSession(arg.stepCount),
   );
   const [showInstructions, setShowInstructions] = useState(false);
   const recordedRound = useRef<number | null>(null);
@@ -48,7 +67,7 @@ export function PracticeSession({ deck, startInReview }: { deck: Deck; startInRe
   const ordered = deck.kind === "ordered";
   const allIds = deck.cards.map((c) => c.id);
   const cardById = (id: string) => deck.cards.find((c) => c.id === id)!;
-  const positionOf = (id: string) => deck.cards.findIndex((c) => c.id === id) + 1;
+  const positionOf = (id: string) => deck.cards.findIndex((c) => c.id === id) + 1 + positionOffset;
 
   const startRevision = (ids: string[]) => dispatch({ type: "startRevision", order: orderCards(deck, ids) });
   const startTest = () => dispatch({ type: "startTest", order: orderCards(deck, allIds) });
@@ -101,6 +120,7 @@ export function PracticeSession({ deck, startInReview }: { deck: Deck; startInRe
         <Link href={`/decks/${deck.id}`} className="exit-btn">
           {t.exit}
         </Link>
+        {chapter && <span className="chapter-label">{fill(t.chapterOf, { n: chapter.number, total: chapter.count })}</span>}
       </div>
 
       {showInstructions && (
@@ -130,7 +150,7 @@ export function PracticeSession({ deck, startInReview }: { deck: Deck; startInRe
                 <div className="learn-text">
                   <p>{t.overviewText}</p>
                   {ordered ? (
-                    <ol className="overview-list">
+                    <ol className="overview-list" start={positionOffset + 1}>
                       {deck.cards.map((c) => (
                         <li key={c.id}>{c.answer}</li>
                       ))}
@@ -157,7 +177,7 @@ export function PracticeSession({ deck, startInReview }: { deck: Deck; startInRe
 
         {state.phase === "walkthrough" && (
           <>
-            <WalkStep key={state.step} deck={deck} step={steps[state.step]} t={t} />
+            <WalkStep key={state.step} deck={deck} step={steps[state.step]} positionOffset={positionOffset} t={t} />
             <div className="controls">
               <button className="btn nav" onClick={() => dispatch({ type: "prev" })} disabled={state.step === 0}>
                 {t.previous}
@@ -229,7 +249,8 @@ export function PracticeSession({ deck, startInReview }: { deck: Deck; startInRe
 
         {state.phase === "results" && (
           <Results deck={deck} state={state} t={t} cardById={cardById} positionOf={positionOf}
-            onRevise={() => startRevision(allIds)} onRetest={startTest} />
+            onRevise={() => startRevision(allIds)} onRetest={startTest}
+            nextChapterHref={chapter && chapter.number < chapter.count ? `/decks/${deck.id}/practice?chapter=${chapter.number + 1}` : undefined} />
         )}
       </div>
 
@@ -314,7 +335,7 @@ function InstructionsCard({ deck, t, hint, onClick }: { deck: Deck; t: T; hint: 
   );
 }
 
-function WalkStep({ deck, step, t }: { deck: Deck; step: Step; t: T }) {
+function WalkStep({ deck, step, positionOffset, t }: { deck: Deck; step: Step; positionOffset: number; t: T }) {
   if (step.type !== "card") {
     const note =
       step.type === "note"
@@ -336,7 +357,7 @@ function WalkStep({ deck, step, t }: { deck: Deck; step: Step; t: T }) {
   }
 
   const card = deck.cards[step.cardIndex];
-  const n = step.cardIndex + 1;
+  const n = step.cardIndex + 1 + positionOffset;
   const ordered = deck.kind === "ordered";
   const own = !card.object && !card.visualization;
   const showAnswer = deck.showAnswerInWalkthrough ?? true;
@@ -533,8 +554,9 @@ function Results(props: {
   positionOf: (id: string) => number;
   onRevise: () => void;
   onRetest: () => void;
+  nextChapterHref?: string;
 }) {
-  const { deck, state, t, cardById, positionOf, onRevise, onRetest } = props;
+  const { deck, state, t, cardById, positionOf, onRevise, onRetest, nextChapterHref } = props;
   const ordered = deck.kind === "ordered";
   const known = knownCount(state);
   const pct = known / state.queue.length;
@@ -574,9 +596,14 @@ function Results(props: {
         <button className="btn nav wide" onClick={onRevise}>
           {t.backToRevision}
         </button>
-        <button className="btn accent" onClick={onRetest}>
+        <button className={`btn ${nextChapterHref ? "nav wide" : "accent"}`} onClick={onRetest}>
           {t.tryTestAgain}
         </button>
+        {nextChapterHref && (
+          <Link href={nextChapterHref} className="btn accent">
+            {t.nextChapter}
+          </Link>
+        )}
       </div>
       <Link href={`/decks/${deck.id}`} className="link-button">
         {t.backToDeck}

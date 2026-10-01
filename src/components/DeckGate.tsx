@@ -1,12 +1,13 @@
 "use client";
 
+import { chapterCount, chapterDeck, parseChapter } from "@/lib/chapters";
 import { resolveDeck, useDeckOverrides, useDeckOverridesStatus } from "@/lib/deckOverrides";
 import type { Deck } from "@/lib/types";
 import { useMounted } from "@/lib/useMounted";
 import { useUserDeck } from "@/lib/userDecks";
 import { DeckNotFound } from "./DeckNotFound";
 import { DeckView } from "./DeckView";
-import { PracticeSession } from "./PracticeSession";
+import { PracticeSession, type StartIn } from "./PracticeSession";
 import { ReviewSession } from "./ReviewSession";
 
 /**
@@ -14,17 +15,20 @@ import { ReviewSession } from "./ReviewSession";
  * - official decks: the learner's personal version if they've edited it, otherwise the original;
  * - decks the learner created: these only exist in their browser or account, so the server doesn't know them.
  * Waits until that's known, so the original (or "not found") doesn't flash first.
+ * For practice, `chapter` (from ?chapter=) narrows a big deck down to one chapter.
  */
 export function DeckGate({
   deckId,
   officialDeck,
   mode,
-  startInReview,
+  startIn,
+  chapter,
 }: {
   deckId: string;
   officialDeck?: Deck;
   mode: "view" | "practice" | "review";
-  startInReview?: boolean;
+  startIn?: StartIn;
+  chapter?: string | string[];
 }) {
   const userDeck = useUserDeck(deckId);
   const overrides = useDeckOverrides();
@@ -36,9 +40,22 @@ export function DeckGate({
   const deck = officialDeck ? resolveDeck(officialDeck, overrides) : userDeck;
   if (!deck) return <DeckNotFound />;
 
-  // Remount practice/review if the deck's content changes underneath (e.g. edits saved on another device).
-  const key = `${deck.id}-${deck === officialDeck ? "original" : "own"}-${deck.cards.length}`;
+  // Remount practice/review when what's being practised changes: another chapter or mode, or the deck's
+  // content changing underneath (e.g. edits saved on another device).
+  const version = `${deck.id}-${deck === officialDeck ? "original" : "own"}-${deck.cards.length}`;
   if (mode === "view") return <DeckView deck={deck} />;
-  if (mode === "review") return <ReviewSession key={key} deck={deck} />;
-  return <PracticeSession key={key} deck={deck} startInReview={startInReview} />;
+  if (mode === "review") return <ReviewSession key={version} deck={deck} />;
+
+  const n = parseChapter(deck, chapter);
+  if (n === null) return <PracticeSession key={`${version}-all-${startIn}`} deck={deck} startIn={startIn} />;
+  const part = chapterDeck(deck, n);
+  return (
+    <PracticeSession
+      key={`${version}-ch${n}-${startIn}`}
+      deck={part.deck}
+      startIn={startIn}
+      positionOffset={part.offset}
+      chapter={{ number: n, count: chapterCount(deck) }}
+    />
+  );
 }

@@ -79,6 +79,11 @@ export function initReviewSession(deck: Deck, stepCount: number, random: () => n
   };
 }
 
+/** Starts straight in the test, e.g. the final test across all chapters of a big deck. */
+export function initTestSession(deck: Deck, stepCount: number, random: () => number = Math.random): SessionState {
+  return { ...initReviewSession(deck, stepCount, random), phase: "test" };
+}
+
 export function practiceReducer(state: SessionState, action: Action): SessionState {
   switch (action.type) {
     case "begin":

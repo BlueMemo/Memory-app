@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { dictionaries, useI18n } from "@/i18n";
+import { CHAPTER_SIZE, chapterCount, chapterRange, hasChapters } from "@/lib/chapters";
 import { removeDeckOverride, useDeckOverrides } from "@/lib/deckOverrides";
 import { isSharedDeck } from "@/lib/editableDecks";
 import { useSavedDeckIds } from "@/lib/library";
@@ -13,6 +14,7 @@ import { SrsDeckPanel } from "./SrsDeckPanel";
 export function DeckView({ deck }: { deck: Deck }) {
   const { lang, t } = useI18n();
   const ordered = deck.kind === "ordered";
+  const chapters = hasChapters(deck);
   const shared = isSharedDeck(deck.id);
   const saved = useSavedDeckIds().includes(deck.id);
   const overrides = useDeckOverrides();
@@ -46,12 +48,29 @@ export function DeckView({ deck }: { deck: Deck }) {
       <p className="deck-description">{deck.description}</p>
 
       <div className="deck-actions">
-        <Link href={`/decks/${deck.id}/practice`} className="btn accent big-btn">
-          {t.deck.start}
-        </Link>
-        <Link href={`/decks/${deck.id}/practice?mode=review`} className="btn nav" title={t.deck.jumpToRevisionHint}>
-          {t.deck.jumpToRevision}
-        </Link>
+        {chapters ? (
+          <>
+            <Link href={`/decks/${deck.id}/practice?chapter=1`} className="btn accent big-btn">
+              {t.deck.startChapterOne}
+            </Link>
+            <Link
+              href={`/decks/${deck.id}/practice?mode=test`}
+              className="btn nav"
+              title={fill(t.deck.finalTestHint, { n: deck.cards.length })}
+            >
+              {t.deck.finalTest}
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link href={`/decks/${deck.id}/practice`} className="btn accent big-btn">
+              {t.deck.start}
+            </Link>
+            <Link href={`/decks/${deck.id}/practice?mode=review`} className="btn nav" title={t.deck.jumpToRevisionHint}>
+              {t.deck.jumpToRevision}
+            </Link>
+          </>
+        )}
         {shared && <SaveDeckButton deckId={deck.id} />}
         {editable && (
           <Link href={`/library/edit/${deck.id}`} className="btn nav">
@@ -69,6 +88,41 @@ export function DeckView({ deck }: { deck: Deck }) {
       )}
 
       <SrsDeckPanel deck={deck} />
+
+      {chapters && (
+        <>
+          <h2 className="section-title">{t.deck.chaptersTitle}</h2>
+          <p className="muted chapters-hint">{fill(t.deck.chaptersHint, { size: CHAPTER_SIZE })}</p>
+          <ol className="chapter-list">
+            {Array.from({ length: chapterCount(deck) }, (_, i) => {
+              const n = i + 1;
+              const { from, to } = chapterRange(deck, n);
+              const first = deck.cards[from - 1];
+              const last = deck.cards[to - 1];
+              const label = (c: (typeof deck.cards)[number]) => (ordered ? c.answer : (c.prompt ?? c.answer));
+              return (
+                <li key={n}>
+                  <div className="chapter-info">
+                    <strong>{fill(t.deck.chapterLabel, { n })}</strong>
+                    <span className="muted">
+                      {fill(ordered ? t.deck.rangeOrdered : t.deck.rangeUnordered, { from, to })} · {label(first)}
+                      {from !== to && ` – ${label(last)}`}
+                    </span>
+                  </div>
+                  <div className="chapter-actions">
+                    <Link href={`/decks/${deck.id}/practice?chapter=${n}`} className="btn accent">
+                      {t.deck.learn}
+                    </Link>
+                    <Link href={`/decks/${deck.id}/practice?chapter=${n}&mode=review`} className="btn nav">
+                      {t.deck.revise}
+                    </Link>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </>
+      )}
 
       <h2 className="section-title">{t.deck.inside}</h2>
       {ordered ? (
