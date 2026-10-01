@@ -2,7 +2,7 @@
 -- Every statement here is safe to re-run (create-if-not-exists / create-or-replace), so whenever
 -- this file changes, just re-run the whole thing rather than tracking which parts are new.
 -- Sets up the tables accounts need: decks you create, decks you save, your practice history,
--- and public profiles (usernames).
+-- public profiles (usernames), and spaced repetition (FSRS) scheduling.
 
 create table if not exists public.decks (
   id text primary key,
@@ -121,3 +121,99 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- ---------- Spaced repetition (FSRS, as in Anki) ----------
+-- deck_id/card_id are text and not foreign keys: they can point at official decks (defined in code)
+-- as well as at rows in public.decks.
+
+-- Per-user settings; `srs` holds the spaced repetition options (see SrsSettings in src/lib/srs/core.ts).
+create table if not exists public.user_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  srs jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.user_settings enable row level security;
+
+drop policy if exists "Users manage their own settings" on public.user_settings;
+create policy "Users manage their own settings"
+  on public.user_settings
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Which decks have spaced repetition switched on.
+create table if not exists public.srs_deck_settings (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  deck_id text not null,
+  enabled boolean not null default true,
+  primary key (user_id, deck_id)
+);
+
+alter table public.srs_deck_settings enable row level security;
+
+drop policy if exists "Users manage their own deck SRS settings" on public.srs_deck_settings;
+create policy "Users manage their own deck SRS settings"
+  on public.srs_deck_settings
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Each card's current schedule. Cards without a row are new.
+create table if not exists public.srs_cards (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  deck_id text not null,
+  card_id text not null,
+  due timestamptz not null,
+  stability double precision not null,
+  difficulty double precision not null,
+  elapsed_days double precision not null default 0,
+  scheduled_days double precision not null default 0,
+  learning_steps int not null default 0,
+  reps int not null default 0,
+  lapses int not null default 0,
+  state smallint not null check (state between 0 and 3), -- 0 new, 1 learning, 2 review, 3 relearning
+  last_review timestamptz,
+  primary key (user_id, deck_id, card_id)
+);
+
+alter table public.srs_cards enable row level security;
+
+drop policy if exists "Users manage their own card schedules" on public.srs_cards;
+create policy "Users manage their own card schedules"
+  on public.srs_cards
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index if not exists srs_cards_user_due_idx on public.srs_cards (user_id, due);
+
+-- Every answer given, like Anki's review log. Kept in full so FSRS parameters can be
+-- optimized from a user's own history later.
+create table if not exists public.srs_review_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  deck_id text not null,
+  card_id text not null,
+  rating smallint not null check (rating between 1 and 4), -- 1 again, 2 hard, 3 good, 4 easy
+  state smallint not null, -- the card's state before this answer
+  review timestamptz not null,
+  due timestamptz not null,
+  stability double precision not null,
+  difficulty double precision not null,
+  elapsed_days double precision not null default 0,
+  last_elapsed_days double precision not null default 0,
+  scheduled_days double precision not null default 0,
+  learning_steps int not null default 0
+);
+
+alter table public.srs_review_logs enable row level security;
+
+drop policy if exists "Users manage their own review logs" on public.srs_review_logs;
+create policy "Users manage their own review logs"
+  on public.srs_review_logs
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index if not exists srs_review_logs_user_review_idx on public.srs_review_logs (user_id, review desc);

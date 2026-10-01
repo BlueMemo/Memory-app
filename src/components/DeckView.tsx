@@ -5,6 +5,7 @@ import { dictionaries, useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
 import type { Deck } from "@/lib/types";
 import { SaveDeckButton } from "./SaveDeckButton";
+import { SrsDeckPanel } from "./SrsDeckPanel";
 
 export function DeckView({ deck }: { deck: Deck }) {
   const { lang, t } = useI18n();
@@ -42,6 +43,8 @@ export function DeckView({ deck }: { deck: Deck }) {
           </Link>
         )}
       </div>
+
+      <SrsDeckPanel deck={deck} />
 
       <h2 className="section-title">{t.deck.inside}</h2>
       {ordered ? (

@@ -59,6 +59,15 @@ export function SiteHeader() {
         ))}
       </nav>
       <div className="header-right">
+        <Link
+          href="/settings"
+          className={`settings-link${pathname === "/settings" ? " active" : ""}`}
+          title={t.header.settings}
+          aria-label={t.header.settings}
+          aria-current={pathname === "/settings" ? "page" : undefined}
+        >
+          ⚙
+        </Link>
         <AuthStatus />
         <div className="lang-switch" role="group" aria-label={t.header.language}>
           {languages.map((l) => (

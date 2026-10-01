@@ -14,6 +14,35 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Spaced repetition (FSRS, as in Anki), added (2026-10-01)**: built on `ts-fsrs` (the official
+  open-spaced-repetition TypeScript implementation). Modelled on Anki's defaults and behaviour: four
+  answers (Again/Hard/Good/Easy, keys 1-4, Space = Good once the answer shows), learning steps `1m 10m`,
+  relearning `10m`, desired retention 0.90, max interval 36500 d, fuzz on, 20 new/day and 200 reviews/day
+  *per deck*, a day that rolls over at 4 am, a 20-min learn-ahead limit, button labels showing the next
+  interval (unfuzzed, like Anki). Queue order: due learning cards → due reviews → new cards (in deck
+  order, shown after reviews — Anki's "mix" order isn't implemented) → learning cards within learn-ahead.
+  - Code: `src/lib/srs/core.ts` (pure scheduling rules, tested in `core.test.ts`), `src/lib/srs/store.ts`
+    (data: guest → localStorage key `srs.v1`, signed in → Supabase; writes apply in memory first and save in
+    the background, failures surface via `useSrsStatus() === "error"`), `components/ReviewSession.tsx`
+    (`/decks/[id]/review`), `SrsDeckPanel.tsx` (on/off switch + counts on deck pages), `SettingsView.tsx`
+    (`/settings`, gear icon in the header), `CardBrowserView.tsx` (`/library/cards`).
+  - Scheduling is stored per (deck id, card id), separately from deck content, so it works for official
+    decks too, and editing a card keeps its schedule (card ids never change). Deleting a deck removes its
+    scheduling; deleting a card in the browser "forgets" it.
+  - Per-deck switch, default from the setting **"Use spaced repetition for new decks"** (on by default);
+    the deck creator's details step has a checkbox that starts from that default. Official decks start off.
+  - The spaced-repetition review is separate from the technique practice (walk-through → revision → test);
+    they don't feed each other yet. Possible follow-up: count a passed technique test as a first review.
+  - **Card browser** (Library → "Browse cards"): all cards in the learner's own decks; search, deck and
+    state filters, sortable columns; edit prompt/answer/memory queue/note, see FSRS state, **Forget**
+    (reset to new, keeps review log), delete (not the last card in a deck). Images are edited in the
+    deck editor only.
+  - **Pending**: re-run `supabase/schema.sql` in Supabase (adds `user_settings`, `srs_deck_settings`,
+    `srs_cards`, `srs_review_logs`). Until then, signed-in users' reviews can't be saved and the review page
+    shows an error notice; guest mode works regardless.
+  - Not done yet: guest → account import of review history (only decks/saves are imported on sign-in),
+    undo of the last answer, FSRS parameter optimisation from a user's own review log (the full log is kept
+    in `srs_review_logs` for this), per-deck option presets (one preset applies to all decks).
 - **Jump straight to revision, added (2026-10-01)**: the deck page now has a second button next to
   "Start practising" that skips the intro/overview/walkthrough and goes straight into a revision round
   with every card — for a deck you've already learned and just want to test yourself on. Implemented as

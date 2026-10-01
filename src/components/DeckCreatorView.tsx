@@ -6,6 +6,7 @@ import { dictionaries, languages, useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
 import { readImageFile } from "@/lib/images";
 import { fill } from "@/lib/practice";
+import { isDeckEnabled, setDeckSrsEnabled, useSrsData } from "@/lib/srs/store";
 import { useMounted } from "@/lib/useMounted";
 import { addUserDeck, updateUserDeck, useUserDeck } from "@/lib/userDecks";
 import type { Card, Deck, Lang } from "@/lib/types";
@@ -42,6 +43,13 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
   const [language, setLanguage] = useState<Lang>(initialDeck?.language ?? siteLang);
   const [cards, setCards] = useState<Card[]>(initialDeck?.cards ?? []);
   const [saving, setSaving] = useState(false);
+  // Until the learner flips the switch, follow the saved choice: the deck's current setting when editing,
+  // otherwise the "use spaced repetition for new decks" default. (Derived rather than copied into state,
+  // since saved settings may still be loading on the first render.)
+  const srs = useSrsData();
+  const srsSaved = initialDeck ? isDeckEnabled(srs, initialDeck.id) : srs.settings.enableForNewDecks;
+  const [srsChoice, setSrsChoice] = useState<boolean | null>(null);
+  const srsOn = srsChoice ?? srsSaved;
 
   const detailsValid = title.trim() !== "" && description.trim() !== "";
 
@@ -62,6 +70,7 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
     setSaving(true);
     if (editing) await updateUserDeck(deck);
     else await addUserDeck(deck);
+    if (!editing || srsOn !== srsSaved) await setDeckSrsEnabled(deck.id, srsOn);
     router.push(`/decks/${deck.id}`);
   };
 
@@ -87,6 +96,8 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
           setOrderLabel={setOrderLabel}
           language={language}
           setLanguage={setLanguage}
+          srsOn={srsOn}
+          setSrsOn={setSrsChoice}
           canNext={detailsValid}
           onNext={() => setStep("cards")}
         />
@@ -132,10 +143,12 @@ function DetailsStep(props: {
   setOrderLabel: (v: string) => void;
   language: Lang;
   setLanguage: (l: Lang) => void;
+  srsOn: boolean;
+  setSrsOn: (on: boolean) => void;
   canNext: boolean;
   onNext: () => void;
 }) {
-  const { t, title, setTitle, description, setDescription, kind, setKind, orderLabel, setOrderLabel, language, setLanguage, canNext, onNext } =
+  const { t, title, setTitle, description, setDescription, kind, setKind, orderLabel, setOrderLabel, language, setLanguage, srsOn, setSrsOn, canNext, onNext } =
     props;
   return (
     <section>
@@ -199,6 +212,14 @@ function DetailsStep(props: {
           ))}
         </select>
       </div>
+
+      <label className="check-field">
+        <input type="checkbox" checked={srsOn} onChange={(e) => setSrsOn(e.target.checked)} />
+        <span>
+          <strong>{t.useSrsLabel}</strong>
+          <span className="hint">{t.useSrsText}</span>
+        </span>
+      </label>
 
       <div className="controls left">
         <button className="btn accent" disabled={!canNext} onClick={onNext}>

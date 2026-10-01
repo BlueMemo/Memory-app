@@ -5,6 +5,7 @@ import { useUserDeck } from "@/lib/userDecks";
 import { DeckNotFound } from "./DeckNotFound";
 import { DeckView } from "./DeckView";
 import { PracticeSession } from "./PracticeSession";
+import { ReviewSession } from "./ReviewSession";
 
 /**
  * Decks created in the browser aren't known to the server, so `/decks/[deckId]` falls back to this
@@ -17,13 +18,17 @@ export function UserDeckGate({
   startInReview,
 }: {
   deckId: string;
-  mode: "view" | "practice";
+  mode: "view" | "practice" | "review";
   startInReview?: boolean;
 }) {
   const deck = useUserDeck(deckId);
   const mounted = useMounted();
 
-  if (deck) return mode === "view" ? <DeckView deck={deck} /> : <PracticeSession deck={deck} startInReview={startInReview} />;
+  if (deck) {
+    if (mode === "view") return <DeckView deck={deck} />;
+    if (mode === "review") return <ReviewSession deck={deck} />;
+    return <PracticeSession deck={deck} startInReview={startInReview} />;
+  }
   if (!mounted) return null;
   return <DeckNotFound />;
 }

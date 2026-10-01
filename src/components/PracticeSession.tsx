@@ -444,7 +444,8 @@ function SuggestionReveal({ suggestion, t }: { suggestion: string; t: T }) {
   );
 }
 
-function FlipCard(props: {
+/** A card that flips to reveal the answer; also used by the spaced repetition review (as a test card). */
+export function FlipCard(props: {
   deck: Deck;
   card: Card;
   position: number;
