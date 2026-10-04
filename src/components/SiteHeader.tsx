@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import { dictionaries, languages, useI18n } from "@/i18n";
 import { useUser } from "@/lib/supabase/useUser";
 import { AuthSync } from "./AuthSync";
+import { Avatar } from "./Avatar";
 
 function AuthStatus() {
   const t = useI18n().t;
-  const { user, username, loading, configured } = useUser();
+  const { user, username, avatarUrl, loading, configured } = useUser();
   if (!configured || loading) return null;
   if (!user) {
     return (
@@ -18,8 +19,9 @@ function AuthStatus() {
     );
   }
   return (
-    <Link href="/account" className="link-muted auth-status">
-      {username ?? t.header.setUsername}
+    <Link href="/account" className="link-muted auth-status auth-status-user">
+      <Avatar url={avatarUrl} name={username ?? user.email ?? null} size={28} />
+      <span>{username ?? t.header.setUsername}</span>
     </Link>
   );
 }

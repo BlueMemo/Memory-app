@@ -173,7 +173,7 @@ export function ImportView() {
           <span className="muted">{fileName ? fill(t.fileLoaded, { name: fileName }) : t.dropHint}</span>
         </div>
         {fileError && <p className="notice error">{fileError}</p>}
-        <p className="hint">{t.ankiTip}</p>
+        <p className="hint">{t.exportTip}</p>
       </div>
 
       {parsed && (

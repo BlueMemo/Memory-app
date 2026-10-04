@@ -85,6 +85,12 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+-- Profile photo: a small (about 160px, JPEG) image kept inline as a data URL, so it needs no storage
+-- bucket. The length cap keeps a bad client from stuffing a huge file into a publicly readable row.
+-- If profiles get listed in bulk later (sharing), move photos to Supabase Storage instead.
+alter table public.profiles add column if not exists avatar_url text
+  check (avatar_url is null or char_length(avatar_url) <= 60000);
+
 alter table public.profiles enable row level security;
 
 -- Anyone can look up a username (needed to show "created by X" on shared decks later);

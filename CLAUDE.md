@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# MemoVerse
+# BlueMemo
 
 A flashcard website built around a visualization memory technique: learners turn each thing to remember
 into a vivid association object and, for ordered material, place those objects along a route through a
@@ -14,6 +14,30 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Account page rebuilt (2026-10-04)**: signed-in `/account` used to be just email + username + sign-out.
+  It's now `components/AccountDashboard.tsx` (signed-out sign-in/up forms stay in `AccountView.tsx`):
+  profile head with **avatar** (upload, change, remove) and member-since date; "at a glance" tiles (decks
+  created, cards, due today, tests taken); a **streak** (current, best, active days) with a 15-week
+  **heatmap**; recent activity (tests with their score + reviews rolled up per day); and account
+  details (change username, change password, links to study options and the library).
+  - *Deliberately left out for now*: change email, delete account, export my data. Delete/export are
+    needed before public launch (GDPR; we're EU-based) — deleting needs care because decks, review logs
+    and results all hang off the account.
+  - *Streak/heatmap data*: `lib/accountActivity.ts` queries `srs_review_logs` (timestamps only, paged,
+    120-day window) and `practice_results`; `lib/activity.ts` is the pure, tested logic. Both reviews and
+    finished tests count as study. Days use the same 4 am rollover as spaced repetition. The 120-day
+    window caps how long a streak can show. Only today's review log is held in memory by `srs/store.ts`,
+    which is why this fetches its own history rather than reusing it.
+  - *Avatar storage decision*: a ~160px centre-cropped JPEG kept as a **data URL in `profiles.avatar_url`**
+    (≈10 KB), not a Supabase Storage bucket — no bucket/policies to set up and nothing to test blind. The
+    column has a length cap (60k chars) since profiles are publicly readable. **If profiles ever get
+    listed in bulk (phase 4 sharing), move photos to Supabase Storage** so those lists stay light.
+  - *Pending*: re-run `supabase/schema.sql` (adds `profiles.avatar_url`). Until then everything else on
+    the page works, `useUser()` falls back to selecting just the username, and saving a photo shows an
+    error instead of silently doing nothing.
+  - `useUser()` now returns `avatarUrl` too, and `notifyUsernameChanged` became `notifyProfileChanged`
+    (called after changing a username or photo so the header updates). Password change uses
+    `auth.updateUser` with no "current password" prompt — Supabase doesn't require one by default.
 - **Chapters of 10 for big decks, added (2026-10-01)**: decided by the team (resolves the earlier open
   "large decks" question). Decks with more than 10 cards (`CHAPTER_SIZE` in `src/lib/chapters.ts`) are
   learned chapter by chapter: each chapter gets the full technique flow, the deck page lists chapters
@@ -88,8 +112,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   which would have broken static prerendering of the official decks' practice pages). Side effect:
   `/decks/[deckId]/practice` is no longer statically prerendered at build time (now server-rendered per
   request) since it depends on the search param — a deliberate, acceptable trade-off for the feature.
-- **Name decided: MemoVerse.** Was called "Memory App" (working name) up to 2026-10-01; renamed in the
-  site's displayed name and page titles (`i18n` `siteName`, `layout.tsx` metadata). Not renamed: the local
+- **Name decided: BlueMemo** (renamed from MemoVerse, 2026-10-04, when the team settled on it ahead of
+  buying a domain; before that it was "Memory App", a working name, up to 2026-10-01). The code rename
+  covers the site's displayed name and page titles (`i18n` `siteName`, `layout.tsx` metadata). The domain
+  hasn't been bought yet — plan is registrar (shared/business account) → Vercel free tier → add the domain
+  in Vercel → update Supabase Auth Site URL/Redirect URLs (see "Deployment paused" below). Not renamed: the local
   folder (`C:\memory-app`), the GitHub repo (`Memory-app`), `package.json`'s internal `name` field, or the
   Supabase project's display name — those are just internal/cosmetic identifiers, left alone to avoid
   unnecessary churn; rename them too if it starts feeling inconsistent, but nothing user-facing depends on it.
@@ -195,6 +222,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 - Every piece of user-facing site text goes through `useI18n()`; never hard-code UI strings in components.
 - In deck text, `**bold**` marks emphasis and CAPITAL runs in visualizations mark the sound-alike part.
 - Styling is plain CSS in `src/app/globals.css` with colour tokens on `:root` (light and dark).
+- **Never name Anki (or any other competing app) in anything a visitor can see** — site text, CSS served to
+  browsers, error messages. The spaced-repetition feature is modelled on Anki's behaviour (and the importer
+  reads its plain-text export), which is fine internally, so source comments and identifiers like
+  `readAnkiHeader` may still mention it, but user-facing wording should say "FSRS", "spaced repetition", or
+  "another flashcard app". The importer's help text deliberately doesn't name the app it reads exports from.
 
 ## Roadmap (agreed with the team)
 

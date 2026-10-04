@@ -9,7 +9,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: { default: "MemoVerse", template: "%s · MemoVerse" },
+  title: { default: "BlueMemo", template: "%s · BlueMemo" },
   description: "Flashcards built around visualization and memory routes.",
 };
 
