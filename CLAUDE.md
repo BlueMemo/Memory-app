@@ -14,6 +14,21 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Repo moved to a GitHub organisation (2026-10-04)**: `ErikNyabako/Memory-app` →
+  **`BlueMemo/Memory-app`** (public, branch `main`). Done so the Vercel project, which lives on the other
+  partner's Vercel account, can import it — Vercel only lists repos owned by a GitHub account or org
+  that account has linked, and only the repo owner can install its GitHub app. Both partners are org
+  owners. The old URL redirects, so existing clones still work, but update the remote on each machine:
+  `git remote set-url origin https://github.com/BlueMemo/Memory-app.git`.
+  **Vercel**: the project (`bluememo`, on the partner's Vercel account, domain **bluememo.eu**) was
+  first deployed by uploading a folder from a local computer (the Vercel Source tab listed gitignored
+  files, and the deployed commit `2169478` never existed on GitHub), so pushes weren't deploying. It is
+  now connected to `BlueMemo/Memory-app`, branch `main` (Settings → Git), so each push to `main` deploys.
+  That other computer may hold a local-only commit (`2169478`, "Rename site to Blue Memo…") — it must
+  `git pull` and merge before it pushes, since it touches the same files as `29b38c3`. Caveats: Vercel's free Hobby plan only deploys *org-owned* repos while
+  they're public (private org repos need Pro), and Hobby is meant for non-commercial use — plan on a
+  paid team before launch. The repo being public means source comments (including ones naming Anki)
+  are readable by anyone; the "never name Anki" rule only covers what visitors see on the site.
 - **Account page rebuilt (2026-10-04)**: signed-in `/account` used to be just email + username + sign-out.
   It's now `components/AccountDashboard.tsx` (signed-out sign-in/up forms stay in `AccountView.tsx`):
   profile head with **avatar** (upload, change, remove) and member-since date; "at a glance" tiles (decks
@@ -112,11 +127,14 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   which would have broken static prerendering of the official decks' practice pages). Side effect:
   `/decks/[deckId]/practice` is no longer statically prerendered at build time (now server-rendered per
   request) since it depends on the search param — a deliberate, acceptable trade-off for the feature.
-- **Name decided: BlueMemo** (renamed from MemoVerse, 2026-10-04, when the team settled on it ahead of
-  buying a domain; before that it was "Memory App", a working name, up to 2026-10-01). The code rename
-  covers the site's displayed name and page titles (`i18n` `siteName`, `layout.tsx` metadata). The domain
-  hasn't been bought yet — plan is registrar (shared/business account) → Vercel free tier → add the domain
-  in Vercel → update Supabase Auth Site URL/Redirect URLs (see "Deployment paused" below). Not renamed: the local
+- **Name decided: BlueMemo** — one word, no space (confirmed 2026-10-05; the first live deploy from the
+  other computer said "Blue Memo" with a space, which was wrong). History: "Memory App" (a working name)
+  until 2026-10-01, then MemoVerse, then BlueMemo on 2026-10-04 when the team settled on it ahead of
+  buying a domain. The code rename covers the site's displayed name and page titles (`i18n` `siteName`,
+  `layout.tsx` metadata). **The domain is bought and live: `bluememo.eu`**, attached to the Vercel
+  project. Still to confirm: Supabase Auth → URL Configuration has Site URL `https://bluememo.eu` and
+  `https://bluememo.eu/auth/callback` in Redirect URLs (otherwise sign-up/reset emails from the live
+  site break), and the Vercel project has both `NEXT_PUBLIC_SUPABASE_*` env vars. Not renamed: the local
   folder (`C:\memory-app`), the GitHub repo (`Memory-app`), `package.json`'s internal `name` field, or the
   Supabase project's display name — those are just internal/cosmetic identifiers, left alone to avoid
   unnecessary churn; rename them too if it starts feeling inconsistent, but nothing user-facing depends on it.
@@ -142,17 +160,14 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   `useUser()` call fetches independently with no shared cache, so the header's instance had no way to
   know a change happened elsewhere. Added `notifyUsernameChanged()` (in `useUser.ts`) that every instance
   subscribes to and `AccountView` calls after a successful claim, so all instances refetch immediately.
-- **Deployment paused, on purpose**: decided to deploy to Vercel (free tier) on a free `*.vercel.app`
-  subdomain rather than buying a custom domain yet — picking a permanent domain/name is a bigger,
-  less-reversible decision better made once we're happier locking in a name; the free subdomain removes
-  the "only works on localhost" limitation (e.g. confirmation/reset emails only opening on the machine
-  running `npm run dev`) without that pressure. **However**, the team decided to first make some more
-  minor edits/tweaks locally before actually going through the Vercel + domain setup, so that isn't
-  in progress right now — it's the next thing after the current round of tweaks. When it's time to pick
-  this back up: add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as the Vercel project's
-  environment variables (same values as `.env.local`), and in Supabase → Authentication → URL
-  Configuration, set "Site URL" to the new Vercel URL and add `<url>/auth/callback` to "Redirect URLs" —
-  otherwise production auth emails will still point at localhost.
+- **Deployment is live (updated 2026-10-05)**: hosted on Vercel at `bluememo.eu`, deployed from the
+  `main` branch of `BlueMemo/Memory-app` (see the repo/Vercel bullets above). History: the plan was
+  Vercel's free tier on a `*.vercel.app` address and a domain later, to avoid locking in a name early;
+  the team then settled the name and bought the domain sooner. The reason deploying matters beyond
+  "being online": confirmation/reset emails link to wherever the app runs, so they only opened on the
+  machine running `npm run dev` until there was a real URL. Whenever the live URL changes, update Supabase
+  → Authentication → URL Configuration (Site URL + `<url>/auth/callback` in Redirect URLs), and keep
+  `http://localhost:3000/auth/callback` there for local development.
 - **Auth method decision**: email + password (with reset), not magic-link — chosen because Supabase makes
   password reset genuinely easy to build (it hosts the email + token verification), and the team wants
   password auth eventually anyway.
