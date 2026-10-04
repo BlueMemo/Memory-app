@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { LandingView } from "@/components/LandingView";
 
-// Discover is the start page for now; "/" can become a personal dashboard once accounts exist.
+// The landing page: explains the method and leads into a short demo. Decks live on /discover.
 export default function Home() {
-  redirect("/discover");
+  return <LandingView />;
 }

@@ -6,6 +6,7 @@ import { dictionaries, languages, useI18n } from "@/i18n";
 import { useUser } from "@/lib/supabase/useUser";
 import { AuthSync } from "./AuthSync";
 import { Avatar } from "./Avatar";
+import { Logo } from "./Logo";
 
 function AuthStatus() {
   const t = useI18n().t;
@@ -45,8 +46,8 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <AuthSync />
-      <Link href="/discover" className="brand">
-        {t.siteName}
+      <Link href="/" className="brand">
+        <Logo />
       </Link>
       <nav className="tabs" aria-label={t.header.navLabel}>
         {tabs.map((tab) => (

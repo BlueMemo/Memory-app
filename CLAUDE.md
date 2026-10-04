@@ -14,6 +14,19 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Rebrand + landing page (2026-10-05)**: brand decided with the team via a questionnaire — audience
+  high-school/university students and language learners, Sweden first, found via TikTok/Instagram/YouTube
+  and word of mouth; personality calm, smart, trustworthy ("between Anki's complexity and Quizlet's
+  playfulness"). Result: **ink & paper, dark-first** (dark is the default for everyone; the light palette
+  exists under `:root[data-theme="light"]` but nothing switches to it yet — an appearance setting would);
+  **one brand blue, no orange** (the earlier orange accent/spark was dropped on purpose); **Newsreader**
+  for h1/h2 and the wordmark, **Geist** for everything read while studying; no mascot; simple line icons.
+  Logo = "palace door": an arched doorway with a blue dot (the remembered object) inside; wordmark
+  "**Blue**Memo" with "Blue" in brand blue. `/` is now a landing page (`components/LandingView.tsx`)
+  whose main button starts the "10 largest countries" practice as a demo (no account needed); the logo
+  links to `/`, decks stay on `/discover`. Copy avoids claims we can't back up (no "in one minute", no
+  made-up testimonials). Idea not done yet: a Swedish demo deck, since the site defaults to Swedish for
+  Swedish browsers but both official decks are in English.
 - **Account page rebuilt (2026-10-04)**: signed-in `/account` used to be just email + username + sign-out.
   It's now `components/AccountDashboard.tsx` (signed-out sign-in/up forms stay in `AccountView.tsx`):
   profile head with **avatar** (upload, change, remove) and member-since date; "at a glance" tiles (decks
@@ -115,8 +128,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 - **Name decided: BlueMemo** (renamed from MemoVerse, 2026-10-04, when the team settled on it ahead of
   buying a domain; before that it was "Memory App", a working name, up to 2026-10-01). The code rename
   covers the site's displayed name and page titles (`i18n` `siteName`, `layout.tsx` metadata). The domain
-  hasn't been bought yet — plan is registrar (shared/business account) → Vercel free tier → add the domain
-  in Vercel → update Supabase Auth Site URL/Redirect URLs (see "Deployment paused" below). Not renamed: the local
+  `bluememo.eu` is bought (see "Deployment" below). Not renamed: the local
   folder (`C:\memory-app`), the GitHub repo (`Memory-app`), `package.json`'s internal `name` field, or the
   Supabase project's display name — those are just internal/cosmetic identifiers, left alone to avoid
   unnecessary churn; rename them too if it starts feeling inconsistent, but nothing user-facing depends on it.
@@ -142,17 +154,16 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   `useUser()` call fetches independently with no shared cache, so the header's instance had no way to
   know a change happened elsewhere. Added `notifyUsernameChanged()` (in `useUser.ts`) that every instance
   subscribes to and `AccountView` calls after a successful claim, so all instances refetch immediately.
-- **Deployment paused, on purpose**: decided to deploy to Vercel (free tier) on a free `*.vercel.app`
-  subdomain rather than buying a custom domain yet — picking a permanent domain/name is a bigger,
-  less-reversible decision better made once we're happier locking in a name; the free subdomain removes
-  the "only works on localhost" limitation (e.g. confirmation/reset emails only opening on the machine
-  running `npm run dev`) without that pressure. **However**, the team decided to first make some more
-  minor edits/tweaks locally before actually going through the Vercel + domain setup, so that isn't
-  in progress right now — it's the next thing after the current round of tweaks. When it's time to pick
-  this back up: add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as the Vercel project's
-  environment variables (same values as `.env.local`), and in Supabase → Authentication → URL
-  Configuration, set "Site URL" to the new Vercel URL and add `<url>/auth/callback` to "Redirect URLs" —
-  otherwise production auth emails will still point at localhost.
+- **Deployment (2026-10-04)**: Vercel project `bluememo` in the Vercel team `blue-memo`, live at
+  https://bluememo.vercel.app (first deploy made from a local checkout with the Vercel CLI). Its
+  environment variables `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set for production
+  and preview. **Not yet done**: (1) connect the GitHub repo in Vercel → project → Settings → Git, so
+  pushes to `main` deploy automatically — until then the live site only changes on a manual
+  `vercel deploy --prod`; (2) DNS for **`bluememo.eu`** (registered at Namecheap, still on Namecheap's
+  nameservers): both `bluememo.eu` and `www.bluememo.eu` are already added to the Vercel project, but
+  Namecheap needs `A @ → 76.76.21.21` and `CNAME www → cname.vercel-dns.com`; (3) in Supabase →
+  Authentication → URL Configuration, set "Site URL" to `https://bluememo.eu` and add
+  `https://bluememo.eu/auth/callback` to "Redirect URLs" — otherwise auth emails still point at localhost.
 - **Auth method decision**: email + password (with reset), not magic-link — chosen because Supabase makes
   password reset genuinely easy to build (it hosts the email + token verification), and the team wants
   password auth eventually anyway.
@@ -221,7 +232,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 - Every piece of user-facing site text goes through `useI18n()`; never hard-code UI strings in components.
 - In deck text, `**bold**` marks emphasis and CAPITAL runs in visualizations mark the sound-alike part.
-- Styling is plain CSS in `src/app/globals.css` with colour tokens on `:root` (light and dark).
+- Styling is plain CSS in `src/app/globals.css` with colour tokens on `:root` (dark, the default) and
+  `:root[data-theme="light"]`. Use `--brand-blue` / `--accent` for the one brand colour and
+  `--brand-on-blue` for text on it; don't reintroduce a second brand colour.
+- The logo's door is drawn in three places that must match: `components/Logo.tsx`, `app/icon.svg`
+  (favicon) and `app/apple-icon.tsx` (iOS home-screen icon).
 - **Never name Anki (or any other competing app) in anything a visitor can see** — site text, CSS served to
   browsers, error messages. The spaced-repetition feature is modelled on Anki's behaviour (and the importer
   reads its plain-text export), which is fine internally, so source comments and identifiers like

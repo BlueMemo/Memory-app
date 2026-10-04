@@ -1,41 +1,44 @@
 :root {
-  --bg: #f6f3ee;
-  --card: #ffffff;
-  --ink: #1f1d1a;
-  --muted: #6b665e;
-  --line: #e4ded4;
-  --accent: #d9572b;
-  --accent-soft: rgba(217, 87, 43, 0.1);
-  --good: #2f8f5b;
-  --again: #c0842a;
-  --shadow: 0 10px 30px rgba(40, 30, 20, 0.12);
+  /* Ink & paper, dark-first: dark is the default for everyone (brand decision 2026-10-05), with
+     one brand blue and no other brand colour. The light palette below is ready for an
+     appearance setting (set data-theme="light" on <html>); nothing switches to it yet. */
+  --bg: #121417;
+  --card: #1b1e23;
+  --ink: #ecebe6;
+  --muted: #9b9fa6;
+  --line: #2a2e35;
+  --brand-blue: #6f9cff;
+  --brand-on-blue: #121417;
+  --accent: var(--brand-blue);
+  --accent-soft: rgba(111, 156, 255, 0.14);
+  --good: #4cc185;
+  --again: #e5a94a;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   /* Review answer and count colours: again red, hard grey, good green, easy/new blue. */
-  --srs-again: #c4362c;
-  --srs-hard: #6b665e;
-  --srs-good: #2f8f5b;
-  --srs-easy: #2f6fbf;
+  --srs-again: #ef6a5e;
+  --srs-hard: #9b9fa6;
+  --srs-good: #4cc185;
+  --srs-easy: #6aa5f0;
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #17161a;
-    --card: #232228;
-    --ink: #f1eee8;
-    --muted: #a39e95;
-    --line: #36343c;
-    --accent: #ff7a4d;
-    --accent-soft: rgba(255, 122, 77, 0.14);
-    --good: #4cc185;
-    --again: #e5a94a;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-    --srs-again: #ef6a5e;
-    --srs-hard: #a39e95;
-    --srs-good: #4cc185;
-    --srs-easy: #6aa5f0;
-  }
-  html {
-    color-scheme: dark;
-  }
+:root[data-theme="light"] {
+  --bg: #f7f5f0;
+  --card: #ffffff;
+  --ink: #16181c;
+  --muted: #63666d;
+  --line: #e6e2d9;
+  --brand-blue: #2a55c7;
+  --brand-on-blue: #ffffff;
+  --accent-soft: rgba(42, 85, 199, 0.1);
+  --good: #2f8f5b;
+  --again: #c0842a;
+  --shadow: 0 10px 30px rgba(20, 22, 28, 0.12);
+  --srs-again: #c4362c;
+  --srs-hard: #63666d;
+  --srs-good: #2f8f5b;
+  --srs-easy: #2f6fbf;
+  color-scheme: light;
 }
 
 * {
@@ -65,6 +68,12 @@ a {
 
 button {
   font: inherit;
+}
+
+h1,
+h2:not(.section-title) {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 500;
 }
 
 .muted {
@@ -142,10 +151,29 @@ button {
 }
 
 .brand {
-  font-weight: 800;
-  letter-spacing: -0.02em;
   text-decoration: none;
-  font-size: 1.1rem;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-mark {
+  flex-shrink: 0;
+}
+
+.logo-word {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 500;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.logo-blue {
+  color: var(--brand-blue);
 }
 
 .lang-switch {
@@ -452,6 +480,7 @@ button {
 
 .btn.accent {
   background: var(--accent);
+  color: var(--brand-on-blue);
 }
 
 .btn.again {
@@ -2293,4 +2322,132 @@ ul.overview-list {
   .stat-grid.three .stat-tile:last-child {
     grid-column: 1 / -1;
   }
+}
+
+/* ---------- Landing page (/) ---------- */
+
+.landing a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.landing-hero {
+  text-align: center;
+  padding: 56px 0 24px;
+}
+
+.landing-hero h1 {
+  margin: 0 auto 16px;
+  max-width: 720px;
+  font-size: clamp(2.3rem, 7vw, 3.8rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+.landing-hero h1 em,
+.landing-final h2 {
+  color: var(--brand-blue);
+}
+
+.landing-lead {
+  margin: 0 auto 28px;
+  max-width: 560px;
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.landing-ctas {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.landing-note {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.landing-section {
+  margin-top: 64px;
+  scroll-margin-top: 24px;
+}
+
+.landing-section h2,
+.landing-final h2 {
+  margin: 0 0 18px;
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  letter-spacing: -0.01em;
+}
+
+.landing-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.landing-steps,
+.landing-why {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .landing-steps,
+  .landing-why {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing-steps li,
+.landing-why li {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.landing-steps svg {
+  fill: none;
+  stroke: var(--brand-blue);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.landing-steps h3,
+.landing-why h3 {
+  margin: 10px 0 6px;
+  font-size: 1.05rem;
+}
+
+.landing-why h3 {
+  margin-top: 0;
+}
+
+.landing-steps p,
+.landing-why p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.landing-final {
+  margin: 72px 0 16px;
+  padding: 40px 20px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+
+.landing-final p {
+  margin: 0 0 22px;
+  color: var(--muted);
 }
