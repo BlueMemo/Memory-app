@@ -1,16 +1,20 @@
 import {
+  BasicLearningStepsStrategy,
   createEmptyCard,
-  fsrs,
-  default_learning_steps,
   default_relearning_steps,
+  default_w,
+  fsrs,
   Rating,
   State,
+  StrategyMode,
   type Card as FsrsCard,
   type FSRS,
   type Grade,
   type ReviewLog,
   type StepUnit,
 } from "ts-fsrs";
+
+type LearningStepsStrategy = typeof BasicLearningStepsStrategy;
 
 // Spaced repetition with FSRS, the scheduler Anki uses. This file is pure (no storage, no React) so the
 // scheduling rules can be unit-tested; `store.ts` keeps the data and `ReviewSession` shows the cards.
@@ -53,19 +57,39 @@ export interface ReviewRecord {
   learningSteps: number;
 }
 
-/** One set of options for all decks (Anki calls this a deck options preset). */
-export interface SrsSettings {
-  /** Whether spaced repetition is switched on for decks created from now on. */
-  enableForNewDecks: boolean;
+/** The options that can differ per deck. */
+export interface DeckOptions {
   /** The probability of recalling a card when it comes due. Higher means more reviews. */
   desiredRetention: number;
   newPerDay: number;
   reviewsPerDay: number;
-  /** Space-separated steps such as "1m 10m". Units: m, h, d. */
-  learningSteps: string;
+  /** A new card answered Again comes back after this long, e.g. "5m". Units: m, h. */
+  againStep: string;
+  /** A new card answered Hard comes back after this long, e.g. "10m". Good and Easy go straight to FSRS. */
+  hardStep: string;
+  /** Space-separated waits for a learned card you forgot, e.g. "10m". Units: m, h, d. */
   relearningSteps: string;
   /** Longest interval in days. */
   maximumInterval: number;
+  /** Learn the deck in chapters of CHAPTER_SIZE cards (lib/chapters.ts). Off unless switched on. */
+  chapters: boolean;
+  /** "YYYY-MM-DD": reviews are pulled forward so every card is due again before this day (e.g. a test). */
+  examDate: string | null;
+}
+
+/** All spaced-repetition settings: defaults for every deck, per-deck changes, and the personal FSRS model. */
+export interface SrsSettings extends DeckOptions {
+  /** Whether spaced repetition is switched on for decks created from now on. */
+  enableForNewDecks: boolean;
+  /** Options a deck has changed from the defaults above, by deck id. */
+  deckOverrides: Record<string, Partial<DeckOptions>>;
+  /** FSRS model parameters optimised on this learner's history; null means the standard ones. */
+  parameters: number[] | null;
+  /** When the parameters were last optimised (ISO), and how many reviews that was based on. */
+  optimizedAt: string | null;
+  optimizedReviewCount: number;
+  /** Re-optimise in the background as new reviews come in (see lib/srs/optimize.ts). */
+  autoOptimize: boolean;
 }
 
 export const DEFAULT_SETTINGS: SrsSettings = {
@@ -73,10 +97,34 @@ export const DEFAULT_SETTINGS: SrsSettings = {
   desiredRetention: 0.9,
   newPerDay: 20,
   reviewsPerDay: 200,
-  learningSteps: default_learning_steps.join(" "),
+  againStep: "5m",
+  hardStep: "10m",
   relearningSteps: default_relearning_steps.join(" "),
   maximumInterval: 36500,
+  chapters: false,
+  examDate: null,
+  deckOverrides: {},
+  parameters: null,
+  optimizedAt: null,
+  optimizedReviewCount: 0,
+  autoOptimize: true,
 };
+
+/** The spaced-repetition options a deck can either take from the defaults or set itself. */
+export const SRS_OPTION_KEYS = [
+  "desiredRetention",
+  "newPerDay",
+  "reviewsPerDay",
+  "againStep",
+  "hardStep",
+  "relearningSteps",
+  "maximumInterval",
+] as const satisfies readonly (keyof DeckOptions)[];
+
+/** Options that only make sense for one deck (never set for all decks at once). */
+export const DECK_ONLY_KEYS = ["chapters", "examDate"] as const satisfies readonly (keyof DeckOptions)[];
+
+export const DECK_OPTION_KEYS = [...SRS_OPTION_KEYS, ...DECK_ONLY_KEYS] as const;
 
 export const SETTINGS_LIMITS = {
   desiredRetention: { min: 0.7, max: 0.99 },
@@ -85,23 +133,76 @@ export const SETTINGS_LIMITS = {
   maximumInterval: { min: 1, max: 36500 },
 } as const;
 
-/** Fills in missing or out-of-range values, e.g. from older saved settings. */
-export function normalizeSettings(raw: unknown): SrsSettings {
-  const s = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof SrsSettings, unknown>>;
+/** The settings that apply to one deck: the defaults with that deck's own changes on top. */
+export function settingsForDeck(settings: SrsSettings, deckId: string): SrsSettings {
+  const own = settings.deckOverrides[deckId];
+  return own ? { ...settings, ...own } : settings;
+}
+
+function normalizeDeckOptions(raw: unknown, fallback: DeckOptions): DeckOptions {
+  const s = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof DeckOptions, unknown>>;
   const num = (v: unknown, key: keyof typeof SETTINGS_LIMITS) => {
     const { min, max } = SETTINGS_LIMITS[key];
-    return typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : DEFAULT_SETTINGS[key];
+    return typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback[key];
   };
   const steps = (v: unknown, fallback: string) => (typeof v === "string" && parseSteps(v) ? v.trim() : fallback);
+  const step = (v: unknown, fallback: string) => (typeof v === "string" && parseStep(v) !== null ? v.trim() : fallback);
   return {
-    enableForNewDecks: typeof s.enableForNewDecks === "boolean" ? s.enableForNewDecks : DEFAULT_SETTINGS.enableForNewDecks,
     desiredRetention: num(s.desiredRetention, "desiredRetention"),
     newPerDay: Math.round(num(s.newPerDay, "newPerDay")),
     reviewsPerDay: Math.round(num(s.reviewsPerDay, "reviewsPerDay")),
-    learningSteps: steps(s.learningSteps, DEFAULT_SETTINGS.learningSteps),
-    relearningSteps: steps(s.relearningSteps, DEFAULT_SETTINGS.relearningSteps),
+    againStep: step(s.againStep, fallback.againStep),
+    hardStep: step(s.hardStep, fallback.hardStep),
+    relearningSteps: steps(s.relearningSteps, fallback.relearningSteps),
     maximumInterval: Math.round(num(s.maximumInterval, "maximumInterval")),
+    chapters: typeof s.chapters === "boolean" ? s.chapters : fallback.chapters,
+    examDate: s.examDate === null ? null : isDateString(s.examDate) ? s.examDate : fallback.examDate,
   };
+}
+
+const isDateString = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+
+/** Keeps only the deck options that differ from the defaults. */
+export function deckOptionChanges(options: DeckOptions, defaults: DeckOptions): Partial<DeckOptions> {
+  const changes: Partial<DeckOptions> = {};
+  for (const key of DECK_OPTION_KEYS) {
+    if (options[key] !== defaults[key]) (changes as Record<string, unknown>)[key] = options[key];
+  }
+  return changes;
+}
+
+const isParameters = (v: unknown): v is number[] =>
+  Array.isArray(v) && v.length === default_w.length && v.every((n) => typeof n === "number" && Number.isFinite(n));
+
+/** Fills in missing or out-of-range values, e.g. from older saved settings. */
+export function normalizeSettings(raw: unknown): SrsSettings {
+  const s = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof SrsSettings, unknown>>;
+  const defaults = { ...normalizeDeckOptions(s, DEFAULT_SETTINGS), chapters: false, examDate: null };
+  const overrides: Record<string, Partial<DeckOptions>> = {};
+  if (s.deckOverrides && typeof s.deckOverrides === "object") {
+    for (const [deckId, own] of Object.entries(s.deckOverrides as Record<string, unknown>)) {
+      const changes = deckOptionChanges(normalizeDeckOptions(own, defaults), defaults);
+      if (Object.keys(changes).length) overrides[deckId] = changes;
+    }
+  }
+  return {
+    ...defaults,
+    enableForNewDecks: typeof s.enableForNewDecks === "boolean" ? s.enableForNewDecks : DEFAULT_SETTINGS.enableForNewDecks,
+    deckOverrides: overrides,
+    parameters: isParameters(s.parameters) ? s.parameters : null,
+    optimizedAt: typeof s.optimizedAt === "string" ? s.optimizedAt : null,
+    optimizedReviewCount:
+      typeof s.optimizedReviewCount === "number" && s.optimizedReviewCount >= 0 ? Math.round(s.optimizedReviewCount) : 0,
+    autoOptimize: typeof s.autoOptimize === "boolean" ? s.autoOptimize : DEFAULT_SETTINGS.autoOptimize,
+  };
+}
+
+/** Parses one wait such as "5m" or "1h" (minutes or hours; a learning step stays within the day). */
+export function parseStep(text: string): StepUnit | null {
+  const m = /^(\d+(?:\.\d+)?)([mh])$/.exec(text.trim());
+  if (!m || Number(m[1]) <= 0) return null;
+  const minutes = m[2] === "h" ? Number(m[1]) * 60 : Number(m[1]);
+  return minutes < 1440 ? (`${Number(m[1])}${m[2]}` as StepUnit) : null;
 }
 
 /** Parses "1m 10m" (spaces or commas) into steps; returns null if any part is invalid. Empty text means no steps. */
@@ -116,16 +217,39 @@ export function parseSteps(text: string): StepUnit[] | null {
   return steps;
 }
 
+const stepMinutes = (step: StepUnit) => {
+  const value = Number(step.slice(0, -1));
+  return step.endsWith("h") ? value * 60 : value;
+};
+
+/**
+ * New cards: Again and Hard wait a fixed time (againStep / hardStep), while Good and Easy are left out so
+ * the card graduates straight away and FSRS picks the interval. Forgotten cards use the normal relearning steps.
+ */
+function newCardSteps(againStep: StepUnit, hardStep: StepUnit): LearningStepsStrategy {
+  return (params, state, curStep) => {
+    if (state !== State.New && state !== State.Learning) return BasicLearningStepsStrategy(params, state, curStep);
+    return {
+      [Rating.Again]: { scheduled_minutes: stepMinutes(againStep), next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: stepMinutes(hardStep), next_step: curStep },
+    };
+  };
+}
+
+/** `settings` should already be the deck's own (see `settingsForDeck`). */
 export function makeScheduler(settings: SrsSettings, { fuzz = true }: { fuzz?: boolean } = {}): FSRS {
+  const againStep = parseStep(settings.againStep) ?? (DEFAULT_SETTINGS.againStep as StepUnit);
+  const hardStep = parseStep(settings.hardStep) ?? (DEFAULT_SETTINGS.hardStep as StepUnit);
   return fsrs({
     request_retention: settings.desiredRetention,
     maximum_interval: settings.maximumInterval,
-    // Like Anki, spread intervals out slightly so cards learned together don't stay bunched up forever.
+    // Spread intervals out slightly so cards learned together don't stay bunched up forever.
     enable_fuzz: fuzz,
     enable_short_term: true,
-    learning_steps: parseSteps(settings.learningSteps) ?? default_learning_steps,
+    w: settings.parameters ?? default_w,
+    learning_steps: [againStep, hardStep],
     relearning_steps: parseSteps(settings.relearningSteps) ?? default_relearning_steps,
-  });
+  }).useStrategy(StrategyMode.LEARNING_STEPS, newCardSteps(againStep, hardStep));
 }
 
 export function toFsrsCard(stored: StoredCard | undefined, now: Date): FsrsCard {
@@ -176,6 +300,25 @@ export function toReviewRecord(deckId: string, cardId: string, log: ReviewLog): 
   };
 }
 
+/** The earliest of a deck's exam date and a card's own "due by" date, or null if neither is set. */
+export function deadlineFor(examDate: string | null, cardDueBy: string | undefined): string | null {
+  const dates = [examDate, cardDueBy].filter((d): d is string => isDateString(d));
+  return dates.length ? dates.sort()[0] : null;
+}
+
+/**
+ * Pulls a review forward so it comes due before a deadline ("YYYY-MM-DD", e.g. a test): at the latest the
+ * day before, at the usual day rollover. Has no effect once that day has arrived, or on short learning steps.
+ */
+export function applyDeadline(card: StoredCard, deadline: string | null, now: Date): StoredCard {
+  if (!deadline) return card;
+  const [y, m, d] = deadline.split("-").map(Number);
+  const latest = new Date(y, m - 1, d - 1, DAY_ROLLOVER_HOUR);
+  if (latest.getTime() <= now.getTime() || new Date(card.due).getTime() <= latest.getTime()) return card;
+  const days = Math.max(0, Math.round((latest.getTime() - dayStart(now).getTime()) / 86_400_000));
+  return { ...card, due: latest.toISOString(), scheduledDays: days };
+}
+
 /** Answers a card: returns its new scheduling state and the review log entry. */
 export function answerCard(
   scheduler: FSRS,
@@ -184,20 +327,28 @@ export function answerCard(
   stored: StoredCard | undefined,
   grade: Grade,
   now: Date,
+  deadline: string | null = null,
 ): { card: StoredCard; record: ReviewRecord } {
   const { card, log } = scheduler.next(toFsrsCard(stored, now), now, grade);
-  return { card: fromFsrsCard(card), record: toReviewRecord(deckId, cardId, log) };
+  return { card: applyDeadline(fromFsrsCard(card), deadline, now), record: toReviewRecord(deckId, cardId, log) };
 }
 
 /** When each answer button would schedule the card next, for the labels above the buttons. */
-export function previewDue(scheduler: FSRS, stored: StoredCard | undefined, now: Date): Record<Grade, Date> {
+export function previewDue(scheduler: FSRS, stored: StoredCard | undefined, now: Date, deadline: string | null = null): Record<Grade, Date> {
   const preview = scheduler.repeat(toFsrsCard(stored, now), now);
+  const due = (g: Grade) => new Date(applyDeadline(fromFsrsCard(preview[g].card), deadline, now).due);
   return {
-    [Rating.Again]: preview[Rating.Again].card.due,
-    [Rating.Hard]: preview[Rating.Hard].card.due,
-    [Rating.Good]: preview[Rating.Good].card.due,
-    [Rating.Easy]: preview[Rating.Easy].card.due,
+    [Rating.Again]: due(Rating.Again),
+    [Rating.Hard]: due(Rating.Hard),
+    [Rating.Good]: due(Rating.Good),
+    [Rating.Easy]: due(Rating.Easy),
   } as Record<Grade, Date>;
+}
+
+/** Like Anki's "Bury": the card waits until tomorrow (the next day rollover) without being answered. */
+export function buryCard(stored: StoredCard | undefined, now: Date): StoredCard {
+  const base = stored ?? fromFsrsCard(createEmptyCard(now));
+  return { ...base, due: nextDayStart(now).toISOString() };
 }
 
 export function dayStart(now: Date, rolloverHour = DAY_ROLLOVER_HOUR): Date {
@@ -223,6 +374,7 @@ export interface QueueInput {
   cardIds: string[];
   cards: Record<string, StoredCard>;
   logs: ReviewRecord[];
+  /** All settings; the deck's own limits are looked up from `deckId`. */
   settings: SrsSettings;
   now: Date;
 }
@@ -257,7 +409,8 @@ function classify(input: QueueInput) {
   for (const id of input.cardIds) {
     const s = input.cards[cardKey(input.deckId, id)];
     if (!s || s.state === State.New) {
-      fresh.push(id);
+      // A new card with a due date is a buried one, waiting until that day.
+      if (!s || new Date(s.due).getTime() < endOfDay) fresh.push(id);
       continue;
     }
     const due = new Date(s.due).getTime();
@@ -267,10 +420,11 @@ function classify(input: QueueInput) {
   learning.sort((a, b) => a.due - b.due);
   review.sort((a, b) => a.due - b.due);
   const { newDone, reviewsDone } = doneToday(input);
+  const { newPerDay, reviewsPerDay } = settingsForDeck(input.settings, input.deckId);
   return {
-    fresh: fresh.slice(0, Math.max(0, input.settings.newPerDay - newDone)),
+    fresh: fresh.slice(0, Math.max(0, newPerDay - newDone)),
     learning,
-    review: review.slice(0, Math.max(0, input.settings.reviewsPerDay - reviewsDone)),
+    review: review.slice(0, Math.max(0, reviewsPerDay - reviewsDone)),
   };
 }
 

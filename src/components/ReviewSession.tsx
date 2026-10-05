@@ -8,16 +8,29 @@ import {
   cardKey,
   deckCounts,
   formatInterval,
+  deadlineFor,
   makeScheduler,
+  settingsForDeck,
   pickNext,
   previewDue,
   Rating,
   type Grade,
   type QueueInput,
 } from "@/lib/srs/core";
-import { isDeckEnabled, reviewCard, setDeckSrsEnabled, useSrsData, useSrsSignedIn, useSrsStatus } from "@/lib/srs/store";
+import {
+  buryCard,
+  isDeckEnabled,
+  reviewCard,
+  setDeckSrsEnabled,
+  undoSrsChange,
+  useSrsData,
+  useSrsSignedIn,
+  useSrsStatus,
+  type SrsChange,
+} from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
-import { FlipCard } from "./PracticeSession";
+import { CardDialog } from "./CardForm";
+import { FlipCard, isTyping, StudyTools } from "./PracticeSession";
 
 const BUTTONS: { grade: Grade; key: "again" | "hard" | "good" | "easy" }[] = [
   { grade: Rating.Again, key: "again" },
@@ -36,6 +49,10 @@ export function ReviewSession({ deck }: { deck: Deck }) {
   // The queue is computed for this moment; it advances when a card is answered or a waiting card comes due.
   const [now, setNow] = useState(() => new Date());
   const [flipped, setFlipped] = useState(false);
+  // Answers and buries this session, newest last, for U (undo); the open card dialog; the shown hint.
+  const [history, setHistory] = useState<SrsChange[]>([]);
+  const [dialog, setDialog] = useState<"add" | "edit" | null>(null);
+  const [hintFor, setHintFor] = useState<string | null>(null);
 
   const input: QueueInput = {
     deckId: deck.id,
@@ -54,7 +71,8 @@ export function ReviewSession({ deck }: { deck: Deck }) {
   // Button labels show the unfuzzed interval, like Anki; the actual schedule adds a little fuzz.
   let labels: Record<number, string> | null = null;
   if (current) {
-    const due = previewDue(makeScheduler(data.settings, { fuzz: false }), stored, now);
+    const settings = settingsForDeck(data.settings, deck.id);
+    const due = previewDue(makeScheduler(settings, { fuzz: false }), stored, now, deadlineFor(settings.examDate, card?.dueBy));
     labels = Object.fromEntries(BUTTONS.map((b) => [b.grade, formatInterval(due[b.grade].getTime() - now.getTime(), t.units)]));
   }
 
@@ -68,17 +86,42 @@ export function ReviewSession({ deck }: { deck: Deck }) {
   const answer = (grade: Grade) => {
     if (!current || !flipped) return;
     const at = new Date();
-    reviewCard(deck.id, current.cardId, grade, at);
+    const change = reviewCard(deck.id, current.cardId, grade, at, card?.dueBy);
+    setHistory((h) => [...h, change]);
     setFlipped(false);
     setNow(at);
   };
+  const bury = () => {
+    if (!current) return;
+    const at = new Date();
+    const change = buryCard(deck.id, current.cardId, at);
+    setHistory((h) => [...h, change]);
+    setFlipped(false);
+    setNow(at);
+  };
+  const undo = () => {
+    const last = history.at(-1);
+    if (!last) return;
+    setHistory((h) => h.slice(0, -1));
+    undoSrsChange(last);
+    setNow(new Date());
+    setFlipped(false);
+  };
+  const hintKey = current ? `${current.cardId}-${stored?.reps ?? 0}` : null;
 
   const onKey = useEffectEvent((e: KeyboardEvent) => {
-    if (e.ctrlKey || e.metaKey || e.altKey || !current) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || dialog || isTyping(e)) return;
     const handle = (fn: () => void) => {
       e.preventDefault();
       fn();
     };
+    const key = e.key.toLowerCase();
+    if (key === "u" && history.length) return handle(undo);
+    if (!current) return;
+    if (e.key === "-" || e.key === "−") return handle(bury);
+    if (key === "a") return handle(() => setDialog("add"));
+    if (key === "e") return handle(() => setDialog("edit"));
+    if (e.key === "Tab" && !e.shiftKey && !flipped) return handle(() => setHintFor(hintKey));
     if (!flipped) {
       if (e.key === " " || e.key === "Enter") handle(() => setFlipped(true));
       return;
@@ -143,6 +186,8 @@ export function ReviewSession({ deck }: { deck: Deck }) {
               test
               flipped={flipped}
               onFlip={() => setFlipped(true)}
+              showHint={hintFor === hintKey}
+              onHint={() => setHintFor(hintKey)}
               t={dict.practice}
             />
             {flipped && labels ? (
@@ -161,7 +206,17 @@ export function ReviewSession({ deck }: { deck: Deck }) {
                 </button>
               </div>
             )}
+            <StudyTools
+              t={dict.study}
+              canUndo={history.length > 0}
+              onUndo={undo}
+              onBury={bury}
+              onAdd={() => setDialog("add")}
+              onEdit={() => setDialog("edit")}
+            />
             <p className="keys">{t.keys}</p>
+            <p className="keys">{dict.study.keysReview}</p>
+            {dialog && <CardDialog deckId={deck.id} card={dialog === "edit" ? card : undefined} onClose={() => setDialog(null)} />}
           </>
         ) : (
           <section className="summary">
@@ -174,6 +229,13 @@ export function ReviewSession({ deck }: { deck: Deck }) {
             <Link href={`/decks/${deck.id}`} className="btn nav wide">
               {t.backToDeck}
             </Link>
+            {history.length > 0 && (
+              <p>
+                <button type="button" className="link-button" onClick={undo}>
+                  {dict.study.undo} <kbd>U</kbd>
+                </button>
+              </p>
+            )}
           </section>
         )}
       </div>

@@ -52,7 +52,7 @@ export function SrsDeckPanel({ deck }: { deck: Deck }) {
           ) : (
             <span className="muted">{t.nothingDue}</span>
           )}
-          <Link href="/settings" className="link-muted srs-options">
+          <Link href={`/library/settings?deck=${encodeURIComponent(deck.id)}`} className="link-muted srs-options">
             {t.settingsLink}
           </Link>
         </div>

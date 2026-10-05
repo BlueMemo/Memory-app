@@ -58,7 +58,9 @@ export type Action =
   | { type: "startRevision"; order: string[] }
   | { type: "startTest"; order: string[] }
   | { type: "flip" }
-  | { type: "grade"; grade: Grade };
+  | { type: "grade"; grade: Grade }
+  /** Undo: go back to an earlier state the session kept (see PracticeSession). */
+  | { type: "restore"; state: SessionState };
 
 export function initSession(stepCount: number): SessionState {
   return { phase: "intro", step: 0, stepCount, queue: [], pos: 0, flipped: false, grades: {}, round: 0 };
@@ -112,9 +114,13 @@ export function practiceReducer(state: SessionState, action: Action): SessionSta
         round: state.round + 1,
       };
 
+    case "restore":
+      return action.state;
+
     case "flip":
+      // Reveals the answer (the question stays visible above it); there's nothing to hide again.
       if (state.phase !== "revision" && state.phase !== "test") return state;
-      return { ...state, flipped: !state.flipped };
+      return state.flipped ? state : { ...state, flipped: true };
 
     case "grade": {
       // A card can only be graded after it has been flipped to check the answer.

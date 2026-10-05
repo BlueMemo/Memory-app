@@ -15,9 +15,10 @@ function Shoe({ x = 0 }: { x?: number }) {
   );
 }
 
-function Chopstick({ x = 0 }: { x?: number }) {
+/** `tilt` fans a chopstick out (degrees, around its lower end) so a pair reads as a pair. */
+function Chopstick({ x = 0, tilt = 0 }: { x?: number; tilt?: number }) {
   return (
-    <g transform={`translate(${x} 0)`} stroke={INK} strokeWidth={1.8} strokeLinejoin="round">
+    <g transform={`translate(${x} 0) rotate(${tilt} 18 57)`} stroke={INK} strokeWidth={1.8} strokeLinejoin="round">
       <polygon points="16.5,57 19.5,57 33,11 27,10" fill="#f0cf8f" />
       <polygon points="25.3,19 31,19.5 33,11 27,10" fill="#d23c2f" />
     </g>
@@ -45,15 +46,15 @@ const drawings: Record<IllustrationName, { label: string; svg: ReactNode }> = {
     ),
   },
   "shoes-chopsticks": {
-    label: "A pair of shoes with a chopstick sticking out of each",
+    label: "A pair of shoes, with a pair of chopsticks standing in one of them",
     svg: (
       <>
         <line x1={2} y1={84} x2={118} y2={84} {...line} />
         <Shoe />
-        <Chopstick />
         <Shoe x={58} />
-        <Chopstick x={58} />
-        <path d="M52 22 l-5 -5 M58 16 v-7 M64 22 l5 -5" stroke="#e4572e" strokeWidth={2.5} strokeLinecap="round" />
+        <Chopstick x={-2} tilt={-4} />
+        <Chopstick x={4} tilt={9} />
+        <path d="M44 26 l5 -4 M48 36 h7 M44 46 l5 4" stroke="#e4572e" strokeWidth={2.5} strokeLinecap="round" />
       </>
     ),
   },

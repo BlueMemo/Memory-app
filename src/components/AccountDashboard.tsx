@@ -15,19 +15,21 @@ import {
   recentActivity,
   type HeatLevel,
 } from "@/lib/activity";
-import { useAccountActivity, type AccountActivity } from "@/lib/accountActivity";
+import { useAccountActivity, useStudyHistory, type AccountActivity } from "@/lib/accountActivity";
 import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
 import { useEditableDecks } from "@/lib/editableDecks";
 import { readAvatarFile } from "@/lib/images";
 import { fill } from "@/lib/practice";
 import { deckCounts } from "@/lib/srs/core";
 import { isDeckEnabled, useSrsData, useSrsStatus } from "@/lib/srs/store";
+import { achievements, computeStats, MATURE_DAYS } from "@/lib/studyStats";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { checkUsername, claimUsername, isValidUsername, saveAvatar, setUsername as changeUsername } from "@/lib/supabase/profiles";
 import { notifyProfileChanged } from "@/lib/supabase/useUser";
 import { useNow } from "@/lib/useNow";
 import { useUserDecks } from "@/lib/userDecks";
 import { Avatar } from "./Avatar";
+import { PageTabs } from "./PageTabs";
 
 type T = Dict["account"];
 
@@ -52,16 +54,30 @@ export function AccountDashboard({ userId, email, createdAt, username, avatarUrl
       {!username && <ChooseUsername t={t} userId={userId} />}
       {activity.status === "error" && <p className="form-error">{t.activityError}</p>}
 
-      <h2 className="section-title">{t.glanceTitle}</h2>
+      <PageTabs
+        label={t.detailsTitle}
+        tabs={[
+          { id: "overview", title: t.glanceTitle },
+          { id: "activity", title: t.activityTitle },
+          { id: "stats", title: t.statsTitle },
+          { id: "achievements", title: t.achievementsTitle },
+          { id: "recent", title: t.recentTitle },
+          { id: "details", title: t.detailsTitle },
+        ]}
+      />
+
+      <h2 className="section-title" id="overview">{t.glanceTitle}</h2>
       <Stats t={t} activity={activity} />
 
-      <h2 className="section-title">{t.activityTitle}</h2>
+      <h2 className="section-title" id="activity">{t.activityTitle}</h2>
       <Activity t={t} activity={activity} lang={lang} />
 
-      <h2 className="section-title">{t.recentTitle}</h2>
+      <StudyStatistics t={t} userId={userId} activity={activity} lang={lang} />
+
+      <h2 className="section-title" id="recent">{t.recentTitle}</h2>
       <Recent t={t} activity={activity} lang={lang} />
 
-      <h2 className="section-title">{t.detailsTitle}</h2>
+      <h2 className="section-title" id="details">{t.detailsTitle}</h2>
       <Details t={t} userId={userId} username={username} />
     </main>
   );
@@ -223,6 +239,69 @@ function Stats({ t, activity }: { t: T; activity: AccountActivity }) {
   );
 }
 
+/** All-time statistics and achievements, from the whole review history (not just the activity window). */
+function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; activity: AccountActivity; lang: string }) {
+  const history = useStudyHistory(userId);
+  const srs = useSrsData();
+  const own = useUserDecks();
+  const now = useNow();
+  const stats = useMemo(
+    () => computeStats(history.reviews, srs.cards, activity.tests, activity.testCount, now),
+    [history.reviews, srs.cards, activity.tests, activity.testCount, now],
+  );
+  if (history.status === "loading") return null;
+  const percent = (v: number | null) => (v === null ? "–" : `${Math.round(v * 100)} %`);
+  const number = (n: number) => n.toLocaleString(lang === "sv" ? "sv-SE" : "en-GB");
+  const list = achievements(stats, history.reviews, own.length);
+  const done = list.filter((a) => a.done).length;
+
+  return (
+    <>
+      <h2 className="section-title" id="stats">{t.statsTitle}</h2>
+      {stats.totalReviews === 0 && stats.testsTaken === 0 ? (
+        <p className="empty-state">{t.statsEmpty}</p>
+      ) : (
+        <>
+          <div className="stat-grid">
+            <Stat value={number(stats.totalReviews)} label={t.statsReviews} />
+            <Stat value={number(stats.cardsStudied)} label={t.statsCardsStudied} />
+            <Stat value={percent(stats.retention)} label={t.statsRetention} />
+            <Stat value={number(stats.reviews30)} label={t.statsReviews30} />
+            <Stat value={number(stats.matureCards)} label={t.statsMature} />
+            <Stat value={percent(stats.averageTest)} label={t.statsAverageTest} />
+            <Stat value={number(stats.activeDays)} label={t.statsActiveDays} />
+          </div>
+          <p className="fine-print">
+            {fill(t.statsRetentionHint, { recent: percent(stats.retention30) })} {fill(t.statsMatureHint, { days: MATURE_DAYS })}
+          </p>
+        </>
+      )}
+
+      <h2 className="section-title" id="achievements">
+        {t.achievementsTitle} · {fill(t.achievementsCount, { done, total: list.length })}
+      </h2>
+      <ul className="achievements">
+        {list.map((a) => (
+          <li key={a.id} className={a.done ? "done" : undefined}>
+            <span className="achievement-badge" aria-hidden="true">
+              {a.done ? "★" : "☆"}
+            </span>
+            <span>
+              <strong>{t.achievement[a.id].title}</strong>
+              <span className="muted">{t.achievement[a.id].text}</span>
+              {!a.done && (
+                <span className="achievement-progress" role="progressbar" aria-valuemin={0} aria-valuemax={a.goal} aria-valuenow={a.progress}>
+                  <span style={{ width: `${(a.progress / a.goal) * 100}%` }} />
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 function Activity({ t, activity, lang }: { t: T; activity: AccountActivity; lang: string }) {
   const now = useNow();
   const { streak, best, weeks, activeDays } = useMemo(() => {
@@ -321,7 +400,7 @@ function Details({ t, userId, username }: { t: T; userId: string; username: stri
       {username && <UsernameEditor t={t} userId={userId} username={username} />}
       <PasswordEditor t={t} />
       <div className="account-links">
-        <Link href="/settings" className="tile-open">
+        <Link href="/library/settings" className="tile-open">
           {t.studyOptions}
         </Link>
         <Link href="/library" className="tile-open">

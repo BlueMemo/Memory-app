@@ -4,11 +4,14 @@ import { useSyncExternalStore } from "react";
 import { getSupabaseBrowserClient } from "../supabase/client";
 import {
   answerCard,
+  buryCard as buryStored,
   cardKey,
+  deadlineFor,
   dayStart,
   DEFAULT_SETTINGS,
   makeScheduler,
   normalizeSettings,
+  settingsForDeck,
   type Grade,
   type ReviewRecord,
   type SrsSettings,
@@ -224,6 +227,13 @@ async function loadRemote(userId: string) {
   notify();
 }
 
+/**
+ * Study writes (answers, buries, undos) go through one queue, so they reach the database in the order
+ * they happened — e.g. an undo's delete never overtakes the insert it undoes.
+ */
+let studyWrites: Promise<unknown> = Promise.resolve();
+const enqueue = (write: () => Promise<unknown>) => (studyWrites = studyWrites.then(write, write));
+
 /** Runs a database write; a failure is surfaced through the status instead of being swallowed. */
 async function persist(write: () => PromiseLike<{ error: unknown }>) {
   const { error } = await write();
@@ -243,6 +253,9 @@ export function setActiveUserForSrs(userId: string | null) {
 }
 
 // ---------- public API ----------
+
+/** The signed-in user whose SRS data is loaded, or null for a guest. */
+export const getActiveSrsUserId = () => activeUserId;
 
 const current = () => (activeUserId ? remote : readLocal());
 
@@ -294,21 +307,75 @@ export async function setDeckSrsEnabled(deckId: string, enabled: boolean) {
   }
 }
 
-/** Answers a card with Again/Hard/Good/Easy and reschedules it. */
-export async function reviewCard(deckId: string, cardId: string, grade: Grade, now = new Date()) {
+/** What a study action changed, so it can be undone (see `undoSrsChange`). */
+export interface SrsChange {
+  deckId: string;
+  cardId: string;
+  /** The card's schedule before the action (undefined: it was new and untouched). */
+  before: StoredCard | undefined;
+  /** The review log entry the action added, if it was an answer. */
+  record?: ReviewRecord;
+}
+
+/** Answers a card with Again/Hard/Good/Easy and reschedules it; `cardDueBy` is the card's own deadline. */
+export function reviewCard(deckId: string, cardId: string, grade: Grade, now = new Date(), cardDueBy?: string): SrsChange {
   const data = current();
   const key = cardKey(deckId, cardId);
-  const scheduler = makeScheduler(data.settings);
-  const { card, record } = answerCard(scheduler, deckId, cardId, data.cards[key], grade, now);
+  const settings = settingsForDeck(data.settings, deckId);
+  const scheduler = makeScheduler(settings);
+  const before = data.cards[key];
+  const { card, record } = answerCard(scheduler, deckId, cardId, before, grade, now, deadlineFor(settings.examDate, cardDueBy));
   apply({ ...data, cards: { ...data.cards, [key]: card }, logs: [...data.logs, record] });
   const userId = activeUserId;
   const supabase = getSupabaseBrowserClient();
   if (userId && supabase) {
-    await Promise.all([
-      persist(() => supabase.from("srs_cards").upsert(cardToRow(userId, deckId, cardId, card))),
-      persist(() => supabase.from("srs_review_logs").insert(logToRow(userId, record))),
-    ]);
+    enqueue(() =>
+      Promise.all([
+        persist(() => supabase.from("srs_cards").upsert(cardToRow(userId, deckId, cardId, card))),
+        persist(() => supabase.from("srs_review_logs").insert(logToRow(userId, record))),
+      ]),
+    );
   }
+  return { deckId, cardId, before, record };
+}
+
+/** Like Anki's "Bury": the card is skipped until tomorrow, without counting as an answer. */
+export function buryCard(deckId: string, cardId: string, now = new Date()): SrsChange {
+  const data = current();
+  const key = cardKey(deckId, cardId);
+  const before = data.cards[key];
+  const card = buryStored(before, now);
+  apply({ ...data, cards: { ...data.cards, [key]: card } });
+  const userId = activeUserId;
+  const supabase = getSupabaseBrowserClient();
+  if (userId && supabase) enqueue(() => persist(() => supabase.from("srs_cards").upsert(cardToRow(userId, deckId, cardId, card))));
+  return { deckId, cardId, before };
+}
+
+/** Undoes an answer or a bury: restores the card's earlier schedule and drops the review it logged. */
+export function undoSrsChange(change: SrsChange) {
+  const data = current();
+  const key = cardKey(change.deckId, change.cardId);
+  const cards = { ...data.cards };
+  if (change.before) cards[key] = change.before;
+  else delete cards[key];
+  // The record is the same object that reviewCard added to the in-memory log.
+  const logs = change.record ? data.logs.filter((l) => l !== change.record) : data.logs;
+  apply({ ...data, cards, logs });
+  const userId = activeUserId;
+  const supabase = getSupabaseBrowserClient();
+  if (!userId || !supabase) return;
+  const { deckId, cardId, before, record } = change;
+  enqueue(() => Promise.all([
+    before
+      ? persist(() => supabase.from("srs_cards").upsert(cardToRow(userId, deckId, cardId, before)))
+      : persist(() => supabase.from("srs_cards").delete().eq("user_id", userId).eq("deck_id", deckId).eq("card_id", cardId)),
+    record
+      ? persist(() =>
+          supabase.from("srs_review_logs").delete().eq("user_id", userId).eq("deck_id", deckId).eq("card_id", cardId).eq("review", record.review),
+        )
+      : Promise.resolve(),
+  ]));
 }
 
 /** Like Anki's "Forget": the card goes back to new, keeping its review history. */

@@ -24,7 +24,7 @@ export function DeckTile({ deck, action, edited }: { deck: Deck; action?: ReactN
       <h3>
         <Link href={href}>{deck.title}</Link>
       </h3>
-      <p>{deck.description}</p>
+      {deck.description && <p>{deck.description}</p>}
       <div className="tile-footer">
         <span className="muted">{fill(t.cardCount, { n: deck.cards.length })}</span>
         {action ?? <SaveDeckButton deckId={deck.id} />}

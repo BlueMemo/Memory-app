@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { dictionaries, languages, useI18n } from "@/i18n";
+import { watchSystemTheme } from "@/lib/preferences";
 import { useUser } from "@/lib/supabase/useUser";
 import { AuthSync } from "./AuthSync";
+import { GearIcon } from "./GearIcon";
 import { Avatar } from "./Avatar";
+import { Logo } from "./Logo";
 
 function AuthStatus() {
   const t = useI18n().t;
@@ -29,6 +33,7 @@ function AuthStatus() {
 export function SiteHeader() {
   const { lang, t, setLang } = useI18n();
   const pathname = usePathname();
+  useEffect(() => watchSystemTheme(), []);
 
   // Deck pages are reached from Discover or from the learner's own Library; user-created decks
   // are the only ones whose id starts with "user-" (see lib/userDecks.ts), so that prefix is
@@ -45,8 +50,8 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <AuthSync />
-      <Link href="/discover" className="brand">
-        {t.siteName}
+      <Link href="/" className="brand">
+        <Logo />
       </Link>
       <nav className="tabs" aria-label={t.header.navLabel}>
         {tabs.map((tab) => (
@@ -68,7 +73,7 @@ export function SiteHeader() {
           aria-label={t.header.settings}
           aria-current={pathname === "/settings" ? "page" : undefined}
         >
-          ⚙
+          <GearIcon size={20} />
         </Link>
         <AuthStatus />
         <div className="lang-switch" role="group" aria-label={t.header.language}>

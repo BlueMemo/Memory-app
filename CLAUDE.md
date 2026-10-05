@@ -14,6 +14,107 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Study tools, quick add, stats round (2026-10-05, second round)**:
+  - **Shortcuts while studying** (practice revision/test and spaced-repetition review): **U** undo,
+    **−** bury until tomorrow (review only — practice has no schedule), **A** add a card, **E** edit the
+    current card, **Tab** hint (the card's *memory cue*; in tests the association object; for ordered
+    revision only the first letter, since the cue *is* what's asked). Visible buttons too (`StudyTools`,
+    `memoryHint` in `PracticeSession.tsx`). Practice undo = the reducer's `restore` with a history of
+    earlier states; review undo/bury = `SrsChange` from `reviewCard`/`buryCard`, reverted by
+    `undoSrsChange` (`lib/srs/store.ts`), whose DB writes go through one queue (`enqueue`) so an undo's
+    delete never overtakes the insert. Burying a new card stores it as state New with a future due date,
+    which `classify` treats as "not today". Add/Edit open `CardDialog` (`components/CardForm.tsx`), which
+    always saves the **whole** deck (`useAnyDeck`), never a chapter slice. DeckGate no longer remounts a
+    session when the card count changes, so adding a card mid-session keeps your progress.
+  - **Quick add** (`/library/add`, `QuickAddView.tsx`; **A** in the Library, **B** opens the card
+    browser): choose the deck, save, and a fresh empty card appears until you press Done. Remembers the
+    last deck (`localStorage` `quickAdd.deck`).
+  - **Due dates**: a card can have its own "learn by" date (`Card.dueBy`) and a deck an **exam date**
+    (per-deck setting `examDate`); `applyDeadline` pulls any review that would land later forward to the
+    day before the earliest of the two (`deadlineFor`), also in the answer-button previews.
+  - **Chapters are opt-in** now: per-deck setting `chapters` (default off), `hasChapters(deck, enabled)`;
+    the deck page hints at it for decks over 10 cards.
+  - **Per-deck settings** (`/library/settings?deck=<id>`, titled "Deck settings"): chapters + exam date
+    (always the deck's own) and the spaced-repetition options (follow defaults, or "own settings"). Reached
+    from a gear on every deck in the Library and a "Deck settings" button on the deck page. All of it lives
+    in `settings.deckOverrides` (`lib/srs/core.ts`, keys `SRS_OPTION_KEYS` + `DECK_ONLY_KEYS`) — no schema
+    change. The list offers every library deck, not only ones with spaced repetition on.
+  - **Statistics + achievements** on the account page (`StudyStatistics` in `AccountDashboard.tsx`, pure
+    logic in `lib/studyStats.ts`, all-time history via `useStudyHistory`): reviews, different cards,
+    retention (share of *due* reviews not answered Again, all time and last 30 days), cards in long-term
+    memory (interval ≥ 21 days), average test score, days studied; ten achievements with progress bars.
+    Accounts only (that's where the history is).
+  - Smaller: deck description is optional; the About page has a "Contact us" section with
+    memoblue.team@gmail.com (`CONTACT_EMAIL` in `AboutView.tsx`); "memory queue" was a mistranslation
+    and now reads "memory cue" / "minnesbild" everywhere visible; link-styled buttons are no longer
+    underlined; the header gear is a drawn icon (`GearIcon.tsx`) since ⚙ is missing from some fonts.
+  - Reported bug "a button covers text" in the FSRS optimisation section: couldn't be reproduced (no
+    overlap found at desktop or phone width); spacing there was tightened up. Ask for a screenshot if
+    it's still seen.
+- **Ten-point change round (2026-10-05)** — asked for by the team, decided via a questionnaire (unanswered
+  questions got the recommended default, listed here):
+  1. **Big reveal cards**: revision rounds, the test and spaced-repetition reviews now use one large card
+     (`FlipCard` in `PracticeSession.tsx`, CSS `.reveal-card`) that fills the space between the progress
+     bar and the buttons; the question stays visible at the top and the answer appears underneath (click,
+     Enter or Space). The 3D flip is gone, and the reducer's `flip` now only reveals (no hiding again).
+  2. **Thought bubbles no longer move the card**: in a deck where any card has a bubble, every walkthrough
+     step keeps the bubble's headroom (`WalkStep`).
+  3. **Logo**: see the rebrand entry below — now an open doorway into a fairy-tale night (blue castle
+     with crenellations, three yellow stars), chosen from several rounds of sketches.
+  4. **China card**: both chopsticks now stand, fanned, in the same shoe (`Illustration.tsx`).
+  5. **Landing headline**: "Memorize the ten most populated countries *in one go.*" / "Lär dig världens
+     tio folkrikaste länder *på en gång.*"
+  6. **Search + sharing in Discover** (roadmap phase 4, first part): search box (title, description, card
+     text, creator's username) + language and type filters; official decks are filtered in the browser,
+     community decks are queried from Supabase. Learners publish **their own** decks from the deck page
+     (`components/SharePanel.tsx`, signed-in only): each publish adds an **immutable version** to
+     `published_decks`; "Show in Discover" on/off (off = link only, via `/shared/<id>`); unpublish removes
+     all versions. `/shared/[id]` (`SharedDeckView.tsx`) shows a version (with a link to a newer one) and
+     "Add a copy to my library" (a normal user deck, independent of later versions). Not built yet: saving
+     a published deck *by reference* (only copies), reporting/moderation, popularity sorting.
+     Code: `lib/publishedDecks.ts`. **Pending: re-run `supabase/schema.sql`** (adds the `published_decks`
+     table and `published_decks_latest` view). Until then Discover says community decks aren't available
+     and the share panel says sharing isn't available.
+  7. **Spaced repetition settings moved to the Library** (`/library/settings`, `SrsSettingsView.tsx`;
+     linked from the Library page, each deck's SRS panel with `?deck=<id>`, and the account page) — the
+     header gear is now general settings (8). New-card waits: **Again 5m, Hard 10m** (settings `againStep`
+     / `hardStep`), while **Good and Easy graduate straight to FSRS** (a custom ts-fsrs learning-steps
+     strategy, `newCardSteps` in `lib/srs/core.ts`); relearning stays 10m. **Per-deck settings**: the
+     defaults apply to all decks and a deck can override any of them (`settings.deckOverrides`, stored
+     inside the existing `user_settings.srs` JSON — no schema change; `settingsForDeck()` everywhere).
+     **Personal FSRS optimisation** (accounts only — guests keep just 30 days of reviews): "Optimise now"
+     plus automatic re-optimisation (on by default) after every 200 new reviews, at most once a day per
+     browser, needing at least 200 reviews (`lib/srs/optimize.ts`). The browser sends only per-card
+     [rating, day number] lists to the stateless route `app/api/fsrs/optimize/route.ts`, which runs the
+     official optimizer `@open-spaced-repetition/binding` (a native Rust addon — listed in
+     `serverExternalPackages` in `next.config.ts`) and returns the 21 parameters, saved as
+     `settings.parameters`. Old `learningSteps` settings are ignored (replaced by the two new fields).
+  8. **General settings** (`/settings`, `SettingsView.tsx`): theme (dark default / light / match
+     device), text size, reduce motion, and the library's layout (tiles / rows / list, sort: recent /
+     recently studied / most due / name, grouping: own vs saved / together / by type), with a quick
+     tiles/rows/list switch on the Library page. **Per device, in browser storage** (`lib/preferences.ts`,
+     key `prefs.v1`), like most sites' theme settings — not synced to accounts. `lib/themeScript.ts` is an
+     inline `<head>` script that applies the theme before first paint (no flash of dark for light users).
+  9. **Anki**: nothing visitor-facing mentioned it any more (checked site text and the built JS);
+     internal comments are fine per the rule below.
+  10. **Memory techniques page** (`/techniques`, `TechniquesView.tsx`): the memory palace, active recall and
+      spaced repetition, each with what it is, how to do it and how BlueMemo uses it; the landing page's
+      "Why it works" section became three cards linking to each section.
+- **Rebrand + landing page (2026-10-05)**: brand decided with the team via a questionnaire — audience
+  high-school/university students and language learners, Sweden first, found via TikTok/Instagram/YouTube
+  and word of mouth; personality calm, smart, trustworthy ("between Anki's complexity and Quizlet's
+  playfulness"). Result: **ink & paper, dark-first** (dark is the default for everyone; the light palette
+  exists under `:root[data-theme="light"]` but nothing switches to it yet — an appearance setting would);
+  **one brand blue, no orange** (the earlier orange accent/spark was dropped on purpose); **Newsreader**
+  for h1/h2 and the wordmark, **Geist** for everything read while studying; no mascot; simple line icons.
+  Logo (updated 2026-10-05): an open doorway (paper-coloured frame + threshold) into a dark-blue night
+  with a crenellated blue castle and **three yellow stars** — the stars are logo artwork, the UI still uses
+  one blue; wordmark
+  "**Blue**Memo" with "Blue" in brand blue. `/` is now a landing page (`components/LandingView.tsx`)
+  whose main button starts the "10 largest countries" practice as a demo (no account needed); the logo
+  links to `/`, decks stay on `/discover`. Copy avoids claims we can't back up (no "in one minute", no
+  made-up testimonials). Idea not done yet: a Swedish demo deck, since the site defaults to Swedish for
+  Swedish browsers but both official decks are in English.
 - **Repo moved to a GitHub organisation (2026-10-04)**: `ErikNyabako/Memory-app` →
   **`BlueMemo/Memory-app`** (public, branch `main`). Done so the Vercel project, which lives on the other
   partner's Vercel account, can import it — Vercel only lists repos owned by a GitHub account or org
@@ -100,8 +201,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   - Code: `src/lib/srs/core.ts` (pure scheduling rules, tested in `core.test.ts`), `src/lib/srs/store.ts`
     (data: guest → localStorage key `srs.v1`, signed in → Supabase; writes apply in memory first and save in
     the background, failures surface via `useSrsStatus() === "error"`), `components/ReviewSession.tsx`
-    (`/decks/[id]/review`), `SrsDeckPanel.tsx` (on/off switch + counts on deck pages), `SettingsView.tsx`
-    (`/settings`, gear icon in the header), `CardBrowserView.tsx` (`/library/cards`).
+    (`/decks/[id]/review`), `SrsDeckPanel.tsx` (on/off switch + counts on deck pages), `SrsSettingsView.tsx`
+    (`/library/settings`), `lib/srs/optimize.ts` (personal parameters), `CardBrowserView.tsx` (`/library/cards`).
   - Scheduling is stored per (deck id, card id), separately from deck content, so it works for official
     decks too, and editing a card keeps its schedule (card ids never change). Deleting a deck removes its
     scheduling; deleting a card in the browser "forgets" it.
@@ -173,6 +274,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   password auth eventually anyway.
 - **Guest mode decision**: signing in is optional, not required. Guest mode (browser storage) stays the
   default for anyone who doesn't sign in; an account is an upgrade for cross-device sync, not a gate.
+- **Supabase project access (2026-10-05)**: the project belongs to Erik's Supabase account; David's
+  Supabase account isn't a member of its organization (CLI login works but sees no projects), so David
+  can't run `schema.sql`. Until Erik invites him (Organization settings → Team), Erik runs schema changes.
+  **Still pending**: re-running `schema.sql` for `published_decks` (sharing shows "not available" until then).
 - **Supabase project**: created under the project name "Memory App" (region: eu-west-1 / Ireland). Uses
   the newer Supabase "publishable key" format (`sb_publishable_...`), not the legacy JWT anon key — both
   work as the `NEXT_PUBLIC_SUPABASE_ANON_KEY` value, but new setup should use the publishable key from
@@ -195,15 +300,18 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 - `src/components/PracticeSession.tsx`: renders the flow; keyboard shortcuts live here.
 - `src/decks/`: official decks as TypeScript data. User decks live in browser storage (guest mode) or,
   once signed in, in Supabase (see Accounts below) — the same `Deck[]`/`Card[]` shape either way.
-- Pages (tabs in `SiteHeader`): `/discover` (official + future community decks; `/` redirects here),
-  `/library` (saved + created decks), `/about`, `/account` (sign in/up), plus
+- Pages (tabs in `SiteHeader`): `/discover` (official + community decks, search), `/library` (saved +
+  created decks), `/about`, `/account` (sign in/up), plus `/` (landing page), `/techniques`, `/settings`
+  (general, gear icon), `/library/settings` (spaced repetition), `/shared/[id]` (a published deck),
   `/decks/[deckId]`, `/decks/[deckId]/practice`, and `/library/new` / `/library/edit/[deckId]` (the deck creator).
 - `src/lib/library.ts` / `src/lib/userDecks.ts`: saved deck ids and created decks. Each hook/mutator
   (`useSavedDeckIds`, `useUserDecks`, `addUserDeck`, ...) checks the active user (set by
   `components/AuthSync.tsx`) and transparently reads/writes Supabase when signed in, browser storage
   otherwise — callers never branch on auth state themselves. Mutators are `async` because the signed-in
   path awaits a network call.
-- The About page's "Who we are" text is a placeholder waiting for the team's own story.
+- The About page's "Who we are" text (`about.teamBody`) is the team's story: David and Erik, 19, David's
+  work with Jonas von Essen and top grades, Erik from Affärsgymnasiet, the "ultimate platform for
+  memorization" vision. Written 2026-10-05 from David's notes.
 - `src/i18n/`: site text. `en.ts` is the source of truth; `sv.ts` must have the same keys. Deck content has
   its own `language` and is never translated by the site.
 
@@ -236,7 +344,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 - Every piece of user-facing site text goes through `useI18n()`; never hard-code UI strings in components.
 - In deck text, `**bold**` marks emphasis and CAPITAL runs in visualizations mark the sound-alike part.
-- Styling is plain CSS in `src/app/globals.css` with colour tokens on `:root` (light and dark).
+- Styling is plain CSS in `src/app/globals.css` with colour tokens on `:root` (dark, the default) and
+  `:root[data-theme="light"]`. Use `--brand-blue` / `--accent` for the one brand colour and
+  `--brand-on-blue` for text on it; don't reintroduce a second brand colour.
+- The logo artwork lives in `components/LogoArt.tsx` (used by the header `Logo.tsx` and
+  `app/apple-icon.tsx`); `app/icon.svg` (favicon) is a static copy of the same drawing — keep it in step.
 - **Never name Anki (or any other competing app) in anything a visitor can see** — site text, CSS served to
   browsers, error messages. The spaced-repetition feature is modelled on Anki's behaviour (and the importer
   reads its plain-text export), which is fine internally, so source comments and identifiers like
@@ -251,7 +363,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
    password reset, decks/library synced to accounts, and practice-result recording are all built (see
    Accounts above). Remaining: a UI to actually see your practice history, and FSRS-based scheduling.
 4. Sharing: publish decks (published versions are immutable; authors post a new version),
-   public list + search, save or "make my own copy"
+   public list + search, save or "make my own copy" — **in progress**: publish/versions/link-only, search
+   and "make my own copy" are built (see Current status); saving by reference and moderation are not.
 5. Test-group launch
 
 Large decks: decided — chapters of 10 (see Current status).

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   answerCard,
+  applyDeadline,
+  buryCard,
   cardKey,
+  deadlineFor,
   dayStart,
   DEFAULT_SETTINGS,
   deckCounts,
@@ -9,12 +12,13 @@ import {
   makeScheduler,
   nextDayStart,
   normalizeSettings,
+  parseStep,
   parseSteps,
+  settingsForDeck,
   pickNext,
   previewDue,
   Rating,
   State,
-  type Grade,
   type QueueInput,
   type ReviewRecord,
   type StoredCard,
@@ -29,40 +33,60 @@ function queue(partial: Partial<QueueInput> & Pick<QueueInput, "now">): QueueInp
   return { deckId: "d", cardIds: ["a", "b", "c"], cards: {}, logs: [], settings: DEFAULT_SETTINGS, ...partial };
 }
 
-describe("answering cards (Anki defaults: steps 1m 10m, relearn 10m)", () => {
+describe("answering cards (new: Again 5m, Hard 10m, Good/Easy by FSRS; relearn 10m)", () => {
   const now = at("2026-10-01T10:00:00");
 
-  it("previews Anki's intervals for a new card", () => {
+  it("previews the fixed waits for Again and Hard on a new card", () => {
     const due = previewDue(scheduler, undefined, now);
-    expect(minutes(now, due[Rating.Again])).toBe(1);
-    expect(minutes(now, due[Rating.Hard])).toBe(6);
-    expect(minutes(now, due[Rating.Good])).toBe(10);
-    expect(minutes(now, due[Rating.Easy])).toBeGreaterThan(24 * 60);
+    expect(minutes(now, due[Rating.Again])).toBe(5);
+    expect(minutes(now, due[Rating.Hard])).toBe(10);
   });
 
-  it("moves a new card through learning into review", () => {
-    const first = answerCard(scheduler, "d", "a", undefined, Rating.Good, now);
-    expect(first.card.state).toBe(State.Learning);
-    expect(first.record.state).toBe(State.New);
+  it("lets FSRS schedule Good and Easy straight away, Easy further out", () => {
+    const due = previewDue(scheduler, undefined, now);
+    expect(minutes(now, due[Rating.Good])).toBeGreaterThanOrEqual(24 * 60);
+    expect(due[Rating.Easy].getTime()).toBeGreaterThan(due[Rating.Good].getTime());
+    const good = answerCard(scheduler, "d", "a", undefined, Rating.Good, now);
+    expect(good.card.state).toBe(State.Review);
+    expect(good.record.state).toBe(State.New);
+  });
 
-    const later = new Date(first.card.due);
-    const second = answerCard(scheduler, "d", "a", first.card, Rating.Good, later);
-    expect(second.card.state).toBe(State.Review);
-    expect(second.card.scheduledDays).toBeGreaterThanOrEqual(1);
+  it("keeps Again and Hard in learning until the card is answered Good", () => {
+    const again = answerCard(scheduler, "d", "a", undefined, Rating.Again, now);
+    expect(again.card.state).toBe(State.Learning);
+    const t1 = new Date(again.card.due);
+    const hard = answerCard(scheduler, "d", "a", again.card, Rating.Hard, t1);
+    expect(hard.card.state).toBe(State.Learning);
+    expect(minutes(t1, new Date(hard.card.due))).toBe(10);
+    const t2 = new Date(hard.card.due);
+    const good = answerCard(scheduler, "d", "a", hard.card, Rating.Good, t2);
+    expect(good.card.state).toBe(State.Review);
+    expect(good.card.scheduledDays).toBeGreaterThanOrEqual(1);
   });
 
   it("sends a forgotten review card to relearning", () => {
-    let card: StoredCard | undefined;
-    let t = now;
-    const grades: Grade[] = [Rating.Good, Rating.Good];
-    for (const g of grades) {
-      card = answerCard(scheduler, "d", "a", card, g, t).card;
-      t = new Date(card.due);
-    }
-    const lapse = answerCard(scheduler, "d", "a", card, Rating.Again, t);
+    const learned = answerCard(scheduler, "d", "a", undefined, Rating.Good, now).card;
+    const t = new Date(learned.due);
+    const lapse = answerCard(scheduler, "d", "a", learned, Rating.Again, t);
     expect(lapse.card.state).toBe(State.Relearning);
     expect(lapse.card.lapses).toBe(1);
     expect(minutes(t, new Date(lapse.card.due))).toBe(10);
+  });
+
+  it("uses a deck's own waits and personal parameters", () => {
+    const settings = normalizeSettings({ deckOverrides: { d: { againStep: "2m", hardStep: "20m" } } });
+    const deck = makeScheduler(settingsForDeck(settings, "d"), { fuzz: false });
+    const due = previewDue(deck, undefined, now);
+    expect(minutes(now, due[Rating.Again])).toBe(2);
+    expect(minutes(now, due[Rating.Hard])).toBe(20);
+    expect(settingsForDeck(settings, "other").againStep).toBe("5m");
+
+    // Higher initial stability for Good (parameter 2) means a longer first interval.
+    const base = previewDue(scheduler, undefined, now)[Rating.Good];
+    const parameters = [...scheduler.parameters.w];
+    parameters[2] *= 4;
+    const personal = makeScheduler({ ...DEFAULT_SETTINGS, parameters }, { fuzz: false });
+    expect(previewDue(personal, undefined, now)[Rating.Good].getTime()).toBeGreaterThan(base.getTime());
   });
 });
 
@@ -144,12 +168,74 @@ describe("settings", () => {
     expect(parseSteps("0m")).toBeNull();
   });
 
+  it("parses single learning waits under a day", () => {
+    expect(parseStep("5m")).toBe("5m");
+    expect(parseStep(" 2h ")).toBe("2h");
+    expect(parseStep("24h")).toBeNull();
+    expect(parseStep("1d")).toBeNull();
+    expect(parseStep("5m 10m")).toBeNull();
+  });
+
   it("repairs missing or out-of-range values", () => {
     expect(normalizeSettings(null)).toEqual(DEFAULT_SETTINGS);
-    const s = normalizeSettings({ desiredRetention: 2, newPerDay: -5, learningSteps: "nonsense", enableForNewDecks: false });
+    const s = normalizeSettings({ desiredRetention: 2, newPerDay: -5, againStep: "nonsense", enableForNewDecks: false, parameters: [1, 2] });
     expect(s.desiredRetention).toBe(0.99);
     expect(s.newPerDay).toBe(0);
-    expect(s.learningSteps).toBe(DEFAULT_SETTINGS.learningSteps);
+    expect(s.againStep).toBe(DEFAULT_SETTINGS.againStep);
     expect(s.enableForNewDecks).toBe(false);
+    expect(s.parameters).toBeNull();
+  });
+
+  it("keeps only real per-deck changes", () => {
+    const s = normalizeSettings({ newPerDay: 10, deckOverrides: { a: { newPerDay: 10 }, b: { newPerDay: 5, hardStep: "bad" } } });
+    expect(s.deckOverrides).toEqual({ b: { newPerDay: 5 } });
+    expect(settingsForDeck(s, "b").newPerDay).toBe(5);
+    expect(settingsForDeck(s, "a").newPerDay).toBe(10);
+  });
+
+  it("applies a deck's own daily limit to its queue", () => {
+    const settings = normalizeSettings({ deckOverrides: { d: { newPerDay: 1 } } });
+    expect(deckCounts(queue({ now: at("2026-10-01T10:00:00"), settings })).new).toBe(1);
+  });
+});
+
+describe("deadlines and burying", () => {
+  const now = at("2026-10-01T10:00:00");
+
+  it("picks the earliest of a deck's exam date and a card's own date", () => {
+    expect(deadlineFor(null, undefined)).toBeNull();
+    expect(deadlineFor("2026-10-20", "2026-10-10")).toBe("2026-10-10");
+    expect(deadlineFor("2026-10-05", "bad")).toBe("2026-10-05");
+  });
+
+  it("pulls a review forward to the day before the deadline", () => {
+    const card = answerCard(scheduler, "d", "a", undefined, Rating.Easy, now).card;
+    expect(new Date(card.due).getTime()).toBeGreaterThan(at("2026-10-04T10:00:00").getTime());
+    const capped = applyDeadline(card, "2026-10-04", now);
+    expect(new Date(capped.due).getTime()).toBe(at("2026-10-03T04:00:00").getTime());
+    expect(applyDeadline(card, "2030-01-01", now)).toBe(card); // already due before a far deadline
+    expect(applyDeadline(card, "2026-10-01", now)).toBe(card); // the deadline has passed
+  });
+
+  it("previews the capped interval on the answer buttons", () => {
+    const due = previewDue(scheduler, undefined, now, "2026-10-03");
+    expect(due[Rating.Easy].getTime()).toBe(at("2026-10-02T04:00:00").getTime());
+    expect(minutes(now, due[Rating.Again])).toBe(5); // short learning steps are untouched
+  });
+
+  it("buries a new card until tomorrow, out of today's queue", () => {
+    const buried = buryCard(undefined, now);
+    expect(new Date(buried.due).getTime()).toBe(at("2026-10-02T04:00:00").getTime());
+    const cards = { [cardKey("d", "a")]: buried };
+    expect(deckCounts(queue({ now, cards })).new).toBe(2);
+    expect(deckCounts(queue({ now: at("2026-10-02T09:00:00"), cards })).new).toBe(3);
+  });
+
+  it("buries a due review card until tomorrow", () => {
+    const learned = answerCard(scheduler, "d", "a", undefined, Rating.Good, now).card;
+    const t = new Date(learned.due);
+    const buried = buryCard(learned, t);
+    expect(buried.state).toBe(State.Review);
+    expect(new Date(buried.due).getTime()).toBeGreaterThan(t.getTime());
   });
 });

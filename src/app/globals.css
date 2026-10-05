@@ -1,41 +1,53 @@
 :root {
-  --bg: #f6f3ee;
-  --card: #ffffff;
-  --ink: #1f1d1a;
-  --muted: #6b665e;
-  --line: #e4ded4;
-  --accent: #d9572b;
-  --accent-soft: rgba(217, 87, 43, 0.1);
-  --good: #2f8f5b;
-  --again: #c0842a;
-  --shadow: 0 10px 30px rgba(40, 30, 20, 0.12);
+  /* Ink & paper, dark-first: dark is the default for everyone (brand decision 2026-10-05), with
+     one brand blue and no other brand colour. The light palette below is ready for an
+     appearance setting (set data-theme="light" on <html>); nothing switches to it yet. */
+  --bg: #121417;
+  --card: #1b1e23;
+  --ink: #ecebe6;
+  --muted: #9b9fa6;
+  --line: #2a2e35;
+  --brand-blue: #6f9cff;
+  --brand-on-blue: #121417;
+  --accent: var(--brand-blue);
+  --accent-soft: rgba(111, 156, 255, 0.14);
+  --good: #4cc185;
+  --again: #e5a94a;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   /* Review answer and count colours: again red, hard grey, good green, easy/new blue. */
-  --srs-again: #c4362c;
-  --srs-hard: #6b665e;
-  --srs-good: #2f8f5b;
-  --srs-easy: #2f6fbf;
+  --srs-again: #ef6a5e;
+  --srs-hard: #9b9fa6;
+  --srs-good: #4cc185;
+  --srs-easy: #6aa5f0;
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #17161a;
-    --card: #232228;
-    --ink: #f1eee8;
-    --muted: #a39e95;
-    --line: #36343c;
-    --accent: #ff7a4d;
-    --accent-soft: rgba(255, 122, 77, 0.14);
-    --good: #4cc185;
-    --again: #e5a94a;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-    --srs-again: #ef6a5e;
-    --srs-hard: #a39e95;
-    --srs-good: #4cc185;
-    --srs-easy: #6aa5f0;
-  }
-  html {
-    color-scheme: dark;
-  }
+:root[data-theme="light"] {
+  --bg: #f7f5f0;
+  --card: #ffffff;
+  --ink: #16181c;
+  --muted: #63666d;
+  --line: #e6e2d9;
+  --brand-blue: #2a55c7;
+  --brand-on-blue: #ffffff;
+  --accent-soft: rgba(42, 85, 199, 0.1);
+  --good: #2f8f5b;
+  --again: #c0842a;
+  --shadow: 0 10px 30px rgba(20, 22, 28, 0.12);
+  --srs-again: #c4362c;
+  --srs-hard: #63666d;
+  --srs-good: #2f8f5b;
+  --srs-easy: #2f6fbf;
+  color-scheme: light;
+}
+
+/* The "Text size" setting: everything sized in rem scales with it. */
+:root[data-text-size="large"] {
+  font-size: 112.5%;
+}
+
+:root[data-text-size="larger"] {
+  font-size: 125%;
 }
 
 * {
@@ -45,7 +57,8 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  /* clip, not hidden: hidden would turn body into a scroll container and break position: sticky. */
+  overflow-x: clip;
 }
 
 body {
@@ -65,6 +78,12 @@ a {
 
 button {
   font: inherit;
+}
+
+h1,
+h2:not(.section-title) {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 500;
 }
 
 .muted {
@@ -142,10 +161,29 @@ button {
 }
 
 .brand {
-  font-weight: 800;
-  letter-spacing: -0.02em;
   text-decoration: none;
-  font-size: 1.1rem;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-mark {
+  flex-shrink: 0;
+}
+
+.logo-word {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 500;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.logo-blue {
+  color: var(--brand-blue);
 }
 
 .lang-switch {
@@ -346,7 +384,9 @@ button {
 
 .about-section h2 {
   margin: 0 0 8px;
-  font-size: 1.25rem;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .about-section p {
@@ -354,16 +394,14 @@ button {
   line-height: 1.6;
 }
 
+.about-section p + p {
+  margin-top: 12px;
+}
+
 .about-section strong {
   color: var(--accent);
 }
 
-.placeholder {
-  padding: 14px 16px;
-  border: 2px dashed var(--line);
-  border-radius: 12px;
-  color: var(--muted);
-}
 
 .tags {
   display: flex;
@@ -450,8 +488,15 @@ button {
   text-align: center;
 }
 
+/* Links styled as buttons (e.g. "Start", "Edit deck") look like buttons, not underlined text. */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
 .btn.accent {
   background: var(--accent);
+  color: var(--brand-on-blue);
 }
 
 .btn.again {
@@ -832,43 +877,70 @@ ul.overview-list {
   }
 }
 
-/* Flip cards (revision and test) */
+/* Reveal cards (revision, test and spaced repetition): the question stays on top, the answer appears below. */
 
-.scene {
+.reveal-card {
   width: 100%;
-  max-width: 490px;
-  aspect-ratio: 4 / 3;
-  min-height: 385px;
-  perspective: 1200px;
+  max-width: 960px;
+  /* Fill the space between the progress bar and the answer buttons, so both stay on screen. */
+  min-height: clamp(320px, calc(100vh - 430px), 620px);
+  justify-content: flex-start;
+  gap: 0;
+  padding: clamp(24px, 5vw, 48px);
+}
+
+.reveal-card[role="button"] {
   cursor: pointer;
 }
 
-.scene:focus-visible {
+.reveal-card:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 4px;
-  border-radius: 20px;
 }
 
-.card {
-  position: relative;
+.reveal-question,
+.reveal-answer {
   width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.card.flipped {
-  transform: rotateY(180deg);
+.reveal-question {
+  padding-bottom: 24px;
 }
 
-.card .face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
+.reveal-card .big {
+  font-size: clamp(2rem, 5vw, 2.8rem);
 }
 
-.card .back {
-  transform: rotateY(180deg);
+.reveal-card .big.sentence {
+  max-width: 560px;
+}
+
+.reveal-card .cue {
+  max-width: 520px;
+}
+
+.reveal-answer {
+  padding-top: 24px;
+  border-top: 1px dashed var(--line);
+  animation: rise 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reveal-button {
+  margin-top: auto;
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.reveal-card[role="button"]:hover .reveal-button {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Instructions card */
@@ -1268,6 +1340,7 @@ ul.overview-list {
 .settings-link {
   font-size: 1.15rem;
   line-height: 1;
+  display: inline-flex;
   padding: 6px 8px;
   border-radius: 999px;
   color: var(--muted);
@@ -2047,6 +2120,14 @@ ul.overview-list {
   }
 }
 
+/* The "Reduce motion" setting (data-motion on <html>, see lib/preferences.ts). */
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 /* ---------- Account page ---------- */
 
 .page.account-page {
@@ -2292,5 +2373,764 @@ ul.overview-list {
   }
   .stat-grid.three .stat-tile:last-child {
     grid-column: 1 / -1;
+  }
+}
+
+/* ---------- Landing page (/) ---------- */
+
+.landing a.btn,
+.techniques a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.landing-hero {
+  text-align: center;
+  padding: 56px 0 24px;
+}
+
+.landing-hero h1 {
+  margin: 0 auto 16px;
+  max-width: 720px;
+  font-size: clamp(2.3rem, 7vw, 3.8rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+.landing-hero h1 em,
+.landing-final h2 {
+  color: var(--brand-blue);
+}
+
+.landing-lead {
+  margin: 0 auto 28px;
+  max-width: 560px;
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.landing-ctas {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.landing-note {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.landing-section {
+  margin-top: 64px;
+  scroll-margin-top: 24px;
+}
+
+.landing-section h2,
+.landing-final h2 {
+  margin: 0 0 18px;
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  letter-spacing: -0.01em;
+}
+
+.landing-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.landing-steps,
+.landing-why {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .landing-steps,
+  .landing-why {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing-steps li,
+.landing-why li {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.landing-steps svg {
+  fill: none;
+  stroke: var(--brand-blue);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.landing-steps h3,
+.landing-why h3 {
+  margin: 10px 0 6px;
+  font-size: 1.05rem;
+}
+
+.landing-why h3 {
+  margin-top: 0;
+}
+
+.landing-steps p,
+.landing-why p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.landing-final {
+  margin: 72px 0 16px;
+  padding: 40px 20px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+
+.landing-final p {
+  margin: 0 0 22px;
+  color: var(--muted);
+}
+
+.landing-why li:has(.technique-card) {
+  padding: 0;
+}
+
+.technique-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 16px;
+}
+
+.technique-card:hover {
+  background: var(--accent-soft);
+}
+
+.technique-card p {
+  flex: 1;
+}
+
+.technique-more {
+  margin-top: 14px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* ---------- Memory techniques (/techniques) ---------- */
+
+.technique {
+  margin-top: 48px;
+  scroll-margin-top: 72px;
+  line-height: 1.6;
+}
+
+.technique h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 6px;
+  font-size: clamp(1.6rem, 4vw, 2rem);
+}
+
+.technique-number {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.technique-summary {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.technique h3 {
+  margin: 22px 0 8px;
+  font-size: 1rem;
+}
+
+.technique ol {
+  margin: 0;
+  padding-left: 1.3em;
+}
+
+.technique li {
+  margin-bottom: 6px;
+}
+
+.technique-in-app {
+  margin-top: 22px;
+  padding: 4px 18px 14px;
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+}
+
+.technique-in-app h3 {
+  margin-top: 12px;
+}
+
+.technique-in-app p {
+  margin: 0;
+}
+
+/* ---------- General settings (/settings) ---------- */
+
+.settings-form + .settings-form {
+  margin-top: 36px;
+}
+
+.choice {
+  border: none;
+  padding: 0;
+  margin: 0 0 20px;
+  max-width: none;
+}
+
+.choice legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.segmented {
+  display: inline-flex;
+  align-self: flex-start;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.segmented.stacked {
+  display: flex;
+  align-self: stretch;
+  flex-direction: column;
+  max-width: 480px;
+}
+
+.choice .segmented label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.segmented:not(.stacked) label + label {
+  border-left: 1px solid var(--line);
+}
+
+.segmented.stacked label + label {
+  border-top: 1px solid var(--line);
+}
+
+.choice .segmented label.active {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* ---------- Spaced repetition settings (/library/settings) ---------- */
+
+.plain-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.plain-fieldset:disabled {
+  opacity: 0.55;
+}
+
+.optimizer {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.optimizer .controls {
+  margin: 16px 0;
+  align-items: center;
+}
+
+.optimizer .check-field {
+  margin-top: 20px;
+}
+
+.field select {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+/* ---------- Library layout (tiles / rows / list) ---------- */
+
+.library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.segmented.small button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.segmented.small button + button {
+  border-left: 1px solid var(--line);
+}
+
+.segmented.small button.active {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.deck-grid.rows {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.deck-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.deck-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 12px 16px;
+  background: var(--card);
+}
+
+.deck-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.deck-list-title {
+  flex: 1 1 220px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.deck-list-title:hover {
+  color: var(--accent);
+}
+
+.deck-list .tile-actions {
+  margin-left: auto;
+}
+
+/* ---------- Discover search and shared decks ---------- */
+
+.discover-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  margin: 4px 0 8px;
+}
+
+.discover-search input[type="search"] {
+  flex: 1 1 280px;
+  font: inherit;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.discover-search input[type="search"]:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.discover-search label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.discover-search select {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.published-author {
+  margin: -4px 0 8px;
+  font-size: 0.9rem;
+}
+
+.share-panel {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.share-panel h2 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.share-status {
+  margin: 12px 0;
+}
+
+.shared-card-list {
+  margin: 0;
+  padding-left: 1.4em;
+  line-height: 1.8;
+}
+
+/* ---------- Study tools: hint, undo / bury / add / edit, card dialog ---------- */
+
+kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 0.75em;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--muted);
+  background: var(--bg);
+}
+
+.reveal-hint {
+  margin: 16px 0 0;
+  padding: 10px 16px;
+  max-width: 560px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.45;
+  animation: rise 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reveal-actions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.reveal-actions .reveal-button {
+  margin-top: 0;
+}
+
+.reveal-hint-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.reveal-hint-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.study-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin-top: 14px;
+}
+
+.study-tools .link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.study-tools .link-button:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.study-tools .link-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6vh 16px 16px;
+  background: rgba(0, 0, 0, 0.55);
+  overflow-y: auto;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 560px;
+  align-items: stretch;
+  text-align: left;
+  padding: 24px;
+}
+
+.dialog h2 {
+  margin: 0 0 2px;
+  font-size: 1.4rem;
+}
+
+.card-form {
+  margin-top: 16px;
+}
+
+.card-form textarea {
+  min-height: 80px;
+}
+
+.library-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.library-quick .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 14px;
+  text-decoration: none;
+}
+
+.library-quick .btn.nav kbd {
+  background: transparent;
+}
+
+.btn.accent kbd {
+  color: var(--brand-on-blue);
+  border-color: rgba(0, 0, 0, 0.25);
+  background: transparent;
+}
+
+.tile-actions a.save-btn:has(svg) {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---------- Account statistics and achievements ---------- */
+
+.achievements {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.achievements li {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  opacity: 0.7;
+}
+
+.achievements li.done {
+  opacity: 1;
+  border-color: var(--accent);
+}
+
+.achievements li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.achievements .muted {
+  font-size: 0.9rem;
+}
+
+.achievement-badge {
+  font-size: 1.4rem;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.achievements li.done .achievement-badge {
+  color: #f5c84c;
+}
+
+.achievement-progress {
+  display: block;
+  height: 5px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.achievement-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.card-form a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
+/* ---------- Section tabs on long pages (About, Memory techniques) ---------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+:root[data-motion="reduce"] {
+  scroll-behavior: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.page-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 -16px 8px;
+  padding: 10px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.page-tabs a {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.page-tabs a:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.page-tabs a.active {
+  color: var(--ink);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.about-section,
+main [id] {
+  scroll-margin-top: 72px;
+}
+
+/* On phones: one row you can swipe, fading out at the edge so it's clear there are more tabs. */
+@media (max-width: 640px) {
+  .page-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    mask-image: linear-gradient(to right, #000 85%, transparent);
+  }
+
+  .page-tabs a {
+    flex-shrink: 0;
   }
 }

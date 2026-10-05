@@ -15,8 +15,9 @@ const bigDeck = (n: number): Deck => ({
 
 describe("chapters", () => {
   it("only splits decks with more than 10 cards", () => {
-    expect(hasChapters(largestCountries)).toBe(false);
-    expect(hasChapters(bigDeck(11))).toBe(true);
+    expect(hasChapters(largestCountries, true)).toBe(false);
+    expect(hasChapters(bigDeck(11), false)).toBe(false); // off unless switched on
+    expect(hasChapters(bigDeck(11), true)).toBe(true);
     expect(chapterCount(bigDeck(23))).toBe(3);
   });
 
@@ -38,11 +39,11 @@ describe("chapters", () => {
 
   it("reads the chapter from the address, clamped to the deck", () => {
     const deck = bigDeck(23);
-    expect(parseChapter(deck, "2")).toBe(2);
-    expect(parseChapter(deck, "99")).toBe(3);
-    expect(parseChapter(deck, "0")).toBe(1);
-    expect(parseChapter(deck, "abc")).toBeNull();
-    expect(parseChapter(deck, undefined)).toBeNull();
-    expect(parseChapter(largestCountries, "2")).toBeNull(); // small decks have no chapters
+    expect(parseChapter(deck, "2", true)).toBe(2);
+    expect(parseChapter(deck, "99", true)).toBe(3);
+    expect(parseChapter(deck, "0", true)).toBe(1);
+    expect(parseChapter(deck, "abc", true)).toBeNull();
+    expect(parseChapter(deck, undefined, true)).toBeNull();
+    expect(parseChapter(largestCountries, "2", true)).toBeNull(); // small decks have no chapters
   });
 });
