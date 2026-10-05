@@ -344,3 +344,20 @@ create view public.published_decks_latest
     ) as total_copies
   from public.published_decks p
   order by p.author_id, p.source_deck_id, p.version desc;
+
+-- Lets a signed-in learner delete their own account. Deleting the auth user removes everything they own,
+-- because every table above references auth.users with "on delete cascade" (decks, saves, review history,
+-- settings, profile, published decks and their copy records). Runs with the owner's rights because the
+-- browser may not touch auth.users directly; it can only ever delete the caller's own row.
+create or replace function public.delete_my_account()
+returns void as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in';
+  end if;
+  delete from auth.users where id = auth.uid();
+end;
+$$ language plpgsql security definer set search_path = '';
+
+revoke all on function public.delete_my_account() from public, anon;
+grant execute on function public.delete_my_account() to authenticated;

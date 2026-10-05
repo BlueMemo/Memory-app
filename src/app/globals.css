@@ -3250,3 +3250,23 @@ main [id] {
   border: 1px solid var(--line);
   border-radius: 12px;
 }
+
+.delete-account {
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.detail-heading {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.btn.danger {
+  background: var(--srs-again);
+  border-color: var(--srs-again);
+  color: #fff;
+}
+
+.btn.danger:disabled {
+  opacity: 0.45;
+}

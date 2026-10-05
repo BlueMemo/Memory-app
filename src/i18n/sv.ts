@@ -746,5 +746,13 @@ export const sv: Dict = {
     cancel: "Avbryt",
     changePasswordTitle: "Lösenord",
     studyOptions: "Studieinställningar →",
+    deleteTitle: "Ta bort konto",
+    deleteOpen: "Ta bort mitt konto",
+    deleteWarning:
+      "Det här raderar ditt konto och allt i det för alltid: dina kortlekar, sparade kortlekar, repetitionshistorik, provresultat, inställningar och profil, samt kortlekar du har delat. Det går inte att ångra. Kopior som andra redan lagt i sina egna bibliotek finns kvar hos dem.",
+    deleteConfirmLabel: "Bekräfta genom att skriva {word}",
+    deleteButton: "Radera allt",
+    deleteError: "Vi kunde inte ta bort ditt konto. Försök igen, eller kontakta oss om det fortsätter att misslyckas.",
+    deleteNotReady: "Borttagning av konto är inte konfigurerad på servern ännu (supabase/schema.sql behöver köras igen).",
   },
 };

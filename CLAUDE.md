@@ -12,8 +12,38 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 > enough detail that a session on a different device, with no memory of the conversation, can pick up
 > where things left off. Prefer editing this file over leaving decisions undocumented.
 
+## Working together (two people, two Claude Code sessions) — read first
+
+`main` deploys straight to the live site (bluememo.eu) via Vercel, so **never develop on `main`**.
+- **Start of a session**: `git pull` on `main`. To begin a feature, create a branch from fresh `main`
+  (`feature/<short-name>`) and work there; commit as you go; push the branch whenever (Vercel builds a
+  preview URL per branch — but previews use the **live Supabase database**, so test destructive things with
+  a throwaway account).
+- **Finishing a feature**: merge the latest `main` into the branch, run `typecheck`, `lint`, `test` and
+  `build`, then merge the branch into `main` and push (ask the user first — that's the release moment).
+  Keep branches short-lived; merge small and often.
+- **Shared files that collide**: `src/i18n/en.ts` + `sv.ts`, `globals.css`, `CLAUDE.md`, `AccountDashboard.tsx`.
+  When resolving a conflict keep *both* sides' additions; never force-push.
+- **Database**: one shared Supabase project. A change to `supabase/schema.sql` takes effect for everyone the
+  moment it is run, so say so in the PR/commit and in "Current status" below; whoever merges the change
+  tells the other person to re-run the file.
+- Users are git beginners: the Claude session runs the git commands, the user only says "start a new
+  feature: X" / "finish it".
+
 ## Current status
 
+- **Account deletion, in progress on branch `feature/delete-account` (2026-10-05)** — first of the GDPR
+  trio (then export my data, change email). Signed-in users get a "Delete account" row in the account
+  page's details; it expands to a warning plus "type your username to confirm". It calls the Postgres
+  function `public.delete_my_account()` (end of `supabase/schema.sql`: `security definer`, executable only by
+  signed-in users, deletes only `auth.uid()`'s row in `auth.users`). **Why a DB function, not an API
+  route**: removing an auth user normally needs the service-role *secret* key on the server; the function
+  avoids ever putting that in Vercel. Everything the user owns goes with them because every table references
+  `auth.users` with `on delete cascade` (decks, saves, results, settings, SRS data, profile, published decks
+  and their copy records). Decision: shared decks are deleted too; copies others already added stay (they
+  are independent user decks). **Requires re-running `schema.sql`**; until then the button shows "isn't set
+  up on the server yet". After deleting, the browser signs out locally and reloads `/`. Not tested against
+  a real account yet — test with a throwaway sign-up.
 - **Minimal study view, card tables, sharing options (2026-10-05, third round)**:
   - **Study screen** (practice revision/test and spaced-repetition review): no box around the card, just
     the question in smaller text and the answer underneath once shown (`.study-card`); no generic labels
