@@ -3360,11 +3360,8 @@ main [id] {
 
 /* Ready-made profile pictures and the picker on the account page. */
 .avatar-preset {
-  display: inline-grid;
-  place-items: center;
   flex-shrink: 0;
   border-radius: 50%;
-  line-height: 1;
 }
 
 .avatar-picker {
@@ -3411,4 +3408,134 @@ main [id] {
 .deck-actions + .section-title-row,
 .deck-actions + .fine-print + .section-title-row {
   margin-top: 56px;
+}
+
+.browser-table .col-created {
+  width: 110px;
+  color: var(--muted);
+}
+
+/* ---------- The Memory Tree (/skills) ---------- */
+
+.tree-roots {
+  text-align: center;
+}
+
+.tree-roots h2 {
+  margin: 8px 0 4px;
+}
+
+.tree-root-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.tree-trunk {
+  width: 3px;
+  height: 40px;
+  margin: 0 auto;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.tree-branches {
+  list-style: none;
+  margin: 0;
+  padding: 24px 0 0;
+  border-top: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 28px 14px;
+}
+
+.tree-branch-title {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: center;
+}
+
+.tree-branch-skills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* A short line joins each skill to the one it builds on. */
+.tree-branch-skills li + li {
+  position: relative;
+  margin-top: 18px;
+}
+
+.tree-branch-skills li + li::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  width: 2px;
+  height: 18px;
+  background: var(--line);
+}
+
+.skill-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+  text-align: left;
+  text-decoration: none;
+}
+
+.skill-node strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.skill-node.available {
+  border: 1px solid var(--accent);
+  background: var(--card);
+}
+
+.skill-node.available:hover {
+  background: var(--accent-soft);
+}
+
+.skill-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+}
+
+.skill-node.available .skill-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.skill-text {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.skill-status {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.skill-node.available .skill-status {
+  color: var(--accent);
 }

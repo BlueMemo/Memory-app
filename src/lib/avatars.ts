@@ -1,40 +1,41 @@
-// 25 ready-made profile pictures (animals, landscapes, things) that learners can pick instead of uploading
-// a photo. A pick is stored in `profiles.avatar_url` as "avatar:<id>"; someone with no picture at all gets
-// one chosen from their user id, so everyone has a picture.
+// 25 ready-made profile pictures: memory-palace motifs (a palace door, castle, key, owl, an elephant that
+// never forgets, the Memory Tree, ...) drawn in components/AvatarArt.tsx. A pick is stored in
+// `profiles.avatar_url` as "avatar:<id>"; someone with no picture at all gets one chosen from their user
+// id, so everyone has a picture.
 
 export interface PresetAvatar {
+  /** Also the key of its drawing in AVATAR_ART. */
   id: string;
-  emoji: string;
   /** Background colour of the circle. */
   bg: string;
 }
 
 export const PRESET_AVATARS: PresetAvatar[] = [
-  { id: "fox", emoji: "🦊", bg: "#3d5a80" },
-  { id: "panda", emoji: "🐼", bg: "#5b8e7d" },
-  { id: "owl", emoji: "🦉", bg: "#6d597a" },
-  { id: "octopus", emoji: "🐙", bg: "#2a6f97" },
-  { id: "turtle", emoji: "🐢", bg: "#b56576" },
-  { id: "whale", emoji: "🐳", bg: "#e09f3e" },
-  { id: "koala", emoji: "🐨", bg: "#457b9d" },
-  { id: "penguin", emoji: "🐧", bg: "#bc4749" },
-  { id: "butterfly", emoji: "🦋", bg: "#386641" },
-  { id: "cat", emoji: "🐱", bg: "#7b2cbf" },
-  { id: "mountain", emoji: "🏔️", bg: "#355070" },
-  { id: "wave", emoji: "🌊", bg: "#f4a259" },
-  { id: "island", emoji: "🏝️", bg: "#0081a7" },
-  { id: "volcano", emoji: "🌋", bg: "#264653" },
-  { id: "sunrise", emoji: "🌅", bg: "#5e548e" },
-  { id: "galaxy", emoji: "🌌", bg: "#9e2a2b" },
-  { id: "desert", emoji: "🏜️", bg: "#3a5a40" },
-  { id: "forest", emoji: "🌲", bg: "#c75146" },
-  { id: "rocket", emoji: "🚀", bg: "#14213d" },
-  { id: "books", emoji: "📚", bg: "#588157" },
-  { id: "lightbulb", emoji: "💡", bg: "#4361ee" },
-  { id: "telescope", emoji: "🔭", bg: "#9c6644" },
-  { id: "balloon", emoji: "🎈", bg: "#2b9348" },
-  { id: "compass", emoji: "🧭", bg: "#e76f51" },
-  { id: "key", emoji: "🗝️", bg: "#6a4c93" },
+  { id: "door", bg: "#24476b" },
+  { id: "castle", bg: "#3d348b" },
+  { id: "stars", bg: "#1e3a8a" },
+  { id: "moon", bg: "#2c3e50" },
+  { id: "key", bg: "#5b3a7a" },
+  { id: "keyhole", bg: "#0f5257" },
+  { id: "book", bg: "#7a2e3a" },
+  { id: "scroll", bg: "#3b5249" },
+  { id: "quill", bg: "#4a3f6b" },
+  { id: "owl", bg: "#5e3023" },
+  { id: "elephant", bg: "#1b4965" },
+  { id: "lightbulb", bg: "#40375c" },
+  { id: "bubble", bg: "#2d6a4f" },
+  { id: "lantern", bg: "#6d597a" },
+  { id: "compass", bg: "#7b2d26" },
+  { id: "map", bg: "#264653" },
+  { id: "hourglass", bg: "#3a506b" },
+  { id: "crown", bg: "#1d3557" },
+  { id: "crystal", bg: "#4f3b78" },
+  { id: "balloon", bg: "#355c7d" },
+  { id: "lighthouse", bg: "#22577a" },
+  { id: "mountain", bg: "#6b4226" },
+  { id: "ajar", bg: "#0b525b" },
+  { id: "tree", bg: "#2a4a3a" },
+  { id: "route", bg: "#5a2a4a" },
 ];
 
 const PREFIX = "avatar:";

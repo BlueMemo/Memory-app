@@ -101,7 +101,8 @@ describe("turning rows into cards", () => {
   it("joins columns given the same role and builds cards without empty fields", () => {
     const draft = rowToDraft(["Japan", "Tokyo", "a TOKEN", "", "capital"], ["prompt", "answer", "visualization", "note", "note"]);
     expect(draft).toEqual({ prompt: "Japan", answer: "Tokyo", visualization: "a TOKEN", note: "capital" });
-    expect(draftToCard(draft, "ordered", "x")).toEqual({ id: "x", answer: "Tokyo", visualization: "a TOKEN", note: "capital" });
-    expect(draftToCard({ ...draft, visualization: "", note: "" }, "unordered", "y")).toEqual({ id: "y", answer: "Tokyo", prompt: "Japan" });
+    const at = "2026-10-05T12:00:00.000Z";
+    expect(draftToCard(draft, "ordered", "x", at)).toEqual({ id: "x", answer: "Tokyo", visualization: "a TOKEN", note: "capital", createdAt: at });
+    expect(draftToCard({ ...draft, visualization: "", note: "" }, "unordered", "y", at)).toEqual({ id: "y", answer: "Tokyo", prompt: "Japan", createdAt: at });
   });
 });

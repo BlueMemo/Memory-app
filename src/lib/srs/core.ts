@@ -24,8 +24,12 @@ export type { Grade };
 
 /** Anki starts a new day at 4 am rather than midnight, so a late-night session still counts as "today". */
 export const DAY_ROLLOVER_HOUR = 4;
-/** Like Anki's "learn ahead limit": learning cards due this soon may be shown early when nothing else is left. */
-export const LEARN_AHEAD_MS = 20 * 60_000;
+/**
+ * How early a learning card may be shown when nothing else is left (Anki's "learn ahead limit"). Zero:
+ * a card answered Again or Hard comes back when its wait (e.g. 5m) is over, as its button promised, and
+ * the session shows a countdown until then.
+ */
+export const LEARN_AHEAD_MS = 0;
 
 /** The scheduling state of one card. Dates are ISO strings so the record stores cleanly as JSON or a DB row. */
 export interface StoredCard {

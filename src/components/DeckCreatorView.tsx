@@ -311,6 +311,7 @@ function CardsStep({
       id: editingId ?? crypto.randomUUID(),
       answer: form.answer.trim(),
     };
+    if (!editingId) card.createdAt = new Date().toISOString();
     const setOrClear = <K extends "prompt" | "visualization" | "note" | "promptImage" | "answerImage" | "visualizationImage">(
       key: K,
       value: string | undefined,

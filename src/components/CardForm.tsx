@@ -41,7 +41,7 @@ export function CardForm(props: {
 
   async function save() {
     if (!valid || saving) return;
-    const base: Card = props.card ?? { id: crypto.randomUUID(), answer: "" };
+    const base: Card = props.card ?? { id: crypto.randomUUID(), answer: "", createdAt: new Date().toISOString() };
     const card: Card = { ...base, answer: form.answer.trim() };
     if (!ordered) card.prompt = form.prompt.trim();
     for (const key of ["visualization", "note", "dueBy"] as const) {

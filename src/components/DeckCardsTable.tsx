@@ -32,6 +32,7 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
       card,
       position: i + 1,
       question: ordered ? fill(t.stop, { n: i + 1 }) : (card.prompt ?? ""),
+      createdAt: card.createdAt,
       enabled,
       stored: srs.cards[cardKey(deck.id, card.id)],
     }))
@@ -45,6 +46,8 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
     const ms = new Date(r.stored.due).getTime() - now.getTime();
     return ms <= 0 ? dict.srs.now : fill(dict.srs.inTime, { time: formatInterval(ms, dict.srs.units) });
   };
+
+  const created = (iso?: string) => (iso ? new Date(iso).toLocaleDateString(lang === "sv" ? "sv-SE" : "en-GB") : "–");
 
   return (
     <>
@@ -69,12 +72,13 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
               <th>{t.colQuestion}</th>
               <th>{t.colAnswer}</th>
               {enabled && <th className="col-due">{t.colDue}</th>}
+              <th className="col-created">{t.colCreated}</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={enabled ? 3 : 2} className="muted">
+                <td colSpan={enabled ? 4 : 3} className="muted">
                   {t.noMatches}
                 </td>
               </tr>
@@ -84,6 +88,7 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
                 <td title={r.question}>{r.question}</td>
                 <td title={r.card.answer}>{r.card.answer}</td>
                 {enabled && <td className="col-due">{due(r)}</td>}
+                <td className="col-created">{created(r.card.createdAt)}</td>
               </tr>
             ))}
           </tbody>

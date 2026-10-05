@@ -22,6 +22,8 @@ export interface Card {
   illustration?: { name: IllustrationName; side?: "left" | "right" };
   /** "YYYY-MM-DD": spaced repetition makes sure the card comes up again before this day (e.g. a test). */
   dueBy?: string;
+  /** When the card was created (ISO). Cards made before 2026-10-05 don't have it. */
+  createdAt?: string;
   /** Learner-supplied images (data URLs), shown alongside the matching text during practice. */
   promptImage?: string;
   answerImage?: string;

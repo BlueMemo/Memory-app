@@ -84,6 +84,7 @@ export function CardBrowserView() {
   const sortable = (r: Row) => ({
     question: r.deck.kind === "ordered" ? r.card.answer : question(r),
     position: r.order + 1,
+    createdAt: r.card.createdAt,
     enabled: r.enabled,
     stored: r.stored,
   });
@@ -147,6 +148,7 @@ export function CardBrowserView() {
                     <th>{t.colAnswer}</th>
                     <th className="col-deck">{t.colDeck}</th>
                     <th className="col-due">{t.colDue}</th>
+                    <th className="col-created">{t.colCreated}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -168,6 +170,7 @@ export function CardBrowserView() {
                       <td>{r.card.answer}</td>
                       <td className="col-deck">{r.deck.title}</td>
                       <td className="col-due">{dueLabel(r)}</td>
+                      <td className="col-created">{r.card.createdAt ? new Date(r.card.createdAt).toLocaleDateString(lang === "sv" ? "sv-SE" : "en-GB") : "–"}</td>
                     </tr>
                   ))}
                 </tbody>

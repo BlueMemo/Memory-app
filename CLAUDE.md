@@ -14,8 +14,17 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Memory Tree, card dates, no learn-ahead (2026-10-05, same branch)**: a fourth header tab, **the
+  Memory Tree** (`/skills`, `SkillTreeView.tsx`, structure in `lib/skillTree.ts`, texts in i18n `skills`):
+  five root skills (visualise, associations, memory palace, active recall, spaced repetition) and eight
+  branches (numbers, geography, languages, names and faces, lists, texts, playing cards, studies) whose
+  skills build top-down. Most skills are empty ("Coming soon") on purpose — add content, then its `href`.
+  Other names considered: Teknikträdet, Minnesakademin, Färdigheter, Palatsskolan. Cards now get
+  `createdAt` (card form, deck creator, import; older cards have none) shown as "Created" in Browse and
+  the card browser and used by the created sort. `LEARN_AHEAD_MS` is 0: a card answered Again comes back
+  after its full wait (the session shows a countdown) instead of immediately.
 - **Pictures and colours (2026-10-05, same branch)**: 25 ready-made profile pictures (`lib/avatars.ts`,
-  emoji on a coloured circle) — pick one on the account page ("Choose a picture"; stored as
+  drawn memory-palace motifs in `components/AvatarArt.tsx`) — pick one on the account page ("Choose a picture"; stored as
   `avatar:<id>` in `profiles.avatar_url`), and anyone without a picture gets one chosen from their user id
   (`Avatar`'s `seed`). Counts everywhere read learning → due → new; the deck page shows them in the study
   colours. Grade colours are stronger and Hard is orange (`--srs-*` tokens, same in light and dark).
@@ -245,7 +254,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   open-spaced-repetition TypeScript implementation). Modelled on Anki's defaults and behaviour: four
   answers (Again/Hard/Good/Easy, keys 1-4, Space = Good once the answer shows), learning steps `1m 10m`,
   relearning `10m`, desired retention 0.90, max interval 36500 d, fuzz on, 20 new/day and 200 reviews/day
-  *per deck*, a day that rolls over at 4 am, a 20-min learn-ahead limit, button labels showing the next
+  *per deck*, a day that rolls over at 4 am, no learn-ahead (cards wait their full step, changed 2026-10-05), button labels showing the next
   interval (unfuzzed, like Anki). Queue order: due learning cards → due reviews → new cards (in deck
   order, shown after reviews — Anki's "mix" order isn't implemented) → learning cards within learn-ahead.
   - Code: `src/lib/srs/core.ts` (pure scheduling rules, tested in `core.test.ts`), `src/lib/srs/store.ts`

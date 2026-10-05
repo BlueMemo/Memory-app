@@ -1,4 +1,5 @@
 import { defaultAvatarFor, presetAvatarFor } from "@/lib/avatars";
+import { AVATAR_ART } from "./AvatarArt";
 
 /**
  * A profile picture: an uploaded photo, one of the ready-made pictures ("avatar:<id>"), or — with no
@@ -8,10 +9,12 @@ export function Avatar({ url, name, size = 40, seed }: { url: string | null; nam
   const style = { width: size, height: size, fontSize: size * 0.42 };
   const preset = presetAvatarFor(url) ?? (!url && seed ? defaultAvatarFor(seed) : null);
   if (preset) {
+    const art = AVATAR_ART[preset.id];
     return (
-      <span className="avatar avatar-preset" style={{ ...style, background: preset.bg, fontSize: size * 0.55 }} aria-hidden="true">
-        {preset.emoji}
-      </span>
+      <svg className="avatar avatar-preset" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="32" fill={preset.bg} />
+        {art?.(preset.bg)}
+      </svg>
     );
   }
   if (url) {

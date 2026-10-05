@@ -44,6 +44,7 @@ export function SiteHeader() {
   const tabs = [
     { href: "/discover", label: t.header.discover, active: pathname === "/discover" || (!!deckId && !onUserDeck) },
     { href: "/library", label: t.header.library, active: pathname.startsWith("/library") || (!!deckId && onUserDeck) },
+    { href: "/skills", label: t.header.skills, active: pathname === "/skills" },
     { href: "/about", label: t.header.about, active: pathname === "/about" },
   ];
 

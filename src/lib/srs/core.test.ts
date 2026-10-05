@@ -123,12 +123,20 @@ describe("queue", () => {
     expect(pickNext(queue({ now }))).toEqual({ kind: "card", cardId: "a", queue: "new" });
   });
 
-  it("waits for learning cards that aren't due yet, and shows them early within 20 minutes", () => {
-    const later = { [cardKey("d", "a")]: stored(State.Learning, "2026-10-01T11:00:00") };
-    const soon = { [cardKey("d", "a")]: stored(State.Learning, "2026-10-01T10:15:00") };
+  it("waits for learning cards until they're due, even if nothing else is left", () => {
+    const soon = { [cardKey("d", "a")]: stored(State.Learning, "2026-10-01T10:05:00") };
+    const due = { [cardKey("d", "a")]: stored(State.Learning, "2026-10-01T09:59:00") };
     const ids = { cardIds: ["a"] };
-    expect(pickNext(queue({ now, cards: later, ...ids }))).toEqual({ kind: "wait", until: at("2026-10-01T11:00:00") });
-    expect(pickNext(queue({ now, cards: soon, ...ids }))).toEqual({ kind: "card", cardId: "a", queue: "learning" });
+    expect(pickNext(queue({ now, cards: soon, ...ids }))).toEqual({ kind: "wait", until: at("2026-10-01T10:05:00") });
+    expect(pickNext(queue({ now, cards: due, ...ids }))).toEqual({ kind: "card", cardId: "a", queue: "learning" });
+  });
+
+  it("brings a card answered Again back only after its wait", () => {
+    const again = answerCard(scheduler, "d", "a", undefined, Rating.Again, now).card;
+    const cards = { [cardKey("d", "a")]: again };
+    const next = pickNext(queue({ now, cards, cardIds: ["a"] }));
+    expect(next.kind).toBe("wait");
+    expect(pickNext(queue({ now: new Date(now.getTime() + 5 * 60_000), cards, cardIds: ["a"] })).kind).toBe("card");
   });
 
   it("ignores reviews due after today and reports done", () => {
