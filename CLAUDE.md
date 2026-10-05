@@ -32,6 +32,17 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Export my data, built (2026-10-05, branch `feature/export-data`)** — second of the GDPR trio. A
+  "Download my data" button in the account page's details builds one JSON file in the browser
+  (`lib/exportData.ts`, `ExportData` in `AccountDashboard.tsx`): account id/email/created date, row counts
+  per table, and every row the learner owns from `EXPORT_TABLES` (profile incl. avatar, decks, saved decks,
+  deck overrides, settings, per-deck SRS settings, card schedules, full review log, test results, decks they
+  published, copies they added). Uses the normal signed-in client, so row-level security already limits it
+  to their own rows (`published_decks` is publicly readable, hence the explicit `author_id` filter). Pages
+  through 1000 rows at a time with no cap, and **fails loudly** if any table can't be read rather than
+  handing over an incomplete export. **When a new table holding learner data is added to `schema.sql`, add
+  it to `EXPORT_TABLES`** (and make sure account deletion covers it: `on delete cascade` from `auth.users`).
+  No schema change. Guests have nothing server-side; their data stays in their browser.
 - **Account deletion, built and tested (2026-10-05, branch `feature/delete-account`)** — first of the GDPR
   trio (then export my data, change email). Signed-in users get a "Delete account" row in the account
   page's details; it expands to a warning plus "type your username to confirm". It calls the Postgres

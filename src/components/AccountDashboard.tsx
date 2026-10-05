@@ -18,6 +18,7 @@ import {
 import { useAccountActivity, useStudyHistory, type AccountActivity } from "@/lib/accountActivity";
 import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
 import { useEditableDecks } from "@/lib/editableDecks";
+import { exportAccountData, exportFileName } from "@/lib/exportData";
 import { readAvatarFile } from "@/lib/images";
 import { fill } from "@/lib/practice";
 import { deckCounts } from "@/lib/srs/core";
@@ -399,6 +400,7 @@ function Details({ t, userId, username, email }: { t: T; userId: string; usernam
     <div className="account-details">
       {username && <UsernameEditor t={t} userId={userId} username={username} />}
       <PasswordEditor t={t} />
+      <ExportData t={t} />
       <DeleteAccount t={t} confirmWord={username ?? email} />
       <div className="account-links">
         <Link href="/library/settings" className="tile-open">
@@ -583,5 +585,46 @@ function DeleteAccount({ t, confirmWord }: { t: T; confirmWord: string }) {
         </button>
       </div>
     </form>
+  );
+}
+
+function ExportData({ t }: { t: T }) {
+  const [working, setWorking] = useState(false);
+  const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const download = async () => {
+    const supabase = getSupabaseBrowserClient()!;
+    setWorking(true);
+    setStatus(null);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) throw new Error("not signed in");
+      const result = await exportAccountData(supabase, auth.user);
+      const url = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2)], { type: "application/json" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = exportFileName();
+      link.click();
+      URL.revokeObjectURL(url);
+      setStatus({ ok: true, message: t.exportDone });
+    } catch {
+      setStatus({ ok: false, message: t.exportError });
+    }
+    setWorking(false);
+  };
+
+  return (
+    <div className="detail-form">
+      <div className="field">
+        <label>{t.exportTitle}</label>
+        <p className="muted">{t.exportHint}</p>
+      </div>
+      {status && <p className={status.ok ? "form-success" : "form-error"}>{status.message}</p>}
+      <div className="controls left">
+        <button type="button" className="btn nav small" onClick={download} disabled={working}>
+          {working ? t.exportWorking : t.exportButton}
+        </button>
+      </div>
+    </div>
   );
 }

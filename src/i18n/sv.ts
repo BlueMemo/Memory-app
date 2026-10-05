@@ -746,6 +746,13 @@ export const sv: Dict = {
     cancel: "Avbryt",
     changePasswordTitle: "Lösenord",
     studyOptions: "Studieinställningar →",
+    exportTitle: "Din data",
+    exportHint:
+      "Ladda ner en kopia av allt som finns sparat i ditt konto som en fil: profil, kortlekar, sparade kortlekar, repetitionshistorik och scheman, provresultat, inställningar och allt du har delat.",
+    exportButton: "Ladda ner min data",
+    exportWorking: "Förbereder…",
+    exportDone: "Din fil har laddats ner.",
+    exportError: "Vi kunde inte förbereda din data. Försök igen, eller kontakta oss om det fortsätter att misslyckas.",
     deleteTitle: "Ta bort konto",
     deleteOpen: "Ta bort mitt konto",
     deleteWarning:
