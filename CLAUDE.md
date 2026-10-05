@@ -14,6 +14,28 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Simplification round (2026-10-05, branch `change-flashcards-and-library-looks`)** — supersedes parts of
+  the entries below (chapters, practice buttons, per-deck SRS overrides, review limit):
+  - **Chapters removed** entirely (`lib/chapters.ts`, the deck page's chapter list, the setting).
+  - **Studying a deck = spaced repetition.** The deck page lost "Start practising", "Jump to revision"
+    and the final test; it shows an overview (total, due now, learned, unseen, new today) and **Study
+    now** (switches spaced repetition on for the deck if needed, then `/decks/<id>/review`). The guided
+    practice (walkthrough → revision → test) is kept **only as the landing page's demo**
+    (`/decks/<id>/practice`, no `?mode=` / `?chapter=` any more).
+  - **Settings model** (`lib/srs/core.ts`): named **presets** (`settings.presets`, the first is "default"
+    and can't be removed) hold the FSRS options (desired retention, Again/Hard steps, relearning steps for
+    lapses, maximum interval); each deck has `deckOverrides[id] = { presetId?, newPerDay?, examDate? }`;
+    `settingsForDeck()` flattens that into `EffectiveSettings`. **No daily review limit** any more; new
+    cards per day is per deck (default in `settings.newPerDay`). `normalizeSettings` upgrades older saved
+    settings (top-level options → default preset; a deck's old custom options → a preset of its own).
+  - **Deck settings** (`/library/settings?deck=<id>`): Studying (new cards/day, exam date), Advanced
+    (behind a button: which preset), Share (`SharePanel`, own decks only — copies get the deck's preset
+    options and new/day as a preset of their own), Export (`lib/exportDeck.ts`: .txt tab-separated, which
+    the importer reads back, or .csv), Edit deck / Delete (own) or Remove from library (saved). Without
+    `?deck=`: defaults, preset manager, personal FSRS.
+  - **Library**: only a settings gear per deck (no Edit, no ★ Saved, no route/associations tag); one list.
+  - Card tables are one line per row (cut with "…"); counts read "New: 5"; 22 achievements, shown after
+    "View achievements"; section tabs become a fixed side menu on wide screens (`PageTabs`, CSS only).
 - **Minimal study view, card tables, sharing options (2026-10-05, third round)**:
   - **Study screen** (practice revision/test and spaced-repetition review): no box around the card, just
     the question in smaller text and the answer underneath once shown (`.study-card`); no generic labels

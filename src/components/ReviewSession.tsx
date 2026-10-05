@@ -145,7 +145,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
       <Link href={`/decks/${deck.id}`} className="exit-btn">
         {dict.practice.exit}
       </Link>
-      <span className="chapter-label">{deck.title}</span>
+      <span className="session-label">{deck.title}</span>
     </div>
   );
 
@@ -277,7 +277,7 @@ export function SrsCounts({
     <p className="srs-counts">
       {items.map((i) => (
         <span key={i.key} className={`srs-count srs-count-${i.key}${active === i.key ? " active" : ""}`}>
-          <strong>{i.n}</strong> {i.label}
+          {i.label}: <strong>{i.n}</strong>
         </span>
       ))}
     </p>

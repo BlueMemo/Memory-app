@@ -81,8 +81,8 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
             )}
             {rows.map((r) => (
               <tr key={r.card.id}>
-                <td>{r.question}</td>
-                <td>{r.card.answer}</td>
+                <td title={r.question}>{r.question}</td>
+                <td title={r.card.answer}>{r.card.answer}</td>
                 {enabled && <td className="col-due">{due(r)}</td>}
               </tr>
             ))}

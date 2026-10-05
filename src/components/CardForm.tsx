@@ -119,7 +119,7 @@ export function CardForm(props: {
 
 /**
  * CardForm in a dialog over a study session (E edits the current card, A adds one). Takes a deck id, not
- * the session's deck, because a session may show only one chapter and saving must keep the whole deck.
+ * the session's deck, so saving always works on the learner's current version of the whole deck.
  */
 export function CardDialog(props: { deckId: string; card?: Card; onClose: (saved: boolean) => void }) {
   const t = useI18n().t.cardForm;

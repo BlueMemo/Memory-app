@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { dictionaries, languages, useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
-import { CHAPTER_SIZE } from "@/lib/chapters";
 import {
   BLOCKING,
   defaultRoles,
@@ -308,7 +307,6 @@ export function ImportView() {
               <span className="hint">{dict.creator.useSrsText}</span>
             </span>
           </label>
-          {readyIndexes.length > CHAPTER_SIZE && <p className="hint">{fill(t.chaptersNote, { size: CHAPTER_SIZE })}</p>}
           {bigForGuest && <p className="notice">{t.guestSizeWarning}</p>}
 
           <div className="controls left">

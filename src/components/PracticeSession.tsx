@@ -8,9 +8,7 @@ import {
   buildSteps,
   deckTestQuestion,
   fill,
-  initReviewSession,
   initSession,
-  initTestSession,
   knownCount,
   missedIds,
   orderCards,
@@ -50,33 +48,12 @@ export function memoryHint(deck: Deck, card: Card, test: boolean, t: StudyT): Re
 export const isTyping = (e: KeyboardEvent) =>
   e.target instanceof HTMLElement && (e.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName));
 
-export type StartIn = "beginning" | "review" | "test";
-
-/**
- * `deck` may be one chapter of a bigger deck (see lib/chapters.ts): `positionOffset` is how many cards come
- * before it, so stop numbers continue across chapters, and `chapter` drives the label and "next chapter".
- */
-export function PracticeSession({
-  deck,
-  startIn = "beginning",
-  positionOffset = 0,
-  chapter,
-}: {
-  deck: Deck;
-  startIn?: StartIn;
-  positionOffset?: number;
-  chapter?: { number: number; count: number };
-}) {
+/** The guided technique practice for one deck (the landing page's demo): walkthrough → revision → test. */
+export function PracticeSession({ deck }: { deck: Deck }) {
   const { t: dict } = useI18n();
   const t = dict.practice;
   const steps = useMemo(() => buildSteps(deck), [deck]);
-  const [state, dispatch] = useReducer(practiceReducer, { deck, stepCount: steps.length, startIn }, (arg) =>
-    arg.startIn === "review"
-      ? initReviewSession(arg.deck, arg.stepCount)
-      : arg.startIn === "test"
-        ? initTestSession(arg.deck, arg.stepCount)
-        : initSession(arg.stepCount),
-  );
+  const [state, dispatch] = useReducer(practiceReducer, steps.length, initSession);
   const [showInstructions, setShowInstructions] = useState(false);
   const recordedRound = useRef<number | null>(null);
   // Earlier states, so U can undo grades; the open card dialog; and which card's hint is showing.
@@ -110,7 +87,7 @@ export function PracticeSession({
   const ordered = deck.kind === "ordered";
   const allIds = deck.cards.map((c) => c.id);
   const cardById = (id: string) => deck.cards.find((c) => c.id === id)!;
-  const positionOf = (id: string) => deck.cards.findIndex((c) => c.id === id) + 1 + positionOffset;
+  const positionOf = (id: string) => deck.cards.findIndex((c) => c.id === id) + 1;
 
   const startRevision = (ids: string[]) => dispatch({ type: "startRevision", order: orderCards(deck, ids) });
   const startTest = () => dispatch({ type: "startTest", order: orderCards(deck, allIds) });
@@ -172,7 +149,6 @@ export function PracticeSession({
         <Link href={`/decks/${deck.id}`} className="exit-btn">
           {t.exit}
         </Link>
-        {chapter && <span className="chapter-label">{fill(t.chapterOf, { n: chapter.number, total: chapter.count })}</span>}
       </div>
 
       {showInstructions && (
@@ -203,7 +179,7 @@ export function PracticeSession({
                 <div className="learn-text">
                   <p>{t.overviewText}</p>
                   {ordered ? (
-                    <ol className="overview-list" start={positionOffset + 1}>
+                    <ol className="overview-list">
                       {deck.cards.map((c) => (
                         <li key={c.id}>{c.answer}</li>
                       ))}
@@ -230,7 +206,7 @@ export function PracticeSession({
 
         {state.phase === "walkthrough" && (
           <>
-            <WalkStep key={state.step} deck={deck} step={steps[state.step]} positionOffset={positionOffset} t={t} />
+            <WalkStep key={state.step} deck={deck} step={steps[state.step]} t={t} />
             <div className="controls">
               <button className="btn nav" onClick={() => dispatch({ type: "prev" })} disabled={state.step === 0}>
                 {t.previous}
@@ -343,7 +319,7 @@ export function PracticeSession({
         {state.phase === "results" && (
           <Results deck={deck} state={state} t={t} cardById={cardById} positionOf={positionOf}
             onRevise={() => startRevision(allIds)} onRetest={startTest}
-            nextChapterHref={chapter && chapter.number < chapter.count ? `/decks/${deck.id}/practice?chapter=${chapter.number + 1}` : undefined} />
+ />
         )}
       </div>
 
@@ -428,7 +404,7 @@ function InstructionsCard({ deck, t, hint, onClick }: { deck: Deck; t: T; hint: 
   );
 }
 
-function WalkStep({ deck, step, positionOffset, t }: { deck: Deck; step: Step; positionOffset: number; t: T }) {
+function WalkStep({ deck, step, t }: { deck: Deck; step: Step; t: T }) {
   // If any card in the deck has a thought bubble, every step keeps the bubble's headroom, so the card
   // stays in the same place while walking through instead of jumping down whenever a bubble appears.
   const wrapClass = `learn-wrap${deck.cards.some((c) => c.illustration) ? " has-bubble" : ""}`;
@@ -453,7 +429,7 @@ function WalkStep({ deck, step, positionOffset, t }: { deck: Deck; step: Step; p
   }
 
   const card = deck.cards[step.cardIndex];
-  const n = step.cardIndex + 1 + positionOffset;
+  const n = step.cardIndex + 1;
   const ordered = deck.kind === "ordered";
   const own = !card.object && !card.visualization;
   const showAnswer = deck.showAnswerInWalkthrough ?? true;
@@ -713,9 +689,8 @@ function Results(props: {
   positionOf: (id: string) => number;
   onRevise: () => void;
   onRetest: () => void;
-  nextChapterHref?: string;
 }) {
-  const { deck, state, t, cardById, positionOf, onRevise, onRetest, nextChapterHref } = props;
+  const { deck, state, t, cardById, positionOf, onRevise, onRetest } = props;
   const ordered = deck.kind === "ordered";
   const known = knownCount(state);
   const pct = known / state.queue.length;
@@ -755,14 +730,9 @@ function Results(props: {
         <button className="btn nav wide" onClick={onRevise}>
           {t.backToRevision}
         </button>
-        <button className={`btn ${nextChapterHref ? "nav wide" : "accent"}`} onClick={onRetest}>
+        <button className="btn accent" onClick={onRetest}>
           {t.tryTestAgain}
         </button>
-        {nextChapterHref && (
-          <Link href={nextChapterHref} className="btn accent">
-            {t.nextChapter}
-          </Link>
-        )}
       </div>
       <Link href={`/decks/${deck.id}`} className="link-button">
         {t.backToDeck}

@@ -4,18 +4,18 @@ import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
-import { publishDeck, unpublishDeck, usePublication, type PublishOptions } from "@/lib/publishedDecks";
-import { useSrsData } from "@/lib/srs/store";
+import { publishDeck, unpublishDeck, usePublication, type PublishedDeckSettings, type PublishOptions } from "@/lib/publishedDecks";
 import { useUser } from "@/lib/supabase/useUser";
 import type { Deck } from "@/lib/types";
 
-/** On the learner's own deck page: publish (a new version), choose Discover or link-only, copy the link. */
-export function SharePanel({ deck }: { deck: Deck }) {
+/**
+ * In a learner's own deck's settings: publish (a new version) with its options, copy the link, unpublish.
+ * `settings` are what can travel with a copy (the deck's preset options and new cards a day).
+ */
+export function SharePanel({ deck, settings }: { deck: Deck; settings: PublishedDeckSettings }) {
   const t = useI18n().t.share;
   const { user, loading: userLoading, configured, avatarUrl } = useUser();
   const { loading, latest, available, refresh } = usePublication(deck.id, user?.id ?? null);
-  const srs = useSrsData();
-  const ownSettings = srs.settings.deckOverrides[deck.id];
   // Choices for the next published version; they start from the latest version's once it has loaded.
   const [choices, setChoices] = useState<PublishOptions | null>(null);
   const options: PublishOptions = choices ?? {
@@ -33,7 +33,7 @@ export function SharePanel({ deck }: { deck: Deck }) {
   async function publish() {
     setBusy(true);
     setNote(null);
-    const result = await publishDeck(deck, options, ownSettings);
+    const result = await publishDeck(deck, options, settings);
     setBusy(false);
     if (!result) setNote(t.error);
     refresh();
@@ -49,8 +49,7 @@ export function SharePanel({ deck }: { deck: Deck }) {
   }
 
   return (
-    <section className="share-panel">
-      <h2>{t.title}</h2>
+    <div className="share-panel">
       {!user ? (
         <p className="muted">
           <Link href="/account">{t.signIn}</Link>
@@ -84,13 +83,12 @@ export function SharePanel({ deck }: { deck: Deck }) {
             <label className="check-field">
               <input
                 type="checkbox"
-                checked={options.includeSettings && !!ownSettings}
-                disabled={!ownSettings}
+                checked={options.includeSettings}
                 onChange={(e) => choose({ includeSettings: e.target.checked })}
               />
               <span>
                 <strong>{t.includeSettings}</strong>
-                <span className="hint">{ownSettings ? t.includeSettingsHint : t.noSettingsHint}</span>
+                <span className="hint">{t.includeSettingsHint}</span>
               </span>
             </label>
           </fieldset>
@@ -116,6 +114,6 @@ export function SharePanel({ deck }: { deck: Deck }) {
           {note && <p className="hint">{note}</p>}
         </>
       )}
-    </section>
+    </div>
   );
 }

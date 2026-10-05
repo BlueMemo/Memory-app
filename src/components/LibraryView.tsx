@@ -22,7 +22,6 @@ import { PageTabs } from "./PageTabs";
 import { isTyping } from "./PracticeSession";
 import { ImportGuestDataPrompt } from "./ImportGuestDataPrompt";
 import { SrsCounts } from "./ReviewSession";
-import { SaveDeckButton } from "./SaveDeckButton";
 
 export function LibraryView() {
   const t = useI18n().t.library;
@@ -56,23 +55,8 @@ export function LibraryView() {
       <GearIcon />
     </Link>
   );
-  const ownActions = (deck: Deck) => (
-    <div className="tile-actions">
-      <Link href={`/library/edit/${deck.id}`} className="save-btn">
-        {t.editDeck}
-      </Link>
-      {settingsLink(deck)}
-    </div>
-  );
-  const savedActions = (deck: Deck) => (
-    <div className="tile-actions">
-      <Link href={`/library/edit/${deck.id}`} className="save-btn">
-        {t.editDeck}
-      </Link>
-      {settingsLink(deck)}
-      <SaveDeckButton deckId={deck.id} />
-    </div>
-  );
+  // Editing, removing and everything else about a deck lives in its settings (the gear).
+  const actions = (deck: Deck) => <div className="tile-actions">{settingsLink(deck)}</div>;
 
   // A adds a card, B opens the card browser (not while typing, and not with modifier keys).
   const router = useRouter();
@@ -129,7 +113,7 @@ export function LibraryView() {
               decks={section.decks}
               view={prefs.libraryView}
               withCreate={section.withCreate}
-              action={(deck) => (ownIds.has(deck.id) ? ownActions(deck) : savedActions(deck))}
+              action={actions}
               edited={(deck) => !ownIds.has(deck.id) && overrides[deck.id] !== undefined}
               srs={srs}
             />
@@ -221,7 +205,6 @@ function DeckCollection(props: {
               <Link href={`/decks/${deck.id}`} className="deck-list-title">
                 {deck.title}
               </Link>
-              <span className="tag">{deck.kind === "ordered" ? dict.decks.ordered : dict.decks.unordered}</span>
               <span className="muted">{fill(dict.decks.cardCount, { n: deck.cards.length })}</span>
               {due && <SrsCounts counts={due} t={dict.srs} />}
               {props.action(deck)}
@@ -240,7 +223,7 @@ function DeckCollection(props: {
       )}
       {props.decks.map((deck) => (
         <li key={deck.id}>
-          <DeckTile deck={deck} edited={props.edited(deck)} action={props.action(deck)} />
+          <DeckTile deck={deck} edited={props.edited(deck)} action={props.action(deck)} hideKind />
         </li>
       ))}
     </ul>

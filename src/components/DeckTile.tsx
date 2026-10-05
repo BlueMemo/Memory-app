@@ -11,7 +11,8 @@ import { SaveDeckButton } from "./SaveDeckButton";
  * `action` overrides the default save toggle, e.g. with edit/delete buttons in the library.
  * `edited` marks a saved deck the learner has their own version of.
  */
-export function DeckTile({ deck, action, edited }: { deck: Deck; action?: ReactNode; edited?: boolean }) {
+/** `hideKind` leaves out the memory route / associations tag (the library list keeps tiles minimal). */
+export function DeckTile({ deck, action, edited, hideKind }: { deck: Deck; action?: ReactNode; edited?: boolean; hideKind?: boolean }) {
   const t = useI18n().t.decks;
   const href = `/decks/${deck.id}`;
   return (
@@ -19,7 +20,7 @@ export function DeckTile({ deck, action, edited }: { deck: Deck; action?: ReactN
       <div className="tags">
         {deck.official && <span className="tag accent">{t.official}</span>}
         {edited && <span className="tag">{t.edited}</span>}
-        <span className="tag">{deck.kind === "ordered" ? t.ordered : t.unordered}</span>
+        {!hideKind && <span className="tag">{deck.kind === "ordered" ? t.ordered : t.unordered}</span>}
       </div>
       <h3>
         <Link href={href}>{deck.title}</Link>

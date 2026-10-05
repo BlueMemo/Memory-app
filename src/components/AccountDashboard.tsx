@@ -242,6 +242,7 @@ function Stats({ t, activity }: { t: T; activity: AccountActivity }) {
 /** All-time statistics and achievements, from the whole review history (not just the activity window). */
 function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; activity: AccountActivity; lang: string }) {
   const history = useStudyHistory(userId);
+  const [showAchievements, setShowAchievements] = useState(false);
   const srs = useSrsData();
   const own = useUserDecks();
   const now = useNow();
@@ -280,24 +281,29 @@ function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; 
       <h2 className="section-title" id="achievements">
         {t.achievementsTitle} · {fill(t.achievementsCount, { done, total: list.length })}
       </h2>
-      <ul className="achievements">
-        {list.map((a) => (
-          <li key={a.id} className={a.done ? "done" : undefined}>
-            <span className="achievement-badge" aria-hidden="true">
-              {a.done ? "★" : "☆"}
-            </span>
-            <span>
-              <strong>{t.achievement[a.id].title}</strong>
-              <span className="muted">{t.achievement[a.id].text}</span>
-              {!a.done && (
-                <span className="achievement-progress" role="progressbar" aria-valuemin={0} aria-valuemax={a.goal} aria-valuenow={a.progress}>
-                  <span style={{ width: `${(a.progress / a.goal) * 100}%` }} />
-                </span>
-              )}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <button type="button" className="btn nav" aria-expanded={showAchievements} onClick={() => setShowAchievements((v) => !v)}>
+        {showAchievements ? t.hideAchievements : t.showAchievements}
+      </button>
+      {showAchievements && (
+        <ul className="achievements">
+          {list.map((a) => (
+            <li key={a.id} className={a.done ? "done" : undefined}>
+              <span className="achievement-badge" aria-hidden="true">
+                {a.done ? "★" : "☆"}
+              </span>
+              <span>
+                <strong>{t.achievement[a.id].title}</strong>
+                <span className="muted">{t.achievement[a.id].text}</span>
+                {!a.done && (
+                  <span className="achievement-progress" role="progressbar" aria-valuemin={0} aria-valuemax={a.goal} aria-valuenow={a.progress}>
+                    <span style={{ width: `${(a.progress / a.goal) * 100}%` }} />
+                  </span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }

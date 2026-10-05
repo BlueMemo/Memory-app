@@ -57,32 +57,43 @@ export interface ReviewRecord {
   learningSteps: number;
 }
 
-/** The options that can differ per deck. */
-export interface DeckOptions {
+/** The FSRS options a named preset holds; decks pick a preset (like option presets in other SRS apps). */
+export interface PresetOptions {
   /** The probability of recalling a card when it comes due. Higher means more reviews. */
   desiredRetention: number;
-  newPerDay: number;
-  reviewsPerDay: number;
   /** A new card answered Again comes back after this long, e.g. "5m". Units: m, h. */
   againStep: string;
   /** A new card answered Hard comes back after this long, e.g. "10m". Good and Easy go straight to FSRS. */
   hardStep: string;
-  /** Space-separated waits for a learned card you forgot, e.g. "10m". Units: m, h, d. */
+  /** Space-separated waits for a learned card you forgot (a lapse), e.g. "10m". Units: m, h, d. */
   relearningSteps: string;
   /** Longest interval in days. */
   maximumInterval: number;
-  /** Learn the deck in chapters of CHAPTER_SIZE cards (lib/chapters.ts). Off unless switched on. */
-  chapters: boolean;
+}
+
+export interface Preset extends PresetOptions {
+  id: string;
+  name: string;
+}
+
+/** What each deck sets for itself: its preset, how many new cards a day, and an optional exam date. */
+export interface DeckSettings {
+  presetId: string;
+  newPerDay: number;
   /** "YYYY-MM-DD": reviews are pulled forward so every card is due again before this day (e.g. a test). */
   examDate: string | null;
 }
 
-/** All spaced-repetition settings: defaults for every deck, per-deck changes, and the personal FSRS model. */
-export interface SrsSettings extends DeckOptions {
+/** All spaced-repetition settings: presets, per-deck settings, and the personal FSRS model. */
+export interface SrsSettings {
   /** Whether spaced repetition is switched on for decks created from now on. */
   enableForNewDecks: boolean;
-  /** Options a deck has changed from the defaults above, by deck id. */
-  deckOverrides: Record<string, Partial<DeckOptions>>;
+  /** Named presets; the first ("default") is used by every deck that hasn't picked another, and can't be removed. */
+  presets: Preset[];
+  /** New cards a day for decks that haven't set their own. */
+  newPerDay: number;
+  /** What each deck has set for itself, by deck id. */
+  deckOverrides: Record<string, Partial<DeckSettings>>;
   /** FSRS model parameters optimised on this learner's history; null means the standard ones. */
   parameters: number[] | null;
   /** When the parameters were last optimised (ISO), and how many reviews that was based on. */
@@ -92,17 +103,26 @@ export interface SrsSettings extends DeckOptions {
   autoOptimize: boolean;
 }
 
-export const DEFAULT_SETTINGS: SrsSettings = {
-  enableForNewDecks: true,
+/** Everything that applies to one deck, flattened: its preset's options, its own settings and the FSRS model. */
+export interface EffectiveSettings extends PresetOptions, Omit<DeckSettings, "presetId"> {
+  presetId: string;
+  parameters: number[] | null;
+}
+
+export const DEFAULT_PRESET_ID = "default";
+
+export const DEFAULT_PRESET_OPTIONS: PresetOptions = {
   desiredRetention: 0.9,
-  newPerDay: 20,
-  reviewsPerDay: 200,
   againStep: "5m",
   hardStep: "10m",
   relearningSteps: default_relearning_steps.join(" "),
   maximumInterval: 36500,
-  chapters: false,
-  examDate: null,
+};
+
+export const DEFAULT_SETTINGS: SrsSettings = {
+  enableForNewDecks: true,
+  presets: [{ id: DEFAULT_PRESET_ID, name: "", ...DEFAULT_PRESET_OPTIONS }],
+  newPerDay: 20,
   deckOverrides: {},
   parameters: null,
   optimizedAt: null,
@@ -110,84 +130,103 @@ export const DEFAULT_SETTINGS: SrsSettings = {
   autoOptimize: true,
 };
 
-/** The spaced-repetition options a deck can either take from the defaults or set itself. */
-export const SRS_OPTION_KEYS = [
-  "desiredRetention",
-  "newPerDay",
-  "reviewsPerDay",
-  "againStep",
-  "hardStep",
-  "relearningSteps",
-  "maximumInterval",
-] as const satisfies readonly (keyof DeckOptions)[];
-
-/** Options that only make sense for one deck (never set for all decks at once). */
-export const DECK_ONLY_KEYS = ["chapters", "examDate"] as const satisfies readonly (keyof DeckOptions)[];
-
-export const DECK_OPTION_KEYS = [...SRS_OPTION_KEYS, ...DECK_ONLY_KEYS] as const;
+export const PRESET_OPTION_KEYS = ["desiredRetention", "againStep", "hardStep", "relearningSteps", "maximumInterval"] as const satisfies readonly (keyof PresetOptions)[];
 
 export const SETTINGS_LIMITS = {
   desiredRetention: { min: 0.7, max: 0.99 },
   newPerDay: { min: 0, max: 9999 },
-  reviewsPerDay: { min: 0, max: 9999 },
   maximumInterval: { min: 1, max: 36500 },
 } as const;
 
-/** The settings that apply to one deck: the defaults with that deck's own changes on top. */
-export function settingsForDeck(settings: SrsSettings, deckId: string): SrsSettings {
-  const own = settings.deckOverrides[deckId];
-  return own ? { ...settings, ...own } : settings;
+/** The preset a deck uses (the default one if it hasn't picked another, or its pick was removed). */
+export function presetForDeck(settings: SrsSettings, deckId: string): Preset {
+  const id = settings.deckOverrides[deckId]?.presetId;
+  return settings.presets.find((p) => p.id === id) ?? settings.presets[0];
 }
 
-function normalizeDeckOptions(raw: unknown, fallback: DeckOptions): DeckOptions {
-  const s = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof DeckOptions, unknown>>;
-  const num = (v: unknown, key: keyof typeof SETTINGS_LIMITS) => {
-    const { min, max } = SETTINGS_LIMITS[key];
-    return typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback[key];
-  };
-  const steps = (v: unknown, fallback: string) => (typeof v === "string" && parseSteps(v) ? v.trim() : fallback);
-  const step = (v: unknown, fallback: string) => (typeof v === "string" && parseStep(v) !== null ? v.trim() : fallback);
+/** The settings that apply to one deck. */
+export function settingsForDeck(settings: SrsSettings, deckId: string): EffectiveSettings {
+  const own = settings.deckOverrides[deckId] ?? {};
+  const preset = presetForDeck(settings, deckId);
+  const options = Object.fromEntries(PRESET_OPTION_KEYS.map((k) => [k, preset[k]])) as unknown as PresetOptions;
   return {
-    desiredRetention: num(s.desiredRetention, "desiredRetention"),
-    newPerDay: Math.round(num(s.newPerDay, "newPerDay")),
-    reviewsPerDay: Math.round(num(s.reviewsPerDay, "reviewsPerDay")),
-    againStep: step(s.againStep, fallback.againStep),
-    hardStep: step(s.hardStep, fallback.hardStep),
-    relearningSteps: steps(s.relearningSteps, fallback.relearningSteps),
-    maximumInterval: Math.round(num(s.maximumInterval, "maximumInterval")),
-    chapters: typeof s.chapters === "boolean" ? s.chapters : fallback.chapters,
-    examDate: s.examDate === null ? null : isDateString(s.examDate) ? s.examDate : fallback.examDate,
+    ...options,
+    presetId: preset.id,
+    newPerDay: own.newPerDay ?? settings.newPerDay,
+    examDate: own.examDate ?? null,
+    parameters: settings.parameters,
   };
 }
 
 const isDateString = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
 
-/** Keeps only the deck options that differ from the defaults. */
-export function deckOptionChanges(options: DeckOptions, defaults: DeckOptions): Partial<DeckOptions> {
-  const changes: Partial<DeckOptions> = {};
-  for (const key of DECK_OPTION_KEYS) {
-    if (options[key] !== defaults[key]) (changes as Record<string, unknown>)[key] = options[key];
-  }
-  return changes;
+const clampNumber = (v: unknown, key: keyof typeof SETTINGS_LIMITS, fallback: number) => {
+  const { min, max } = SETTINGS_LIMITS[key];
+  return typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback;
+};
+
+export function normalizePresetOptions(raw: unknown, fallback: PresetOptions = DEFAULT_PRESET_OPTIONS): PresetOptions {
+  const s = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof PresetOptions, unknown>>;
+  const steps = (v: unknown, fb: string) => (typeof v === "string" && parseSteps(v) ? v.trim() : fb);
+  const step = (v: unknown, fb: string) => (typeof v === "string" && parseStep(v) !== null ? v.trim() : fb);
+  return {
+    desiredRetention: clampNumber(s.desiredRetention, "desiredRetention", fallback.desiredRetention),
+    againStep: step(s.againStep, fallback.againStep),
+    hardStep: step(s.hardStep, fallback.hardStep),
+    relearningSteps: steps(s.relearningSteps, fallback.relearningSteps),
+    maximumInterval: Math.round(clampNumber(s.maximumInterval, "maximumInterval", fallback.maximumInterval)),
+  };
 }
 
 const isParameters = (v: unknown): v is number[] =>
   Array.isArray(v) && v.length === default_w.length && v.every((n) => typeof n === "number" && Number.isFinite(n));
 
-/** Fills in missing or out-of-range values, e.g. from older saved settings. */
+/**
+ * Fills in missing or out-of-range values. Also upgrades older saved settings: top-level FSRS options
+ * become the default preset, and a deck that had its own FSRS options gets a preset of its own.
+ */
 export function normalizeSettings(raw: unknown): SrsSettings {
-  const s = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof SrsSettings, unknown>>;
-  const defaults = { ...normalizeDeckOptions(s, DEFAULT_SETTINGS), chapters: false, examDate: null };
-  const overrides: Record<string, Partial<DeckOptions>> = {};
+  const s = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const presets: Preset[] = [];
+  if (Array.isArray(s.presets)) {
+    for (const p of s.presets as Record<string, unknown>[]) {
+      if (!p || typeof p.id !== "string" || presets.some((x) => x.id === p.id)) continue;
+      presets.push({ id: p.id, name: typeof p.name === "string" ? p.name.slice(0, 60) : "", ...normalizePresetOptions(p) });
+    }
+  }
+  // The default preset always exists and comes first (older settings kept its options at the top level).
+  const defaultIndex = presets.findIndex((p) => p.id === DEFAULT_PRESET_ID);
+  const fallbackDefault: Preset = { id: DEFAULT_PRESET_ID, name: "", ...normalizePresetOptions(s) };
+  const defaultPreset = defaultIndex >= 0 ? presets.splice(defaultIndex, 1)[0] : fallbackDefault;
+  presets.unshift(defaultPreset);
+
+  const newPerDay = Math.round(clampNumber(s.newPerDay, "newPerDay", DEFAULT_SETTINGS.newPerDay));
+  const overrides: Record<string, Partial<DeckSettings>> = {};
   if (s.deckOverrides && typeof s.deckOverrides === "object") {
-    for (const [deckId, own] of Object.entries(s.deckOverrides as Record<string, unknown>)) {
-      const changes = deckOptionChanges(normalizeDeckOptions(own, defaults), defaults);
-      if (Object.keys(changes).length) overrides[deckId] = changes;
+    let custom = 0;
+    for (const [deckId, value] of Object.entries(s.deckOverrides as Record<string, Record<string, unknown>>)) {
+      if (!value || typeof value !== "object") continue;
+      const own: Partial<DeckSettings> = {};
+      if (typeof value.presetId === "string" && presets.some((p) => p.id === value.presetId)) own.presetId = value.presetId;
+      else if (PRESET_OPTION_KEYS.some((k) => value[k] !== undefined)) {
+        // An older per-deck customisation: keep it as a preset of its own.
+        const id = `deck-${deckId}`;
+        if (!presets.some((p) => p.id === id)) {
+          custom++;
+          presets.push({ id, name: `#${custom}`, ...normalizePresetOptions(value, defaultPreset) });
+        }
+        own.presetId = id;
+      }
+      if (typeof value.newPerDay === "number") own.newPerDay = Math.round(clampNumber(value.newPerDay, "newPerDay", newPerDay));
+      if (isDateString(value.examDate)) own.examDate = value.examDate;
+      if (own.presetId === DEFAULT_PRESET_ID) delete own.presetId;
+      if (Object.keys(own).length) overrides[deckId] = own;
     }
   }
   return {
-    ...defaults,
     enableForNewDecks: typeof s.enableForNewDecks === "boolean" ? s.enableForNewDecks : DEFAULT_SETTINGS.enableForNewDecks,
+    presets,
+    newPerDay,
     deckOverrides: overrides,
     parameters: isParameters(s.parameters) ? s.parameters : null,
     optimizedAt: typeof s.optimizedAt === "string" ? s.optimizedAt : null,
@@ -236,10 +275,10 @@ function newCardSteps(againStep: StepUnit, hardStep: StepUnit): LearningStepsStr
   };
 }
 
-/** `settings` should already be the deck's own (see `settingsForDeck`). */
-export function makeScheduler(settings: SrsSettings, { fuzz = true }: { fuzz?: boolean } = {}): FSRS {
-  const againStep = parseStep(settings.againStep) ?? (DEFAULT_SETTINGS.againStep as StepUnit);
-  const hardStep = parseStep(settings.hardStep) ?? (DEFAULT_SETTINGS.hardStep as StepUnit);
+/** Takes one deck's settings (see `settingsForDeck`). */
+export function makeScheduler(settings: PresetOptions & { parameters: number[] | null }, { fuzz = true }: { fuzz?: boolean } = {}): FSRS {
+  const againStep = parseStep(settings.againStep) ?? (DEFAULT_PRESET_OPTIONS.againStep as StepUnit);
+  const hardStep = parseStep(settings.hardStep) ?? (DEFAULT_PRESET_OPTIONS.hardStep as StepUnit);
   return fsrs({
     request_retention: settings.desiredRetention,
     maximum_interval: settings.maximumInterval,
@@ -374,7 +413,7 @@ export interface QueueInput {
   cardIds: string[];
   cards: Record<string, StoredCard>;
   logs: ReviewRecord[];
-  /** All settings; the deck's own limits are looked up from `deckId`. */
+  /** All settings; the deck's own new-card limit is looked up from `deckId`. */
   settings: SrsSettings;
   now: Date;
 }
@@ -419,12 +458,13 @@ function classify(input: QueueInput) {
   }
   learning.sort((a, b) => a.due - b.due);
   review.sort((a, b) => a.due - b.due);
-  const { newDone, reviewsDone } = doneToday(input);
-  const { newPerDay, reviewsPerDay } = settingsForDeck(input.settings, input.deckId);
+  const { newDone } = doneToday(input);
+  const { newPerDay } = settingsForDeck(input.settings, input.deckId);
+  // No daily review limit: everything that's due can be reviewed.
   return {
     fresh: fresh.slice(0, Math.max(0, newPerDay - newDone)),
     learning,
-    review: review.slice(0, Math.max(0, reviewsPerDay - reviewsDone)),
+    review,
   };
 }
 

@@ -1628,65 +1628,13 @@ ul.overview-list {
   }
 }
 
-/* ---------- Chapters ---------- */
+/* The deck title next to "Exit" while reviewing. */
 
-.chapter-label {
+.session-label {
   margin-left: 12px;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--muted);
-}
-
-.chapters-hint {
-  margin: -6px 0 12px;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.chapter-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--card);
-  overflow: hidden;
-}
-
-.chapter-list li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 16px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--line);
-}
-
-.chapter-list li:first-child {
-  border-top: none;
-}
-
-.chapter-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.chapter-info .muted {
-  font-size: 0.88rem;
-}
-
-.chapter-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.chapter-actions .btn {
-  min-width: 0;
-  padding: 8px 14px;
-  text-decoration: none;
 }
 
 /* ---------- Import ---------- */
@@ -1936,6 +1884,8 @@ ul.overview-list {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.92rem;
+  /* Fixed layout so long text is cut off with "…" and every row stays one line high. */
+  table-layout: fixed;
 }
 
 .browser-table th {
@@ -1969,6 +1919,9 @@ ul.overview-list {
   padding: 9px 12px;
   border-top: 1px solid var(--line);
   vertical-align: top;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .browser-table tbody tr {
@@ -3281,4 +3234,136 @@ main [id] {
   border-radius: 10px;
   background: var(--card);
   color: var(--ink);
+}
+
+/* Section tabs as a side menu on wide screens: fixed to the left of the page column, always reachable.
+   Narrow pages (620px) have room from 1100px, regular pages (960px) from 1440px; below that they stay on top. */
+@media (min-width: 1100px) {
+  .page.narrow .page-tabs {
+    position: fixed;
+    top: 96px;
+    left: calc(50% - 310px - 230px);
+    width: 200px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+}
+
+@media (min-width: 1440px) {
+  .page:not(.narrow):not(.wide) .page-tabs {
+    position: fixed;
+    top: 96px;
+    left: calc(50% - 480px - 230px);
+    width: 200px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .page.narrow .page-tabs a,
+  .page:not(.narrow):not(.wide) .page-tabs a {
+    border: none;
+    border-left: 2px solid var(--line);
+    border-radius: 0;
+    padding: 7px 12px;
+    white-space: normal;
+  }
+
+  .page.narrow .page-tabs a.active,
+  .page:not(.narrow):not(.wide) .page-tabs a.active {
+    border-left-color: var(--accent);
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1439px) {
+  /* Regular-width pages keep the tabs on top until there's room beside them. */
+  .page:not(.narrow):not(.wide) .page-tabs a {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+
+  .page:not(.narrow):not(.wide) .page-tabs a.active {
+    border-color: var(--accent);
+  }
+}
+
+/* Deck page overview tiles and the gear on "Deck settings". */
+.deck-overview {
+  margin: 18px 0 20px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.advanced-toggle {
+  display: block;
+  margin: 8px 0 12px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.advanced-panel {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.preset-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 8px 0 4px;
+}
+
+.preset-bar select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.deck-overview {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 560px) {
+  .deck-overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.deck-overview .stat-tile {
+  padding: 12px 14px;
+}
+
+.deck-overview .stat-value {
+  font-size: 1.5rem;
+}
+
+.browser-table th {
+  padding: 9px 12px;
 }
