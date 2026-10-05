@@ -14,6 +14,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Pictures and colours (2026-10-05, same branch)**: 25 ready-made profile pictures (`lib/avatars.ts`,
+  emoji on a coloured circle) — pick one on the account page ("Choose a picture"; stored as
+  `avatar:<id>` in `profiles.avatar_url`), and anyone without a picture gets one chosen from their user id
+  (`Avatar`'s `seed`). Counts everywhere read learning → due → new; the deck page shows them in the study
+  colours. Grade colours are stronger and Hard is orange (`--srs-*` tokens, same in light and dark).
 - **Simplification round (2026-10-05, branch `change-flashcards-and-library-looks`)** — supersedes parts of
   the entries below (chapters, practice buttons, per-deck SRS overrides, review limit):
   - **Chapters removed** entirely (`lib/chapters.ts`, the deck page's chapter list, the setting).

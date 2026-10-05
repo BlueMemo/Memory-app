@@ -24,7 +24,7 @@ function AuthStatus() {
   }
   return (
     <Link href="/account" className="link-muted auth-status auth-status-user">
-      <Avatar url={avatarUrl} name={username ?? user.email ?? null} size={28} />
+      <Avatar url={avatarUrl} name={username ?? user.email ?? null} size={28} seed={user.id} />
       <span>{username ?? t.header.setUsername}</span>
     </Link>
   );

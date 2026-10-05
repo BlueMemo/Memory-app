@@ -65,7 +65,7 @@ export function SharedDeckView({ id }: { id: string }) {
       </div>
       <h1 className="deck-title">{deck.title}</h1>
       <p className="muted published-author">
-        <Avatar url={published.avatarUrl} name={published.author} size={28} />
+        <Avatar url={published.avatarUrl} name={published.author} size={28} seed={published.authorId} />
         {fill(t.by, { author: published.author ?? t.unknownAuthor })}
         {published.copies > 0 && <span> · {fill(dict.discover.copies, { n: published.copies })}</span>}
       </p>

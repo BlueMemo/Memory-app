@@ -82,37 +82,37 @@ export function DeckView({ deck }: { deck: Deck }) {
   );
 }
 
-/** Total cards, due now, learned, never seen, and new cards today (within the deck's daily limit). */
+/**
+ * The deck at a glance: total cards; today's learning / due / new counts in the same colours and order as
+ * while studying; then cards learned and never seen.
+ */
 function DeckOverview({ deck }: { deck: Deck }) {
-  const t = useI18n().t.deck;
+  const { t: dict } = useI18n();
+  const t = dict.deck;
   const srs = useSrsData();
   const status = useSrsStatus();
   const now = useNow();
-  let dueNow = 0;
   let learned = 0;
   let unseen = 0;
   for (const card of deck.cards) {
     const stored = srs.cards[cardKey(deck.id, card.id)];
-    if (!stored || stored.state === State.New) {
-      unseen++;
-      continue;
-    }
-    if (stored.state === State.Review) learned++;
-    if (new Date(stored.due).getTime() <= now.getTime()) dueNow++;
+    if (!stored || stored.state === State.New) unseen++;
+    else if (stored.state === State.Review) learned++;
   }
-  const newToday = deckCounts({ deckId: deck.id, cardIds: deck.cards.map((c) => c.id), cards: srs.cards, logs: srs.logs, settings: srs.settings, now }).new;
+  const today = deckCounts({ deckId: deck.id, cardIds: deck.cards.map((c) => c.id), cards: srs.cards, logs: srs.logs, settings: srs.settings, now });
   const loading = status === "loading";
-  const tiles: [string, number][] = [
+  const tiles: [string, number, string?][] = [
     [t.overviewTotal, deck.cards.length],
-    [t.overviewDue, dueNow],
+    [dict.srs.learningCount, today.learning, "srs-count-learning"],
+    [dict.srs.reviewCount, today.review, "srs-count-review"],
+    [dict.srs.newCount, today.new, "srs-count-new"],
     [t.overviewLearned, learned],
     [t.overviewUnseen, unseen],
-    [t.overviewNewToday, newToday],
   ];
   return (
     <div className="stat-grid deck-overview">
-      {tiles.map(([label, value]) => (
-        <div key={label} className="stat-tile">
+      {tiles.map(([label, value, colour]) => (
+        <div key={label} className={`stat-tile${colour ? ` ${colour}` : ""}`}>
           <div className="stat-value">{loading ? "–" : value}</div>
           <div className="stat-label">{label}</div>
         </div>

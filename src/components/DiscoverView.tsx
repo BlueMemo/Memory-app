@@ -157,7 +157,7 @@ function PublishedTile({ published }: { published: PublishedDeck }) {
         <Link href={href}>{deck.title}</Link>
       </h3>
       <p className="muted published-author">
-        <Avatar url={published.avatarUrl} name={published.author} size={22} />
+        <Avatar url={published.avatarUrl} name={published.author} size={22} seed={published.authorId} />
         {fill(dict.discover.byAuthor, { author: published.author ?? dict.sharedDeck.unknownAuthor })}
         {published.copies > 0 && <span> · {fill(dict.discover.copies, { n: published.copies })}</span>}
       </p>

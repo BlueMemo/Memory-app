@@ -256,10 +256,8 @@ export const sv: Dict = {
   deck: {
     studyNow: "Studera nu",
     overviewTotal: "Kort totalt",
-    overviewDue: "Att repetera nu",
     overviewLearned: "Inlärda",
     overviewUnseen: "Osedda",
-    overviewNewToday: "Nya i dag",
     deckSettings: "Kortleksinställningar",
     back: "← Upptäck kortlekar",
     backToLibrary: "← Mitt bibliotek",
@@ -655,6 +653,7 @@ export const sv: Dict = {
     creating: "Skapar…",
   },
   account: {
+    choosePicture: "Välj en bild",
     statsTitle: "Statistik",
     statsReviews: "Repetitioner totalt",
     statsCardsStudied: "Olika kort studerade",

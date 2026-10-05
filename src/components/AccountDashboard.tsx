@@ -28,6 +28,7 @@ import { checkUsername, claimUsername, isValidUsername, saveAvatar, setUsername 
 import { notifyProfileChanged } from "@/lib/supabase/useUser";
 import { useNow } from "@/lib/useNow";
 import { useUserDecks } from "@/lib/userDecks";
+import { presetAvatarFor, presetAvatarValue, PRESET_AVATARS } from "@/lib/avatars";
 import { Avatar } from "./Avatar";
 import { PageTabs } from "./PageTabs";
 
@@ -88,6 +89,7 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
   const [busy, setBusy] = useState(false);
   const [photoError, setPhotoError] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   const change = async (read: () => Promise<string | null>) => {
     setBusy(true);
@@ -112,7 +114,7 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
 
   return (
     <section className="account-head">
-      <Avatar url={avatarUrl} name={username ?? email} size={96} />
+      <Avatar url={avatarUrl} name={username ?? email} size={96} seed={userId} />
       <div className="account-id">
         <h1 className="account-name">{username ?? t.title}</h1>
         <p className="muted account-meta">
@@ -122,7 +124,10 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
         <div className="avatar-actions">
           <input ref={fileInput} type="file" accept="image/*" hidden onChange={onFile} />
           <button className="btn nav small" disabled={!username || busy} onClick={() => fileInput.current?.click()}>
-            {avatarUrl ? t.changePhoto : t.addPhoto}
+            {avatarUrl && !presetAvatarFor(avatarUrl) ? t.changePhoto : t.addPhoto}
+          </button>
+          <button className="btn nav small" disabled={!username || busy} aria-expanded={picking} onClick={() => setPicking((p) => !p)}>
+            {t.choosePicture}
           </button>
           {avatarUrl && (
             <button className="link-button inline" disabled={busy} onClick={() => void change(async () => null)}>
@@ -130,6 +135,26 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
             </button>
           )}
         </div>
+        {picking && (
+          <div className="avatar-picker" role="group" aria-label={t.choosePicture}>
+            {PRESET_AVATARS.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className={avatarUrl === presetAvatarValue(a.id) ? "selected" : undefined}
+                aria-pressed={avatarUrl === presetAvatarValue(a.id)}
+                aria-label={a.id}
+                disabled={busy}
+                onClick={() => {
+                  setPicking(false);
+                  void change(async () => presetAvatarValue(a.id));
+                }}
+              >
+                <Avatar url={presetAvatarValue(a.id)} name={null} size={44} />
+              </button>
+            ))}
+          </div>
+        )}
         {!username && <p className="hint">{t.photoNeedsUsername}</p>}
         {photoError && <p className="form-error">{t.errorPhoto}</p>}
       </div>

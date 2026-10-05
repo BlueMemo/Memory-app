@@ -258,7 +258,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
   );
 }
 
-/** Anki's three numbers: new (blue), learning (red), due reviews (green). */
+/** The three numbers: learning (red), due reviews (green), new (blue). */
 export function SrsCounts({
   counts,
   active,
@@ -268,10 +268,11 @@ export function SrsCounts({
   active?: "new" | "learning" | "review";
   t: { newCount: string; learningCount: string; reviewCount: string };
 }) {
+  // Same order everywhere: learning, then due reviews, then new (the order cards are shown in).
   const items = [
-    { key: "new", label: t.newCount, n: counts.new },
     { key: "learning", label: t.learningCount, n: counts.learning },
     { key: "review", label: t.reviewCount, n: counts.review },
+    { key: "new", label: t.newCount, n: counts.new },
   ] as const;
   return (
     <p className="srs-counts">

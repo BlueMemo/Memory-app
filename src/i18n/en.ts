@@ -256,10 +256,8 @@ export const en = {
   deck: {
     studyNow: "Study now",
     overviewTotal: "Total cards",
-    overviewDue: "Due now",
     overviewLearned: "Learned",
     overviewUnseen: "Unseen",
-    overviewNewToday: "New today",
     deckSettings: "Deck settings",
     back: "← Discover decks",
     backToLibrary: "← My Library",
@@ -655,6 +653,7 @@ export const en = {
     creating: "Creating…",
   },
   account: {
+    choosePicture: "Choose a picture",
     statsTitle: "Statistics",
     statsReviews: "Reviews, all time",
     statsCardsStudied: "Different cards studied",

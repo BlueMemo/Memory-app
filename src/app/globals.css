@@ -15,10 +15,10 @@
   --again: #e5a94a;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   /* Review answer and count colours: again red, hard grey, good green, easy/new blue. */
-  --srs-again: #ef6a5e;
-  --srs-hard: #9b9fa6;
-  --srs-good: #4cc185;
-  --srs-easy: #6aa5f0;
+  --srs-again: #dc2626;
+  --srs-hard: #d9700a;
+  --srs-good: #16a34a;
+  --srs-easy: #2563eb;
   color-scheme: dark;
 }
 
@@ -34,10 +34,10 @@
   --good: #2f8f5b;
   --again: #c0842a;
   --shadow: 0 10px 30px rgba(20, 22, 28, 0.12);
-  --srs-again: #c4362c;
-  --srs-hard: #63666d;
-  --srs-good: #2f8f5b;
-  --srs-easy: #2f6fbf;
+  --srs-again: #dc2626;
+  --srs-hard: #d9700a;
+  --srs-good: #16a34a;
+  --srs-easy: #2563eb;
   color-scheme: light;
 }
 
@@ -3346,16 +3346,6 @@ main [id] {
   color: var(--ink);
 }
 
-.deck-overview {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-@media (max-width: 560px) {
-  .deck-overview {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 .deck-overview .stat-tile {
   padding: 12px 14px;
 }
@@ -3366,4 +3356,59 @@ main [id] {
 
 .browser-table th {
   padding: 9px 12px;
+}
+
+/* Ready-made profile pictures and the picker on the account page. */
+.avatar-preset {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  line-height: 1;
+}
+
+.avatar-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+  max-width: 420px;
+  margin-top: 12px;
+}
+
+.avatar-picker button {
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.avatar-picker button:hover,
+.avatar-picker button.selected {
+  border-color: var(--accent);
+}
+
+/* Deck overview: today's learning / due / new numbers in the same colours as while studying. */
+.deck-overview {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stat-tile.srs-count-learning .stat-value {
+  color: var(--srs-again);
+}
+
+.stat-tile.srs-count-review .stat-value {
+  color: var(--srs-good);
+}
+
+.stat-tile.srs-count-new .stat-value {
+  color: var(--srs-easy);
+}
+
+/* More room between "Study now" and Browse on a deck's page. */
+.deck-actions + .section-title-row,
+.deck-actions + .fine-print + .section-title-row {
+  margin-top: 56px;
 }
