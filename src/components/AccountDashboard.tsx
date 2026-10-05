@@ -651,8 +651,17 @@ function EmailEditor({ t, email }: { t: T; email: string }) {
     );
     setSubmitting(false);
     if (error) {
-      const taken = error.code === "email_exists" || error.message.toLowerCase().includes("already been registered");
-      setStatus({ ok: false, message: taken ? t.errorEmailTaken : t.errorGeneric });
+      console.error("Email change failed:", error.code, error.status, error.message);
+      const msg = error.message.toLowerCase();
+      const message =
+        error.code === "email_exists" || msg.includes("already been registered")
+          ? t.errorEmailTaken
+          : error.code === "over_email_send_rate_limit" || error.status === 429 || msg.includes("rate limit")
+            ? t.errorEmailRateLimit
+            : error.code === "email_address_invalid" || msg.includes("invalid")
+              ? t.errorEmailInvalid
+              : t.errorGeneric;
+      setStatus({ ok: false, message });
       return;
     }
     setEditing(false);

@@ -753,6 +753,8 @@ export const en = {
     emailChangeSent: "Check your inbox: we sent confirmation links to {email} (and to your current address). Your email changes once you've confirmed.",
     errorEmailSame: "That's already your email address.",
     errorEmailTaken: "That email address is already used by another account.",
+    errorEmailRateLimit: "Too many emails have been sent recently. Please wait an hour and try again.",
+    errorEmailInvalid: "That email address doesn't look valid, or can't be used.",
     exportTitle: "Your data",
     exportHint:
       "Download a copy of everything stored in your account as one file: profile, decks, saved decks, review history and schedules, test results, settings and anything you've shared.",
