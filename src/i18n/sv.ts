@@ -119,6 +119,7 @@ export const sv: Dict = {
     searching: "Söker…",
   },
   cardForm: {
+    saveShortcut: "Cmd+Enter (Ctrl+Enter på Windows) sparar från vilket fält som helst",
     addTitle: "Nytt kort",
     editTitle: "Redigera kort",
     deckLabel: "Kortlek",
@@ -217,8 +218,6 @@ export const sv: Dict = {
     skipImport: "Inte nu",
     imported: "Importerat till ditt konto.",
     browseCards: "Bläddra bland kort →",
-    dueTitle: "Dags att repetera",
-    dueEmpty: "Inget att repetera just nu. Kortlekar med spridd repetition visas här när kort ska repeteras.",
   },
   about: {
     title: "Om oss",
@@ -256,6 +255,7 @@ export const sv: Dict = {
     contactBody: "Frågor, idéer eller feedback? Vi hör gärna av dig:",
   },
   deck: {
+    shareDeck: "Dela kortlek",
     deckSettings: "Kortleksinställningar",
     chaptersOffHint: "Kortleken har {n} kort. Du kan lära dig den i kapitel om {size} genom att slå på kapitel i kortleksinställningarna.",
     back: "← Upptäck kortlekar",
@@ -277,7 +277,7 @@ export const sv: Dict = {
     revise: "Repetera",
     resetToOriginal: "Återställ till originalet",
     resetConfirm: "Slänga dina ändringar i kortleken och gå tillbaka till originalet? Ditt repetitionsschema behålls.",
-    inside: "Innehåll",
+    inside: "Bläddra",
     contentLanguage: "Kortlekens språk: {lang}",
     notFoundTitle: "Kortleken hittades inte",
     notFoundText: "Den här kortleken finns inte, eller är inte tillgänglig på den här enheten.",
@@ -486,6 +486,8 @@ export const sv: Dict = {
     srsLink: "Inställningar för spaced repetition finns i ditt bibliotek →",
   },
   srsSettings: {
+    deleteTitle: "Ta bort kortleken",
+    deleteText: "Tar bort kortleken, dess kort och deras repetitionshistorik från ditt bibliotek. Det går inte att ångra.",
     deckTitle: "Kortleksinställningar",
     deckLead: "Kapitel, provdatum och spaced repetition för en kortlek. De andra kortlekarna påverkas inte.",
     deckSection: "Den här kortleken",
@@ -537,6 +539,7 @@ export const sv: Dict = {
     backToLibrary: "← Bibliotek",
   },
   browser: {
+    noMatches: "Inga kort matchar din sökning.",
     sortLabel: "Sortera",
     sortDueAsc: "Förfaller (tidigast först)",
     sortDueDesc: "Förfaller (senast först)",
@@ -547,7 +550,7 @@ export const sv: Dict = {
     editInBrowser: "Redigera kort →",
     title: "Bläddra bland kort",
     lead: "Alla kort i dina kortlekar, både de du skapat och de du sparat. Välj ett för att redigera det.",
-    searchPlaceholder: "Sök i frågor, svar, minnesscener och anteckningar",
+    searchPlaceholder: "Sök i frågor, svar, minnesbilder och anteckningar",
     allDecks: "Alla kortlekar",
     filterAll: "Alla kort",
     filterDue: "Att repetera idag",

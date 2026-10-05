@@ -11,13 +11,19 @@ import type { Deck } from "@/lib/types";
 import { useNow } from "@/lib/useNow";
 import { CardSortSelect } from "./CardSortSelect";
 
-/** A deck's cards on its page, in the card browser's table format, sortable by due date, A–Z or creation. */
+/** "Browse" on a deck's page: its cards in the card browser's table format, searchable and sortable. */
 export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boolean }) {
   const { t: dict, lang } = useI18n();
   const t = dict.browser;
   const srs = useSrsData();
   const now = useNow();
   const [sort, setSort] = useState<CardSort>("created-asc");
+  const [query, setQuery] = useState("");
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = (c: Deck["cards"][number]) => {
+    const text = [c.prompt, c.answer, c.visualization, c.object, c.note, c.details].filter(Boolean).join(" ").toLowerCase();
+    return words.every((w) => text.includes(w));
+  };
   const ordered = deck.kind === "ordered";
   const enabled = isDeckEnabled(srs, deck.id);
 
@@ -30,6 +36,7 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
       stored: srs.cards[cardKey(deck.id, card.id)],
     }))
     // A–Z on a memory route sorts by what's at each stop, since the "question" is just its number.
+    .filter((r) => matches(r.card))
     .map((r) => ({ ...r, sortQuestion: ordered ? r.card.answer : r.question }))
     .sort((a, b) => compareCards({ ...a, question: a.sortQuestion }, { ...b, question: b.sortQuestion }, sort, lang));
 
@@ -46,6 +53,7 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
           {dict.deck.inside}
         </h2>
         <div className="inside-tools">
+          <input type="search" className="inside-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.searchPlaceholder} aria-label={t.searchPlaceholder} />
           <CardSortSelect value={sort} onChange={setSort} />
           {editable && (
             <Link href="/library/cards" className="tile-open">
@@ -64,6 +72,13 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
             </tr>
           </thead>
           <tbody>
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={enabled ? 3 : 2} className="muted">
+                  {t.noMatches}
+                </td>
+              </tr>
+            )}
             {rows.map((r) => (
               <tr key={r.card.id}>
                 <td>{r.question}</td>

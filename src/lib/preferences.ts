@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { PREFERENCES_KEY as KEY } from "./themeScript";
+import { PREFERENCES_KEY as KEY, PREFERENCES_KEY_V1 } from "./themeScript";
 
 // General preferences (appearance and how the library is laid out). They're per device on purpose, like
 // most sites' theme settings, so they live in browser storage for guests and signed-in users alike.
@@ -28,7 +28,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   reduceMotion: false,
   libraryView: "grid",
   librarySort: "recent",
-  libraryGroup: "split",
+  // One continuous list of saved and created decks, unless the learner chooses to group them.
+  libraryGroup: "all",
 };
 
 const pick = <T extends string>(v: unknown, options: readonly T[], fallback: T): T =>
@@ -56,10 +57,27 @@ const listeners = new Set<() => void>();
 let cachedRaw: string | null | undefined;
 let cached = DEFAULT_PREFERENCES;
 
+/** Moves v1 preferences to v2, dropping the library grouping v1 stored without the learner choosing it. */
+function migrateV1(): string | null {
+  const old = localStorage.getItem(PREFERENCES_KEY_V1);
+  if (old === null) return null;
+  let migrated = "{}";
+  try {
+    const v = JSON.parse(old) as Record<string, unknown>;
+    delete v.libraryGroup;
+    migrated = JSON.stringify(v);
+  } catch {
+    // Unreadable: start from the defaults.
+  }
+  localStorage.setItem(KEY, migrated);
+  localStorage.removeItem(PREFERENCES_KEY_V1);
+  return migrated;
+}
+
 function read(): Preferences {
   let raw: string | null = null;
   try {
-    raw = localStorage.getItem(KEY);
+    raw = localStorage.getItem(KEY) ?? migrateV1();
   } catch {
     // Storage blocked: defaults.
   }

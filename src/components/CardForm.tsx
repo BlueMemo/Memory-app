@@ -64,6 +64,13 @@ export function CardForm(props: {
         e.preventDefault();
         void save();
       }}
+      onKeyDown={(e) => {
+        // Cmd+Enter (Ctrl+Enter on Windows) saves from any field, even the multi-line memory cue.
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          void save();
+        }
+      }}
     >
       {props.decks.length > 1 && !props.card && (
         <div className="field">
@@ -101,8 +108,8 @@ export function CardForm(props: {
         <span className="hint">{t.dueByHint}</span>
       </div>
       <div className="controls left">
-        <button type="submit" className="btn accent" disabled={!valid || saving}>
-          {saving ? t.saving : t.save}
+        <button type="submit" className="btn accent" disabled={!valid || saving} title={t.saveShortcut}>
+          {saving ? t.saving : t.save} <kbd>⌘ ↵</kbd>
         </button>
         {props.actions}
       </div>

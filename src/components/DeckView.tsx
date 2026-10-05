@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { dictionaries, useI18n } from "@/i18n";
 import { CHAPTER_SIZE, chapterCount, chapterRange, hasChapters } from "@/lib/chapters";
 import { removeDeckOverride, useDeckOverrides } from "@/lib/deckOverrides";
@@ -19,6 +20,8 @@ export function DeckView({ deck }: { deck: Deck }) {
   const { lang, t } = useI18n();
   const ordered = deck.kind === "ordered";
   const srs = useSrsData();
+  // The share options only open when asked for ("Share deck").
+  const [sharing, setSharing] = useState(false);
   const chapters = hasChapters(deck, settingsForDeck(srs.settings, deck.id).chapters);
   const shared = isSharedDeck(deck.id);
   const saved = useSavedDeckIds().includes(deck.id);
@@ -85,6 +88,11 @@ export function DeckView({ deck }: { deck: Deck }) {
         <Link href={`/library/settings?deck=${encodeURIComponent(deck.id)}`} className="btn nav">
           {t.deck.deckSettings}
         </Link>
+        {!shared && (
+          <button type="button" className="btn nav" aria-expanded={sharing} onClick={() => setSharing((open) => !open)}>
+            {t.deck.shareDeck}
+          </button>
+        )}
       </div>
       {!chapters && deck.cards.length > CHAPTER_SIZE && (
         <p className="fine-print">{fill(t.deck.chaptersOffHint, { n: deck.cards.length, size: CHAPTER_SIZE })}</p>
@@ -99,7 +107,7 @@ export function DeckView({ deck }: { deck: Deck }) {
       )}
 
       <SrsDeckPanel deck={deck} />
-      {!shared && <SharePanel deck={deck} />}
+      {!shared && sharing && <SharePanel deck={deck} />}
 
       {chapters && (
         <>

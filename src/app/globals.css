@@ -882,9 +882,10 @@ ul.overview-list {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* Anchored near the top, not centred: revealing the answer adds below and never moves the question. */
+  justify-content: flex-start;
   gap: 20px;
-  padding: 12px 8px 24px;
+  padding: clamp(16px, 9vh, 96px) 8px 24px;
   text-align: center;
   color: var(--ink);
 }
@@ -3249,4 +3250,35 @@ main [id] {
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 12px;
+}
+
+.danger-zone {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.btn.danger {
+  background: var(--srs-again);
+  color: #fff;
+}
+
+/* Library: title on the left, Add card / Browse cards on the right (stacked on phones). */
+.library-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.inside-search {
+  font: inherit;
+  font-size: 0.9rem;
+  min-width: 200px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
 }

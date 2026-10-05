@@ -119,6 +119,7 @@ export const en = {
     searching: "Searching…",
   },
   cardForm: {
+    saveShortcut: "Cmd+Enter (Ctrl+Enter on Windows) saves from any field",
     addTitle: "New card",
     editTitle: "Edit card",
     deckLabel: "Deck",
@@ -217,8 +218,6 @@ export const en = {
     skipImport: "Not now",
     imported: "Imported into your account.",
     browseCards: "Browse cards →",
-    dueTitle: "Due for review",
-    dueEmpty: "Nothing due right now. Decks with spaced repetition switched on show up here when cards are due.",
   },
   about: {
     title: "About us",
@@ -256,6 +255,7 @@ export const en = {
     contactBody: "Questions, ideas or feedback? We'd love to hear from you:",
   },
   deck: {
+    shareDeck: "Share deck",
     deckSettings: "Deck settings",
     chaptersOffHint: "This deck has {n} cards. You can learn it in chapters of {size} by switching chapters on in the deck settings.",
     back: "← Discover decks",
@@ -277,7 +277,7 @@ export const en = {
     revise: "Revise",
     resetToOriginal: "Reset to the original",
     resetConfirm: "Throw away your edits to this deck and go back to the original? Your review schedule is kept.",
-    inside: "What's inside",
+    inside: "Browse",
     contentLanguage: "Deck language: {lang}",
     notFoundTitle: "Deck not found",
     notFoundText: "This deck doesn't exist, or isn't available on this device.",
@@ -486,6 +486,8 @@ export const en = {
     srsLink: "Spaced repetition settings are in your Library →",
   },
   srsSettings: {
+    deleteTitle: "Delete deck",
+    deleteText: "Removes the deck, its cards and their review history from your library. This can't be undone.",
     deckTitle: "Deck settings",
     deckLead: "Chapters, an exam date and spaced repetition for one deck. The other decks aren't affected.",
     deckSection: "This deck",
@@ -537,6 +539,7 @@ export const en = {
     backToLibrary: "← Library",
   },
   browser: {
+    noMatches: "No cards match your search.",
     sortLabel: "Sort",
     sortDueAsc: "Due (soonest first)",
     sortDueDesc: "Due (latest first)",

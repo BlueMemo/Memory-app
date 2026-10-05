@@ -24,6 +24,7 @@ import {
 import { AUTO_OPTIMIZE_EVERY, countReviews, MIN_REVIEWS_TO_OPTIMIZE, optimizeParameters } from "@/lib/srs/optimize";
 import { updateSrsSettings, useSrsData, useSrsSignedIn, useSrsStatus } from "@/lib/srs/store";
 import { useUserDecks } from "@/lib/userDecks";
+import { DeleteDeckButton } from "./DeleteDeckButton";
 import { PageTabs } from "./PageTabs";
 import type { Deck } from "@/lib/types";
 
@@ -80,6 +81,7 @@ export function SrsSettingsView({ deckId }: { deckId: string | null }) {
           { id: "deck-options", title: t.deckSection },
           { id: "srs-options", title: t.srsSection },
           { id: "optimizer", title: t.optimizerTitle },
+          { id: "delete", title: t.deleteTitle },
         ]}
       />
 
@@ -89,6 +91,13 @@ export function SrsSettingsView({ deckId }: { deckId: string | null }) {
         <OptionsForm key={`${signedIn ? "account" : "browser"}:${deck?.id ?? ""}`} settings={settings} deck={deck} t={t} />
       )}
       {status !== "loading" && <Optimizer settings={settings} signedIn={signedIn} t={t} />}
+      {deck && deck.id.startsWith("user-") && (
+        <section className="settings-form danger-zone" id="delete">
+          <h2>{t.deleteTitle}</h2>
+          <p className="muted">{t.deleteText}</p>
+          <DeleteDeckButton deckId={deck.id} onDeleted={() => router.push("/library")} />
+        </section>
+      )}
       {!signedIn && <p className="fine-print">{t.storedLocal}</p>}
     </main>
   );
