@@ -383,7 +383,9 @@ h2:not(.section-title) {
 
 .about-section h2 {
   margin: 0 0 8px;
-  font-size: 1.25rem;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .about-section p {
