@@ -32,6 +32,16 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Plan: offline use + sync between devices (decided 2026-10-06: later, not before the soft launch)** —
+  the goal is studying while offline and having progress sync to the account when the connection returns.
+  What exists today: signed-in changes apply in memory first and save to Supabase in the background
+  (`lib/srs/store.ts` queues writes; `useSrsStatus() === "error"` flags a failed save), and every device
+  that signs in loads the account's data from Supabase, so progress already follows the account **while
+  online**. What's missing: failed writes are not kept and retried (reloading loses them), the site isn't
+  usable offline (no service worker/cache), and an already-open second device doesn't refresh until reload
+  (last write wins). When we build it: persist a queue of pending writes locally, replay it when the
+  browser is back online, and refresh data when a tab regains focus.
+
 - **Change email, built (2026-10-05, branch `feature/change-email`)** — last of the GDPR trio. The account
   details have an "Email" row with "Change" (`EmailEditor` in `AccountDashboard.tsx`): enter the new
   address → `auth.updateUser({ email }, { emailRedirectTo: <origin>/auth/callback?next=/account })`; Supabase
