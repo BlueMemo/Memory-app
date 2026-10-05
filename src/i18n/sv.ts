@@ -746,6 +746,15 @@ export const sv: Dict = {
     cancel: "Avbryt",
     changePasswordTitle: "Lösenord",
     studyOptions: "Studieinställningar →",
+    newEmailLabel: "Ny e-postadress",
+    emailChangeHint:
+      "Vi skickar en bekräftelselänk till den nya adressen, och även till din nuvarande. E-postadressen ändras först när du har bekräftat. Öppna länkarna i samma webbläsare.",
+    sendEmailChange: "Skicka bekräftelse",
+    emailChangeSent: "Kolla din inkorg: vi har skickat bekräftelselänkar till {email} (och till din nuvarande adress). E-postadressen ändras när du har bekräftat.",
+    errorEmailSame: "Det är redan din e-postadress.",
+    errorEmailTaken: "Den e-postadressen används redan av ett annat konto.",
+    errorEmailRateLimit: "För många e-postmeddelanden har skickats nyligen. Vänta en timme och försök igen.",
+    errorEmailInvalid: "Den e-postadressen verkar inte vara giltig, eller går inte att använda.",
     exportTitle: "Din data",
     exportHint:
       "Ladda ner en kopia av allt som finns sparat i ditt konto som en fil: profil, kortlekar, sparade kortlekar, repetitionshistorik och scheman, provresultat, inställningar och allt du har delat.",

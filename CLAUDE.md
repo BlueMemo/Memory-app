@@ -32,6 +32,17 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Change email, built (2026-10-05, branch `feature/change-email`)** — last of the GDPR trio. The account
+  details have an "Email" row with "Change" (`EmailEditor` in `AccountDashboard.tsx`): enter the new
+  address → `auth.updateUser({ email }, { emailRedirectTo: <origin>/auth/callback?next=/account })`; Supabase
+  emails confirmation links and the address only changes once confirmed (the page says so). Errors: same
+  address, already used by another account (`email_exists`), generic. The existing auth callback route
+  already completes these links, no new route. **Supabase setting that matters**: Authentication →
+  Providers → Email → "Secure email change" (default on) requires confirming from **both** the old and the
+  new address; the page's hint text describes that, so **if you turn the setting off, update
+  `emailChangeHint`/`emailChangeSent` in en.ts + sv.ts**. Confirmation links must be opened in the browser
+  that requested the change (PKCE), same as sign-up links. No schema change; `profiles` doesn't store the
+  email, so nothing else to update. Not tested end to end yet.
 - **Export my data, built (2026-10-05, branch `feature/export-data`)** — second of the GDPR trio. A
   "Download my data" button in the account page's details builds one JSON file in the browser
   (`lib/exportData.ts`, `ExportData` in `AccountDashboard.tsx`): account id/email/created date, row counts
@@ -200,9 +211,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   created, cards, due today, tests taken); a **streak** (current, best, active days) with a 15-week
   **heatmap**; recent activity (tests with their score + reviews rolled up per day); and account
   details (change username, change password, links to study options and the library).
-  - *Deliberately left out for now*: change email, delete account, export my data. Delete/export are
-    needed before public launch (GDPR; we're EU-based) — deleting needs care because decks, review logs
-    and results all hang off the account.
+  - *Left out at first, now built (2026-10-05)*: change email, delete account and export my data — see the
+    three entries above (GDPR; we're EU-based).
   - *Streak/heatmap data*: `lib/accountActivity.ts` queries `srs_review_logs` (timestamps only, paged,
     120-day window) and `practice_results`; `lib/activity.ts` is the pure, tested logic. Both reviews and
     finished tests count as study. Days use the same 4 am rollover as spaced repetition. The 120-day

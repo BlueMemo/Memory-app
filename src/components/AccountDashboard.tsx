@@ -399,6 +399,7 @@ function Details({ t, userId, username, email }: { t: T; userId: string; usernam
   return (
     <div className="account-details">
       {username && <UsernameEditor t={t} userId={userId} username={username} />}
+      <EmailEditor t={t} email={email} />
       <PasswordEditor t={t} />
       <ExportData t={t} />
       <DeleteAccount t={t} confirmWord={username ?? email} />
@@ -626,5 +627,93 @@ function ExportData({ t }: { t: T }) {
         </button>
       </div>
     </div>
+  );
+}
+
+function EmailEditor({ t, email }: { t: T; email: string }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const next = value.trim();
+    if (next.toLowerCase() === email.toLowerCase()) {
+      setStatus({ ok: false, message: t.errorEmailSame });
+      return;
+    }
+    setSubmitting(true);
+    setStatus(null);
+    const { error } = await getSupabaseBrowserClient()!.auth.updateUser(
+      { email: next },
+      { emailRedirectTo: `${window.location.origin}/auth/callback?next=/account` },
+    );
+    setSubmitting(false);
+    if (error) {
+      console.error("Email change failed:", error.code, error.status, error.message);
+      const msg = error.message.toLowerCase();
+      const message =
+        error.code === "email_exists" || msg.includes("already been registered")
+          ? t.errorEmailTaken
+          : error.code === "over_email_send_rate_limit" || error.status === 429 || msg.includes("rate limit")
+            ? t.errorEmailRateLimit
+            : error.code === "email_address_invalid" || msg.includes("invalid")
+              ? t.errorEmailInvalid
+              : t.errorGeneric;
+      setStatus({ ok: false, message });
+      return;
+    }
+    setEditing(false);
+    setValue("");
+    setStatus({ ok: true, message: t.emailChangeSent.replace("{email}", next) });
+  };
+
+  if (!editing) {
+    return (
+      <div>
+        <div className="detail-row">
+          <span className="detail-label">{t.emailLabel}</span>
+          <strong>{email}</strong>
+          <button
+            className="link-button inline"
+            onClick={() => {
+              setStatus(null);
+              setEditing(true);
+            }}
+          >
+            {t.changeUsername}
+          </button>
+        </div>
+        {status && <p className={status.ok ? "form-success" : "form-error"}>{status.message}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <form className="detail-form" onSubmit={submit}>
+      <div className="field">
+        <label htmlFor="change-email">{t.newEmailLabel}</label>
+        <input
+          id="change-email"
+          type="email"
+          required
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={t.emailPlaceholder}
+          autoComplete="email"
+        />
+      </div>
+      <p className="muted">{t.emailChangeHint}</p>
+      {status && <p className={status.ok ? "form-success" : "form-error"}>{status.message}</p>}
+      <div className="controls left">
+        <button type="submit" className="btn accent small" disabled={submitting}>
+          {t.sendEmailChange}
+        </button>
+        <button type="button" className="btn nav small" onClick={() => setEditing(false)} disabled={submitting}>
+          {t.cancel}
+        </button>
+      </div>
+    </form>
   );
 }
