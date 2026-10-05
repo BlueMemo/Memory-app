@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
-import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
+import { useDeckOverrides } from "@/lib/deckOverrides";
 import { useSavedDecks } from "@/lib/editableDecks";
 import { cardKey, deckCounts } from "@/lib/srs/core";
-import { isDeckEnabled, useSrsData, useSrsStatus, type SrsData } from "@/lib/srs/store";
+import { isDeckEnabled, useSrsData, type SrsData } from "@/lib/srs/store";
 import { setPreferences, usePreferences, type LibrarySort, type LibraryView as ViewMode } from "@/lib/preferences";
 import { fill } from "@/lib/practice";
 import { useNow } from "@/lib/useNow";
@@ -18,13 +17,11 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { CreateDeckTile } from "./CreateDeckTile";
 import { DeckTile } from "./DeckTile";
-import { DeleteDeckButton } from "./DeleteDeckButton";
 import { GearIcon } from "./GearIcon";
 import { PageTabs } from "./PageTabs";
 import { isTyping } from "./PracticeSession";
 import { ImportGuestDataPrompt } from "./ImportGuestDataPrompt";
 import { SrsCounts } from "./ReviewSession";
-import { SaveDeckButton } from "./SaveDeckButton";
 
 export function LibraryView() {
   const t = useI18n().t.library;
@@ -32,8 +29,6 @@ export function LibraryView() {
   const savedDecks = useSavedDecks();
   const userDecks = useUserDecks();
   const overrides = useDeckOverrides();
-  // Official decks can have spaced repetition on without being saved, so all of them are checked for due cards.
-  const officialResolved = officialDecks.map((d) => resolveDeck(d, overrides));
   const prefs = usePreferences();
   const srs = useSrsData();
   const now = useNow();
@@ -60,24 +55,8 @@ export function LibraryView() {
       <GearIcon />
     </Link>
   );
-  const ownActions = (deck: Deck) => (
-    <div className="tile-actions">
-      <Link href={`/library/edit/${deck.id}`} className="save-btn">
-        {t.editDeck}
-      </Link>
-      {settingsLink(deck)}
-      <DeleteDeckButton deckId={deck.id} />
-    </div>
-  );
-  const savedActions = (deck: Deck) => (
-    <div className="tile-actions">
-      <Link href={`/library/edit/${deck.id}`} className="save-btn">
-        {t.editDeck}
-      </Link>
-      {settingsLink(deck)}
-      <SaveDeckButton deckId={deck.id} />
-    </div>
-  );
+  // Editing, removing and everything else about a deck lives in its settings (the gear).
+  const actions = (deck: Deck) => <div className="tile-actions">{settingsLink(deck)}</div>;
 
   // A adds a card, B opens the card browser (not while typing, and not with modifier keys).
   const router = useRouter();
@@ -94,34 +73,29 @@ export function LibraryView() {
 
   return (
     <main className="page">
-      <section className="page-intro">
-        <h1>{t.title}</h1>
-        <p>{t.lead}</p>
+      <section className="page-intro library-head">
+        <div>
+          <h1>{t.title}</h1>
+          <p>{t.lead}</p>
+        </div>
+        {userDecks.length + savedDecks.length > 0 && (
+          <div className="library-quick">
+            <Link href="/library/add" className="btn accent">
+              {t.addCard} <kbd>A</kbd>
+            </Link>
+            <Link href="/library/cards" className="btn nav">
+              {t.browseCards} <kbd>B</kbd>
+            </Link>
+          </div>
+        )}
       </section>
 
       <ImportGuestDataPrompt />
 
-      <PageTabs
-        label={t.title}
-        tabs={[{ id: "due", title: t.dueTitle }, ...sections.map((section) => ({ id: `group-${section.key}`, title: section.title }))]}
-      />
-
-      <DueForReview decks={[...userDecks, ...officialResolved]} />
+      <PageTabs label={t.title} tabs={sections.map((section) => ({ id: `group-${section.key}`, title: section.title }))} />
 
       <div className="library-toolbar">
         <ViewSwitch view={prefs.libraryView} />
-        <div className="library-quick">
-          {userDecks.length + savedDecks.length > 0 && (
-            <>
-              <Link href="/library/add" className="btn accent">
-                {t.addCard} <kbd>A</kbd>
-              </Link>
-              <Link href="/library/cards" className="btn nav">
-                {t.browseCards} <kbd>B</kbd>
-              </Link>
-            </>
-          )}
-        </div>
       </div>
 
       {sections.map((section) => (
@@ -139,7 +113,7 @@ export function LibraryView() {
               decks={section.decks}
               view={prefs.libraryView}
               withCreate={section.withCreate}
-              action={(deck) => (ownIds.has(deck.id) ? ownActions(deck) : savedActions(deck))}
+              action={actions}
               edited={(deck) => !ownIds.has(deck.id) && overrides[deck.id] !== undefined}
               srs={srs}
             />
@@ -231,7 +205,6 @@ function DeckCollection(props: {
               <Link href={`/decks/${deck.id}`} className="deck-list-title">
                 {deck.title}
               </Link>
-              <span className="tag">{deck.kind === "ordered" ? dict.decks.ordered : dict.decks.unordered}</span>
               <span className="muted">{fill(dict.decks.cardCount, { n: deck.cards.length })}</span>
               {due && <SrsCounts counts={due} t={dict.srs} />}
               {props.action(deck)}
@@ -250,50 +223,9 @@ function DeckCollection(props: {
       )}
       {props.decks.map((deck) => (
         <li key={deck.id}>
-          <DeckTile deck={deck} edited={props.edited(deck)} action={props.action(deck)} />
+          <DeckTile deck={deck} edited={props.edited(deck)} action={props.action(deck)} hideKind />
         </li>
       ))}
     </ul>
-  );
-}
-
-/** Decks with spaced repetition switched on that have cards to study today, like Anki's deck list. */
-function DueForReview({ decks }: { decks: Deck[] }) {
-  const { t: dict } = useI18n();
-  const data = useSrsData();
-  const status = useSrsStatus();
-  const now = useNow();
-  if (status === "loading") return null;
-
-  const due = decks
-    .filter((d) => isDeckEnabled(data, d.id))
-    .map((deck) => ({
-      deck,
-      counts: deckCounts({ deckId: deck.id, cardIds: deck.cards.map((c) => c.id), cards: data.cards, logs: data.logs, settings: data.settings, now }),
-    }))
-    .filter(({ counts }) => counts.new + counts.learning + counts.review > 0);
-  if (due.length === 0 && !decks.some((d) => isDeckEnabled(data, d.id))) return null;
-
-  return (
-    <>
-      <h2 className="section-title" id="due">{dict.library.dueTitle}</h2>
-      {due.length === 0 ? (
-        <p className="empty-state">{dict.library.dueEmpty}</p>
-      ) : (
-        <ul className="due-list">
-          {due.map(({ deck, counts }) => (
-            <li key={deck.id}>
-              <Link href={`/decks/${deck.id}`} className="due-title">
-                {deck.title}
-              </Link>
-              <SrsCounts counts={counts} t={dict.srs} />
-              <Link href={`/decks/${deck.id}/review`} className="btn accent">
-                {dict.srs.studyNow}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
   );
 }

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { DeckGate } from "@/components/DeckGate";
-import type { StartIn } from "@/components/PracticeSession";
 import { getDeck, officialDecks } from "@/decks";
 
 export function generateStaticParams() {
@@ -13,11 +12,9 @@ export async function generateMetadata({ params }: PageProps<"/decks/[deckId]/pr
   return title ? { title } : {};
 }
 
-// ?mode=review skips to revision, ?mode=test to the test (e.g. a big deck's final test);
-// ?chapter=N practises one chapter of a big deck.
-export default async function PracticePage({ params, searchParams }: PageProps<"/decks/[deckId]/practice">) {
+// The guided technique practice (walkthrough → revision → test). Decks are studied with spaced
+// repetition now; this flow remains as the landing page's demo.
+export default async function PracticePage({ params }: PageProps<"/decks/[deckId]/practice">) {
   const { deckId } = await params;
-  const { mode, chapter } = await searchParams;
-  const startIn: StartIn = mode === "review" ? "review" : mode === "test" ? "test" : "beginning";
-  return <DeckGate deckId={deckId} officialDeck={getDeck(deckId)} mode="practice" startIn={startIn} chapter={chapter} />;
+  return <DeckGate deckId={deckId} officialDeck={getDeck(deckId)} mode="practice" />;
 }

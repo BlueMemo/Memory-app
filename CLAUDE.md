@@ -66,6 +66,42 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   are independent user decks). **Requires re-running `schema.sql`**; until then the button shows "isn't set
   up on the server yet". After deleting, the browser signs out locally and reloads `/`. Tested end to end on
   2026-10-05 with a throwaway account: deleted, signed out. `schema.sql` was re-run for it.
+- **Memory Tree, card dates, no learn-ahead (2026-10-05, same branch; whole branch merged to `main` 2026-10-05)**: a fourth header tab, **the
+  Memory Tree** (`/skills`, `SkillTreeView.tsx`, structure in `lib/skillTree.ts`, texts in i18n `skills`):
+  five root skills (visualise, associations, memory palace, active recall, spaced repetition) and eight
+  branches (numbers, geography, languages, names and faces, lists, texts, playing cards, studies) whose
+  skills build top-down. Most skills are empty ("Coming soon") on purpose — add content, then its `href`.
+  Other names considered: Teknikträdet, Minnesakademin, Färdigheter, Palatsskolan. Cards now get
+  `createdAt` (card form, deck creator, import; older cards have none) shown as "Created" in Browse and
+  the card browser and used by the created sort. `LEARN_AHEAD_MS` is 0: a card answered Again comes back
+  after its full wait (the session shows a countdown) instead of immediately.
+- **Pictures and colours (2026-10-05, same branch)**: 25 ready-made profile pictures (`lib/avatars.ts`,
+  drawn memory-palace motifs in `components/AvatarArt.tsx`) — pick one on the account page ("Choose a picture"; stored as
+  `avatar:<id>` in `profiles.avatar_url`), and anyone without a picture gets one chosen from their user id
+  (`Avatar`'s `seed`). Counts everywhere read learning → due → new; the deck page shows them in the study
+  colours. Grade colours are stronger and Hard is orange (`--srs-*` tokens, same in light and dark).
+- **Simplification round (2026-10-05, branch `change-flashcards-and-library-looks`)** — supersedes parts of
+  the entries below (chapters, practice buttons, per-deck SRS overrides, review limit):
+  - **Chapters removed** entirely (`lib/chapters.ts`, the deck page's chapter list, the setting).
+  - **Studying a deck = spaced repetition.** The deck page lost "Start practising", "Jump to revision"
+    and the final test; it shows an overview (total, due now, learned, unseen, new today) and **Study
+    now** (switches spaced repetition on for the deck if needed, then `/decks/<id>/review`). The guided
+    practice (walkthrough → revision → test) is kept **only as the landing page's demo**
+    (`/decks/<id>/practice`, no `?mode=` / `?chapter=` any more).
+  - **Settings model** (`lib/srs/core.ts`): named **presets** (`settings.presets`, the first is "default"
+    and can't be removed) hold the FSRS options (desired retention, Again/Hard steps, relearning steps for
+    lapses, maximum interval); each deck has `deckOverrides[id] = { presetId?, newPerDay?, examDate? }`;
+    `settingsForDeck()` flattens that into `EffectiveSettings`. **No daily review limit** any more; new
+    cards per day is per deck (default in `settings.newPerDay`). `normalizeSettings` upgrades older saved
+    settings (top-level options → default preset; a deck's old custom options → a preset of its own).
+  - **Deck settings** (`/library/settings?deck=<id>`): Studying (new cards/day, exam date), Advanced
+    (behind a button: which preset), Share (`SharePanel`, own decks only — copies get the deck's preset
+    options and new/day as a preset of their own), Export (`lib/exportDeck.ts`: .txt tab-separated, which
+    the importer reads back, or .csv), Edit deck / Delete (own) or Remove from library (saved). Without
+    `?deck=`: defaults, preset manager, personal FSRS.
+  - **Library**: only a settings gear per deck (no Edit, no ★ Saved, no route/associations tag); one list.
+  - Card tables are one line per row (cut with "…"); counts read "New: 5"; 22 achievements, shown after
+    "View achievements"; section tabs become a fixed side menu on wide screens (`PageTabs`, CSS only).
 - **Minimal study view, card tables, sharing options (2026-10-05, third round)**:
   - **Study screen** (practice revision/test and spaced-repetition review): no box around the card, just
     the question in smaller text and the answer underneath once shown (`.study-card`); no generic labels
@@ -269,7 +305,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   open-spaced-repetition TypeScript implementation). Modelled on Anki's defaults and behaviour: four
   answers (Again/Hard/Good/Easy, keys 1-4, Space = Good once the answer shows), learning steps `1m 10m`,
   relearning `10m`, desired retention 0.90, max interval 36500 d, fuzz on, 20 new/day and 200 reviews/day
-  *per deck*, a day that rolls over at 4 am, a 20-min learn-ahead limit, button labels showing the next
+  *per deck*, a day that rolls over at 4 am, no learn-ahead (cards wait their full step, changed 2026-10-05), button labels showing the next
   interval (unfuzzed, like Anki). Queue order: due learning cards → due reviews → new cards (in deck
   order, shown after reviews — Anki's "mix" order isn't implemented) → learning cards within learn-ahead.
   - Code: `src/lib/srs/core.ts` (pure scheduling rules, tested in `core.test.ts`), `src/lib/srs/store.ts`

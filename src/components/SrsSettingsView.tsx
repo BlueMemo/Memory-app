@@ -6,50 +6,53 @@ import { useEffect, useState } from "react";
 import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
 import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
-import { CHAPTER_SIZE } from "@/lib/chapters";
-import { useSavedDecks } from "@/lib/editableDecks";
+import { isSharedDeck, useSavedDecks } from "@/lib/editableDecks";
+import { downloadDeck } from "@/lib/exportDeck";
+import { toggleSavedDeck } from "@/lib/library";
 import { fill } from "@/lib/practice";
 import {
-  DECK_OPTION_KEYS,
-  DEFAULT_SETTINGS,
-  SRS_OPTION_KEYS,
-  deckOptionChanges,
+  DEFAULT_PRESET_ID,
+  PRESET_OPTION_KEYS,
   parseStep,
   parseSteps,
-  settingsForDeck,
+  presetForDeck,
   SETTINGS_LIMITS,
-  type DeckOptions,
+  type DeckSettings,
+  type Preset,
+  type PresetOptions,
   type SrsSettings,
 } from "@/lib/srs/core";
 import { AUTO_OPTIMIZE_EVERY, countReviews, MIN_REVIEWS_TO_OPTIMIZE, optimizeParameters } from "@/lib/srs/optimize";
 import { updateSrsSettings, useSrsData, useSrsSignedIn, useSrsStatus } from "@/lib/srs/store";
-import { useUserDecks } from "@/lib/userDecks";
-import { PageTabs } from "./PageTabs";
 import type { Deck } from "@/lib/types";
+import { useUserDecks } from "@/lib/userDecks";
+import { DeleteDeckButton } from "./DeleteDeckButton";
+import { PageTabs } from "./PageTabs";
+import { SharePanel } from "./SharePanel";
 
 type T = ReturnType<typeof useI18n>["t"]["srsSettings"];
 
-/** Just the per-deck options of a settings object. */
-const deckOptionsOf = (s: DeckOptions): DeckOptions =>
-  Object.fromEntries(DECK_OPTION_KEYS.map((k) => [k, s[k]])) as unknown as DeckOptions;
+/** A preset's display name: the default one is called "Standard"/"Default" in the site's language. */
+export const presetName = (p: Preset, t: T) => (p.id === DEFAULT_PRESET_ID ? t.defaultPreset : p.name || t.unnamedPreset);
 
 /**
- * /library/settings: spaced repetition options. The defaults apply to every deck; `?deck=<id>` opens one
- * deck's own options (reached from that deck's spaced repetition panel). Personal optimisation is global.
+ * /library/settings. Without `?deck=` it's where presets and the personal FSRS model are managed; with
+ * `?deck=<id>` it's that deck's settings: the everyday ones (new cards a day, exam date, share, export,
+ * edit, delete) up front, and "Advanced" (its preset and the preset's FSRS options) behind a button.
  */
 export function SrsSettingsView({ deckId }: { deckId: string | null }) {
   const t = useI18n().t.srsSettings;
   const router = useRouter();
-  const { settings, enabled } = useSrsData();
+  const { settings } = useSrsData();
   const status = useSrsStatus();
   const signedIn = useSrsSignedIn();
-  const decks = useDecksWithSrs(enabled, settings);
+  const decks = useLibraryDecks();
   const deck = deckId ? decks.find((d) => d.id === deckId) ?? null : null;
 
   return (
     <main className="page narrow">
-      <Link href="/library" className="link-muted">
-        {t.backToLibrary}
+      <Link href={deck ? `/decks/${deck.id}` : "/library"} className="link-muted">
+        {deck ? `← ${deck.title}` : t.backToLibrary}
       </Link>
       <section className="page-intro">
         <h1>{deck ? t.deckTitle : t.title}</h1>
@@ -74,31 +77,35 @@ export function SrsSettingsView({ deckId }: { deckId: string | null }) {
         </div>
       )}
 
-      <PageTabs
-        label={deck ? t.deckTitle : t.title}
-        tabs={[
-          { id: "deck-options", title: t.deckSection },
-          { id: "srs-options", title: t.srsSection },
-          { id: "optimizer", title: t.optimizerTitle },
-        ]}
-      />
-
-      {/* Remount when the source of the values changes (signing in or out, or another deck), so the form
-          starts from the right values, but not on our own saves, which would wipe the "Saved." note. */}
-      {status !== "loading" && (
-        <OptionsForm key={`${signedIn ? "account" : "browser"}:${deck?.id ?? ""}`} settings={settings} deck={deck} t={t} />
-      )}
-      {status !== "loading" && <Optimizer settings={settings} signedIn={signedIn} t={t} />}
+      {status !== "loading" &&
+        (deck ? (
+          <DeckSettingsForm key={`${signedIn ? "account" : "browser"}:${deck.id}`} deck={deck} settings={settings} t={t} />
+        ) : (
+          <>
+            <PageTabs
+              label={t.title}
+              tabs={[
+                { id: "defaults", title: t.defaultsSection },
+                { id: "presets", title: t.presetsTitle },
+                { id: "optimizer", title: t.optimizerTitle },
+              ]}
+            />
+            <DefaultsForm key={signedIn ? "account" : "browser"} settings={settings} t={t} />
+            <PresetManager settings={settings} t={t} />
+            <Optimizer settings={settings} signedIn={signedIn} t={t} />
+          </>
+        ))}
       {!signedIn && <p className="fine-print">{t.storedLocal}</p>}
     </main>
   );
 }
 
-/** Decks the learner can set options for: everything in their library, plus official decks in use. */
-function useDecksWithSrs(enabled: Record<string, boolean>, settings: SrsSettings): Deck[] {
+/** Every deck in the learner's library (own and saved), plus official decks they use without saving. */
+function useLibraryDecks(): Deck[] {
   const userDecks = useUserDecks();
   const savedDecks = useSavedDecks();
   const overrides = useDeckOverrides();
+  const { enabled, settings } = useSrsData();
   const all = new Map<string, Deck>();
   for (const d of [...userDecks, ...savedDecks]) all.set(d.id, d);
   for (const d of officialDecks.map((o) => resolveDeck(o, overrides))) {
@@ -107,142 +114,286 @@ function useDecksWithSrs(enabled: Record<string, boolean>, settings: SrsSettings
   return [...all.values()].sort((a, b) => a.title.localeCompare(b.title));
 }
 
-function OptionsForm({ settings, deck, t }: { settings: SrsSettings; deck: Deck | null; t: T }) {
-  // "Own settings" is about the spaced-repetition options; chapters and exam date are always the deck's own.
-  const own = deck ? settings.deckOverrides[deck.id] : undefined;
-  const startCustom = deck ? SRS_OPTION_KEYS.some((k) => own?.[k] !== undefined) : true;
-  const [custom, setCustom] = useState(startCustom);
-  const [form, setForm] = useState<SrsSettings>(deck ? settingsForDeck(settings, deck.id) : settings);
+/** One deck's settings. Saving writes only what differs from the defaults. */
+function DeckSettingsForm({ deck, settings, t }: { deck: Deck; settings: SrsSettings; t: T }) {
+  const router = useRouter();
+  const savedIds = useSavedDecks().map((d) => d.id);
+  const own = settings.deckOverrides[deck.id] ?? {};
+  const [newPerDay, setNewPerDay] = useState(own.newPerDay ?? settings.newPerDay);
+  const [examDate, setExamDate] = useState(own.examDate ?? "");
+  const [presetId, setPresetId] = useState(presetForDeck(settings, deck.id).id);
+  const [advanced, setAdvanced] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
-  // A deck that follows the defaults shows them, read-only, until "own settings" is switched on.
-  const shown = deck && !custom ? { ...settings, chapters: form.chapters, examDate: form.examDate } : form;
-  const editable = !deck || custom;
-
-  const againOk = parseStep(form.againStep) !== null;
-  const hardOk = parseStep(form.hardStep) !== null;
-  const relearningOk = parseSteps(form.relearningSteps) !== null;
-  const valid = !editable || (againOk && hardOk && relearningOk);
-  const set = (patch: Partial<SrsSettings>) => {
-    setForm({ ...form, ...patch });
-    setJustSaved(false);
-  };
-  const number = (key: keyof typeof SETTINGS_LIMITS, value: string) => set({ [key]: value === "" ? NaN : Number(value) });
+  const mine = !isSharedDeck(deck.id);
 
   async function save() {
-    if (!deck) {
-      await updateSrsSettings(form);
-    } else {
-      const overrides = { ...settings.deckOverrides };
-      // Without "own settings" only the deck-only options (chapters, exam date) are kept.
-      const changes = deckOptionChanges(custom ? form : { ...settings, chapters: form.chapters, examDate: form.examDate }, settings);
-      if (Object.keys(changes).length) overrides[deck.id] = changes;
-      else delete overrides[deck.id];
-      await updateSrsSettings({ deckOverrides: overrides });
+    const next: Partial<DeckSettings> = {};
+    if (Number.isFinite(newPerDay) && newPerDay !== settings.newPerDay) {
+      next.newPerDay = Math.round(Math.min(SETTINGS_LIMITS.newPerDay.max, Math.max(SETTINGS_LIMITS.newPerDay.min, newPerDay)));
     }
+    if (examDate) next.examDate = examDate;
+    if (presetId !== DEFAULT_PRESET_ID) next.presetId = presetId;
+    const overrides = { ...settings.deckOverrides };
+    if (Object.keys(next).length) overrides[deck.id] = next;
+    else delete overrides[deck.id];
+    await updateSrsSettings({ deckOverrides: overrides });
     setJustSaved(true);
   }
 
+  // What travels with a published copy: the deck's preset options and its new cards a day.
+  const preset = settings.presets.find((p) => p.id === presetId) ?? settings.presets[0];
+  const shareable = { ...Object.fromEntries(PRESET_OPTION_KEYS.map((k) => [k, preset[k]])), newPerDay };
+
+  return (
+    <>
+      <PageTabs
+        label={t.deckTitle}
+        tabs={[
+          { id: "study", title: t.studySection },
+          { id: "share", title: t.shareSection },
+          { id: "export", title: t.exportSection },
+          { id: "manage", title: t.manageSection },
+          { id: "advanced", title: t.advancedTitle },
+        ]}
+      />
+
+      <form
+        className="settings-form"
+        id="study"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void save();
+        }}
+        onChange={() => setJustSaved(false)}
+      >
+        <h2>{t.studySection}</h2>
+        <NumberField id="new-per-day" label={t.newPerDay} hint={t.newPerDayHint} value={newPerDay} limits={SETTINGS_LIMITS.newPerDay} onChange={(v) => setNewPerDay(v === "" ? NaN : Number(v))} />
+        <div className="field">
+          <label htmlFor="exam-date">{t.examDate}</label>
+          <input id="exam-date" type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)} />
+          <span className="hint">{t.examDateHint}</span>
+        </div>
+
+        <button type="button" className="advanced-toggle" id="advanced" aria-expanded={advanced} onClick={() => setAdvanced((a) => !a)}>
+          {advanced ? "▾" : "▸"} {t.advancedTitle}
+        </button>
+        {advanced && (
+          <div className="advanced-panel">
+            <p className="muted">{t.advancedLead}</p>
+            <div className="field">
+              <label htmlFor="deck-preset">{t.presetLabel}</label>
+              <select id="deck-preset" value={presetId} onChange={(e) => setPresetId(e.target.value)}>
+                {settings.presets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {presetName(p, t)}
+                  </option>
+                ))}
+              </select>
+              <span className="hint">{t.presetHint}</span>
+            </div>
+            <p>
+              <Link href="/library/settings#presets" className="tile-open">
+                {t.editPresets}
+              </Link>
+            </p>
+          </div>
+        )}
+
+        <div className="controls left">
+          <button type="submit" className="btn accent">
+            {t.save}
+          </button>
+          {justSaved && <span className="saved-note">{fill(t.deckSaved, { deck: deck.title })}</span>}
+        </div>
+      </form>
+
+      <section className="settings-form" id="share">
+        <h2>{t.shareSection}</h2>
+        {mine ? <SharePanel deck={deck} settings={shareable} /> : <p className="muted">{t.shareOnlyOwn}</p>}
+      </section>
+
+      <section className="settings-form" id="export">
+        <h2>{t.exportSection}</h2>
+        <p className="muted">{t.exportLead}</p>
+        <div className="controls left">
+          <button type="button" className="btn nav" onClick={() => downloadDeck(deck, "txt")}>
+            {t.exportTxt}
+          </button>
+          <button type="button" className="btn nav" onClick={() => downloadDeck(deck, "csv")}>
+            {t.exportCsv}
+          </button>
+        </div>
+      </section>
+
+      <section className="settings-form danger-zone" id="manage">
+        <h2>{t.manageSection}</h2>
+        <div className="controls left">
+          <Link href={`/library/edit/${deck.id}`} className="btn nav">
+            {t.editDeck}
+          </Link>
+          {mine ? (
+            <DeleteDeckButton deckId={deck.id} onDeleted={() => router.push("/library")} />
+          ) : (
+            savedIds.includes(deck.id) && (
+              <button
+                type="button"
+                className="btn danger"
+                onClick={async () => {
+                  await toggleSavedDeck(deck.id);
+                  router.push("/library");
+                }}
+              >
+                {t.removeFromLibrary}
+              </button>
+            )
+          )}
+        </div>
+        {mine && <p className="hint">{t.deleteText}</p>}
+      </section>
+    </>
+  );
+}
+
+/** Defaults for all decks: new cards a day, and whether new decks use spaced repetition. */
+function DefaultsForm({ settings, t }: { settings: SrsSettings; t: T }) {
+  const [newPerDay, setNewPerDay] = useState(settings.newPerDay);
+  const [enableForNewDecks, setEnable] = useState(settings.enableForNewDecks);
+  const [justSaved, setJustSaved] = useState(false);
   return (
     <form
       className="settings-form"
-      id={deck ? undefined : "srs-options"}
-      onSubmit={(e) => {
+      id="defaults"
+      onSubmit={async (e) => {
         e.preventDefault();
-        if (valid) void save();
+        if (!Number.isFinite(newPerDay)) return;
+        await updateSrsSettings({ newPerDay, enableForNewDecks });
+        setJustSaved(true);
+      }}
+      onChange={() => setJustSaved(false)}
+    >
+      <h2>{t.defaultsSection}</h2>
+      <NumberField id="default-new" label={t.newPerDay} hint={t.defaultNewPerDayHint} value={newPerDay} limits={SETTINGS_LIMITS.newPerDay} onChange={(v) => setNewPerDay(v === "" ? NaN : Number(v))} />
+      <label className="check-field">
+        <input type="checkbox" checked={enableForNewDecks} onChange={(e) => setEnable(e.target.checked)} />
+        <span>
+          <strong>{t.enableForNewDecks}</strong>
+          <span className="hint">{t.enableForNewDecksHint}</span>
+        </span>
+      </label>
+      <div className="controls left">
+        <button type="submit" className="btn accent">
+          {t.save}
+        </button>
+        {justSaved && <span className="saved-note">{t.saved}</span>}
+      </div>
+    </form>
+  );
+}
+
+/**
+ * Named presets: pick one to edit its FSRS options (they apply to every deck using it), create a new one
+ * from the current, rename, or remove it (its decks go back to the default preset).
+ */
+function PresetManager({ settings, t }: { settings: SrsSettings; t: T }) {
+  const [selectedId, setSelectedId] = useState(settings.presets[0].id);
+  const preset = settings.presets.find((p) => p.id === selectedId) ?? settings.presets[0];
+  const usedBy = Object.values(settings.deckOverrides).filter((o) => (o.presetId ?? DEFAULT_PRESET_ID) === preset.id).length;
+
+  async function create() {
+    const name = window.prompt(t.newPresetPrompt)?.trim();
+    if (!name) return;
+    const id = `preset-${crypto.randomUUID().slice(0, 8)}`;
+    await updateSrsSettings({ presets: [...settings.presets, { ...preset, id, name: name.slice(0, 60) }] });
+    setSelectedId(id);
+  }
+  async function rename() {
+    const name = window.prompt(t.renamePresetPrompt, preset.name)?.trim();
+    if (!name) return;
+    await updateSrsSettings({ presets: settings.presets.map((p) => (p.id === preset.id ? { ...p, name: name.slice(0, 60) } : p)) });
+  }
+  async function remove() {
+    if (!window.confirm(fill(t.removePresetConfirm, { name: presetName(preset, t) }))) return;
+    const deckOverrides = Object.fromEntries(
+      Object.entries(settings.deckOverrides).map(([id, o]) => [id, o.presetId === preset.id ? { ...o, presetId: undefined } : o]),
+    );
+    await updateSrsSettings({ presets: settings.presets.filter((p) => p.id !== preset.id), deckOverrides });
+    setSelectedId(DEFAULT_PRESET_ID);
+  }
+
+  return (
+    <section className="settings-form" id="presets">
+      <h2>{t.presetsTitle}</h2>
+      <p className="muted">{t.presetsLead}</p>
+      <div className="preset-bar">
+        <select value={preset.id} onChange={(e) => setSelectedId(e.target.value)} aria-label={t.presetLabel}>
+          {settings.presets.map((p) => (
+            <option key={p.id} value={p.id}>
+              {presetName(p, t)}
+            </option>
+          ))}
+        </select>
+        <button type="button" className="link-button" onClick={() => void create()}>
+          {t.newPreset}
+        </button>
+        {preset.id !== DEFAULT_PRESET_ID && (
+          <>
+            <button type="button" className="link-button" onClick={() => void rename()}>
+              {t.renamePreset}
+            </button>
+            <button type="button" className="link-button" onClick={() => void remove()}>
+              {t.removePreset}
+            </button>
+          </>
+        )}
+      </div>
+      <p className="hint">{fill(usedBy === 1 ? t.presetUsedByOne : t.presetUsedBy, { n: usedBy })}</p>
+      <PresetForm key={preset.id} preset={preset} settings={settings} t={t} />
+    </section>
+  );
+}
+
+function PresetForm({ preset, settings, t }: { preset: Preset; settings: SrsSettings; t: T }) {
+  const [form, setForm] = useState<PresetOptions>(preset);
+  const [justSaved, setJustSaved] = useState(false);
+  const againOk = parseStep(form.againStep) !== null;
+  const hardOk = parseStep(form.hardStep) !== null;
+  const relearningOk = parseSteps(form.relearningSteps) !== null;
+  const valid = againOk && hardOk && relearningOk && Number.isFinite(form.desiredRetention) && Number.isFinite(form.maximumInterval);
+  const set = (patch: Partial<PresetOptions>) => {
+    setForm({ ...form, ...patch });
+    setJustSaved(false);
+  };
+  const number = (key: "desiredRetention" | "maximumInterval", value: string) => set({ [key]: value === "" ? NaN : Number(value) });
+
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (!valid) return;
+        await updateSrsSettings({ presets: settings.presets.map((p) => (p.id === preset.id ? { ...p, ...form } : p)) });
+        setJustSaved(true);
       }}
     >
-      {deck && (
-        <fieldset className="plain-fieldset deck-only">
-          <h2 id="deck-options">{t.deckSection}</h2>
-          <label className="check-field">
-            <input type="checkbox" checked={form.chapters} onChange={(e) => set({ chapters: e.target.checked })} />
-            <span>
-              <strong>{fill(t.chapters, { size: CHAPTER_SIZE })}</strong>
-              <span className="hint">{fill(t.chaptersHint, { size: CHAPTER_SIZE })}</span>
-            </span>
-          </label>
-          <div className="field">
-            <label htmlFor="exam-date">{t.examDate}</label>
-            <input id="exam-date" type="date" value={form.examDate ?? ""} onChange={(e) => set({ examDate: e.target.value || null })} />
-            <span className="hint">{t.examDateHint}</span>
-          </div>
-          <h2 id="srs-options">{t.srsSection}</h2>
-        </fieldset>
-      )}
-      {deck ? (
-        <label className="check-field">
-          <input
-            type="checkbox"
-            checked={custom}
-            onChange={(e) => {
-              setCustom(e.target.checked);
-              setJustSaved(false);
-            }}
-          />
-          <span>
-            <strong>{t.deckCustom}</strong>
-            <span className="hint">{t.deckCustomHint}</span>
-          </span>
-        </label>
-      ) : (
-        <label className="check-field">
-          <input type="checkbox" checked={form.enableForNewDecks} onChange={(e) => set({ enableForNewDecks: e.target.checked })} />
-          <span>
-            <strong>{t.enableForNewDecks}</strong>
-            <span className="hint">{t.enableForNewDecksHint}</span>
-          </span>
-        </label>
-      )}
-
-      <fieldset className="plain-fieldset" disabled={!editable}>
-        <div className="field-row">
-          <NumberField id="new-per-day" label={t.newPerDay} value={shown.newPerDay} limits={SETTINGS_LIMITS.newPerDay} onChange={(v) => number("newPerDay", v)} />
-          <NumberField id="reviews-per-day" label={t.reviewsPerDay} value={shown.reviewsPerDay} limits={SETTINGS_LIMITS.reviewsPerDay} onChange={(v) => number("reviewsPerDay", v)} />
-        </div>
-        <span className="hint">{t.limitsHint}</span>
-
-        <NumberField
-          id="retention"
-          label={t.desiredRetention}
-          hint={t.desiredRetentionHint}
-          value={shown.desiredRetention}
-          limits={SETTINGS_LIMITS.desiredRetention}
-          step={0.01}
-          onChange={(v) => number("desiredRetention", v)}
-        />
-
-        <div className="field-row">
-          <TextField id="again-step" label={t.againStep} value={shown.againStep} ok={!editable || againOk} hint={t.againStepHint} error={t.invalidStep} onChange={(v) => set({ againStep: v })} />
-          <TextField id="hard-step" label={t.hardStep} value={shown.hardStep} ok={!editable || hardOk} hint={t.hardStepHint} error={t.invalidStep} onChange={(v) => set({ hardStep: v })} />
-        </div>
-
-        <TextField
-          id="relearning-steps"
-          label={t.relearningSteps}
-          value={shown.relearningSteps}
-          ok={!editable || relearningOk}
-          hint={t.relearningStepsHint}
-          error={t.invalidSteps}
-          onChange={(v) => set({ relearningSteps: v })}
-        />
-
-        <NumberField id="max-interval" label={t.maximumInterval} value={shown.maximumInterval} limits={SETTINGS_LIMITS.maximumInterval} onChange={(v) => number("maximumInterval", v)} />
-      </fieldset>
-
+      <NumberField
+        id="retention"
+        label={t.desiredRetention}
+        hint={t.desiredRetentionHint}
+        value={form.desiredRetention}
+        limits={SETTINGS_LIMITS.desiredRetention}
+        step={0.01}
+        onChange={(v) => number("desiredRetention", v)}
+      />
+      <div className="field-row">
+        <TextField id="again-step" label={t.againStep} value={form.againStep} ok={againOk} hint={t.againStepHint} error={t.invalidStep} onChange={(v) => set({ againStep: v })} />
+        <TextField id="hard-step" label={t.hardStep} value={form.hardStep} ok={hardOk} hint={t.hardStepHint} error={t.invalidStep} onChange={(v) => set({ hardStep: v })} />
+      </div>
+      <TextField id="relearning-steps" label={t.relearningSteps} value={form.relearningSteps} ok={relearningOk} hint={t.relearningStepsHint} error={t.invalidSteps} onChange={(v) => set({ relearningSteps: v })} />
+      <NumberField id="max-interval" label={t.maximumInterval} value={form.maximumInterval} limits={SETTINGS_LIMITS.maximumInterval} onChange={(v) => number("maximumInterval", v)} />
       <div className="controls left">
         <button type="submit" className="btn accent" disabled={!valid}>
           {t.save}
         </button>
-        {editable && (
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => set(deckOptionsOf(deck ? settings : DEFAULT_SETTINGS))}
-          >
-            {t.resetDefaults}
-          </button>
-        )}
-        {justSaved && <span className="saved-note">{deck ? fill(t.deckSaved, { deck: deck.title }) : t.saved}</span>}
+        {justSaved && <span className="saved-note">{t.saved}</span>}
       </div>
     </form>
   );

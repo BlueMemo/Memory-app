@@ -5,7 +5,6 @@ import {
   buildSteps,
   deckTestQuestion,
   fill,
-  initReviewSession,
   initSession,
   missedIds,
   ordinal,
@@ -81,20 +80,6 @@ describe("practiceReducer", () => {
   it("gives each round a new number so views remount", () => {
     const s = run(initSession(1), { type: "startRevision", order: ids }, { type: "startTest", order: ids });
     expect(s.round).toBe(2);
-  });
-});
-
-describe("initReviewSession", () => {
-  it("starts straight in revision with every card queued, skipping the walkthrough", () => {
-    const s = initReviewSession(largestCountries, buildSteps(largestCountries).length);
-    expect(s.phase).toBe("revision");
-    expect(s.queue).toEqual(largestCountries.cards.map((c) => c.id));
-    expect(s.round).toBe(1);
-  });
-
-  it("can still be finished like any other revision round", () => {
-    const s = gradeRound(initReviewSession(largestCountries, 1));
-    expect(s.phase).toBe("mastered");
   });
 });
 

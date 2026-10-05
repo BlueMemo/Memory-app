@@ -1,8 +1,8 @@
 import { State, type StoredCard } from "./srs/core";
 
-// Sort orders for card lists (the deck page's "What's inside" and the card browser). Cards have no
-// timestamps of their own; new cards are always appended, so a card's position in its deck is its
-// creation order.
+// Sort orders for card lists (the deck page's Browse and the card browser). "Created" uses a card's
+// createdAt when it has one; older cards don't, and since new cards are always appended, their position
+// in the deck stands in for creation order.
 
 export const CARD_SORTS = ["due-asc", "due-desc", "az", "za", "created-asc", "created-desc"] as const;
 export type CardSort = (typeof CARD_SORTS)[number];
@@ -10,8 +10,10 @@ export type CardSort = (typeof CARD_SORTS)[number];
 export interface SortableCard {
   /** What's asked: the prompt, or "Stop n" for memory routes. */
   question: string;
-  /** Position in the deck (1-based) — also its creation order. */
+  /** Position in the deck (1-based). */
   position: number;
+  /** When the card was created (ISO), if known. */
+  createdAt?: string;
   /** Spaced-repetition state, if the deck has it switched on. */
   enabled: boolean;
   stored?: StoredCard;
@@ -38,9 +40,17 @@ export function compareCards(a: SortableCard, b: SortableCard, sort: CardSort, l
       const order = a.question.localeCompare(b.question, locale, { numeric: true, sensitivity: "base" });
       return (sort === "az" ? order : -order) || a.position - b.position;
     }
-    case "created-desc":
-      return b.position - a.position;
-    default:
-      return a.position - b.position;
+    default: {
+      // Both dated: by date; otherwise undated (older) cards first, in deck order.
+      const order =
+        a.createdAt && b.createdAt
+          ? a.createdAt.localeCompare(b.createdAt) || a.position - b.position
+          : a.createdAt
+            ? 1
+            : b.createdAt
+              ? -1
+              : a.position - b.position;
+      return sort === "created-desc" ? -order : order;
+    }
   }
 }

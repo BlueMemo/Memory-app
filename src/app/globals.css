@@ -15,10 +15,10 @@
   --again: #e5a94a;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   /* Review answer and count colours: again red, hard grey, good green, easy/new blue. */
-  --srs-again: #ef6a5e;
-  --srs-hard: #9b9fa6;
-  --srs-good: #4cc185;
-  --srs-easy: #6aa5f0;
+  --srs-again: #dc2626;
+  --srs-hard: #d9700a;
+  --srs-good: #16a34a;
+  --srs-easy: #2563eb;
   color-scheme: dark;
 }
 
@@ -34,10 +34,10 @@
   --good: #2f8f5b;
   --again: #c0842a;
   --shadow: 0 10px 30px rgba(20, 22, 28, 0.12);
-  --srs-again: #c4362c;
-  --srs-hard: #63666d;
-  --srs-good: #2f8f5b;
-  --srs-easy: #2f6fbf;
+  --srs-again: #dc2626;
+  --srs-hard: #d9700a;
+  --srs-good: #16a34a;
+  --srs-easy: #2563eb;
   color-scheme: light;
 }
 
@@ -882,9 +882,10 @@ ul.overview-list {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* Anchored near the top, not centred: revealing the answer adds below and never moves the question. */
+  justify-content: flex-start;
   gap: 20px;
-  padding: 12px 8px 24px;
+  padding: clamp(16px, 9vh, 96px) 8px 24px;
   text-align: center;
   color: var(--ink);
 }
@@ -1627,65 +1628,13 @@ ul.overview-list {
   }
 }
 
-/* ---------- Chapters ---------- */
+/* The deck title next to "Exit" while reviewing. */
 
-.chapter-label {
+.session-label {
   margin-left: 12px;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--muted);
-}
-
-.chapters-hint {
-  margin: -6px 0 12px;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.chapter-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--card);
-  overflow: hidden;
-}
-
-.chapter-list li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 16px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--line);
-}
-
-.chapter-list li:first-child {
-  border-top: none;
-}
-
-.chapter-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.chapter-info .muted {
-  font-size: 0.88rem;
-}
-
-.chapter-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.chapter-actions .btn {
-  min-width: 0;
-  padding: 8px 14px;
-  text-decoration: none;
 }
 
 /* ---------- Import ---------- */
@@ -1935,6 +1884,8 @@ ul.overview-list {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.92rem;
+  /* Fixed layout so long text is cut off with "…" and every row stays one line high. */
+  table-layout: fixed;
 }
 
 .browser-table th {
@@ -1968,6 +1919,9 @@ ul.overview-list {
   padding: 9px 12px;
   border-top: 1px solid var(--line);
   vertical-align: top;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .browser-table tbody tr {
@@ -3269,4 +3223,334 @@ main [id] {
 
 .btn.danger:disabled {
   opacity: 0.45;
+}
+
+.danger-zone {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+/* Library: title on the left, Add card / Browse cards on the right (stacked on phones). */
+.library-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.inside-search {
+  font: inherit;
+  font-size: 0.9rem;
+  min-width: 200px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+/* Section tabs as a side menu on wide screens: fixed to the left of the page column, always reachable.
+   Narrow pages (620px) have room from 1100px, regular pages (960px) from 1440px; below that they stay on top. */
+@media (min-width: 1100px) {
+  .page.narrow .page-tabs {
+    position: fixed;
+    top: 96px;
+    left: calc(50% - 310px - 230px);
+    width: 200px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+}
+
+@media (min-width: 1440px) {
+  .page:not(.narrow):not(.wide) .page-tabs {
+    position: fixed;
+    top: 96px;
+    left: calc(50% - 480px - 230px);
+    width: 200px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .page.narrow .page-tabs a,
+  .page:not(.narrow):not(.wide) .page-tabs a {
+    border: none;
+    border-left: 2px solid var(--line);
+    border-radius: 0;
+    padding: 7px 12px;
+    white-space: normal;
+  }
+
+  .page.narrow .page-tabs a.active,
+  .page:not(.narrow):not(.wide) .page-tabs a.active {
+    border-left-color: var(--accent);
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1439px) {
+  /* Regular-width pages keep the tabs on top until there's room beside them. */
+  .page:not(.narrow):not(.wide) .page-tabs a {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+
+  .page:not(.narrow):not(.wide) .page-tabs a.active {
+    border-color: var(--accent);
+  }
+}
+
+/* Deck page overview tiles and the gear on "Deck settings". */
+.deck-overview {
+  margin: 18px 0 20px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.advanced-toggle {
+  display: block;
+  margin: 8px 0 12px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.advanced-panel {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.preset-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 8px 0 4px;
+}
+
+.preset-bar select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.deck-overview .stat-tile {
+  padding: 12px 14px;
+}
+
+.deck-overview .stat-value {
+  font-size: 1.5rem;
+}
+
+.browser-table th {
+  padding: 9px 12px;
+}
+
+/* Ready-made profile pictures and the picker on the account page. */
+.avatar-preset {
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.avatar-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+  max-width: 420px;
+  margin-top: 12px;
+}
+
+.avatar-picker button {
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.avatar-picker button:hover,
+.avatar-picker button.selected {
+  border-color: var(--accent);
+}
+
+/* Deck overview: today's learning / due / new numbers in the same colours as while studying. */
+.deck-overview {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stat-tile.srs-count-learning .stat-value {
+  color: var(--srs-again);
+}
+
+.stat-tile.srs-count-review .stat-value {
+  color: var(--srs-good);
+}
+
+.stat-tile.srs-count-new .stat-value {
+  color: var(--srs-easy);
+}
+
+/* More room between "Study now" and Browse on a deck's page. */
+.deck-actions + .section-title-row,
+.deck-actions + .fine-print + .section-title-row {
+  margin-top: 56px;
+}
+
+.browser-table .col-created {
+  width: 110px;
+  color: var(--muted);
+}
+
+/* ---------- The Memory Tree (/skills) ---------- */
+
+.tree-roots {
+  text-align: center;
+}
+
+.tree-roots h2 {
+  margin: 8px 0 4px;
+}
+
+.tree-root-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.tree-trunk {
+  width: 3px;
+  height: 40px;
+  margin: 0 auto;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.tree-branches {
+  list-style: none;
+  margin: 0;
+  padding: 24px 0 0;
+  border-top: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 28px 14px;
+}
+
+.tree-branch-title {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: center;
+}
+
+.tree-branch-skills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* A short line joins each skill to the one it builds on. */
+.tree-branch-skills li + li {
+  position: relative;
+  margin-top: 18px;
+}
+
+.tree-branch-skills li + li::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  width: 2px;
+  height: 18px;
+  background: var(--line);
+}
+
+.skill-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+  text-align: left;
+  text-decoration: none;
+}
+
+.skill-node strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.skill-node.available {
+  border: 1px solid var(--accent);
+  background: var(--card);
+}
+
+.skill-node.available:hover {
+  background: var(--accent-soft);
+}
+
+.skill-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+}
+
+.skill-node.available .skill-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.skill-text {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.skill-status {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.skill-node.available .skill-status {
+  color: var(--accent);
 }

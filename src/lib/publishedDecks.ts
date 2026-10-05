@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { DeckOptions } from "./srs/core";
+import { PRESET_OPTION_KEYS, type PresetOptions, type SrsSettings } from "./srs/core";
 import { updateSrsSettings, useSrsData } from "./srs/store";
 import { getSupabaseBrowserClient } from "./supabase/client";
 import type { Deck, Lang } from "./types";
@@ -11,6 +11,9 @@ import { addUserDeck } from "./userDecks";
 // your own copy of someone else's. Published versions are immutable (see `published_decks` in
 // supabase/schema.sql): publishing again adds the next version, and Discover lists the latest.
 // ("Shared deck" already means an official deck elsewhere in the code, hence "published".)
+
+/** The author's settings for a deck that can travel with it: its preset's FSRS options and new cards a day. */
+export type PublishedDeckSettings = Partial<PresetOptions> & { newPerDay?: number };
 
 export interface PublishedDeck {
   id: string;
@@ -24,7 +27,7 @@ export interface PublishedDeck {
   listed: boolean;
   createdAt: string;
   /** The author's own settings for the deck that a copy starts with (null: the learner's defaults). */
-  deckSettings: Partial<DeckOptions> | null;
+  deckSettings: PublishedDeckSettings | null;
   /** Copies of all versions together, for "Most popular". */
   copies: number;
   deck: Deck;
@@ -45,7 +48,7 @@ export interface PublishOptions {
   /** List it in Discover (false: only people with the link can open it). */
   listed: boolean;
   showAvatar: boolean;
-  /** Include the author's settings for the deck (spaced repetition options and chapters). */
+  /** Include the author's settings for the deck (its preset's FSRS options and new cards a day). */
   includeSettings: boolean;
 }
 
@@ -57,7 +60,7 @@ interface Row {
   listed: boolean;
   created_at: string;
   show_avatar: boolean | null;
-  deck_settings: Partial<DeckOptions> | null;
+  deck_settings: PublishedDeckSettings | null;
   copy_count: number | null;
   total_copies?: number | null;
   deck: Deck;
@@ -183,7 +186,7 @@ export async function getPublishedDeck(id: string): Promise<{ deck: PublishedDec
  * own options for the deck, included when `options.includeSettings` is on (an exam date is personal and
  * never published).
  */
-export async function publishDeck(deck: Deck, options: PublishOptions, settings?: Partial<DeckOptions>): Promise<PublishedDeck | null> {
+export async function publishDeck(deck: Deck, options: PublishOptions, settings?: PublishedDeckSettings): Promise<PublishedDeck | null> {
   const supabase = getSupabaseBrowserClient();
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
   if (!supabase || !user) return null;
@@ -201,7 +204,7 @@ export async function publishDeck(deck: Deck, options: PublishOptions, settings?
     version: ((latest?.version as number | undefined) ?? 0) + 1,
     listed: options.listed,
     show_avatar: options.showAvatar,
-    deck_settings: options.includeSettings && settings ? withoutExamDate(settings) : null,
+    deck_settings: options.includeSettings && settings ? settings : null,
     title: deck.title,
     description: deck.description,
     language: deck.language,
@@ -220,12 +223,6 @@ export async function publishDeck(deck: Deck, options: PublishOptions, settings?
   }
   if (error || !data) return null;
   return toPublished(data as unknown as Row, {});
-}
-
-function withoutExamDate(settings: Partial<DeckOptions>): Partial<DeckOptions> | null {
-  const copy = { ...settings };
-  delete copy.examDate;
-  return Object.keys(copy).length ? copy : null;
 }
 
 /** Removes every published version of one of the signed-in learner's decks. */
@@ -265,14 +262,25 @@ export function usePublication(sourceDeckId: string, userId: string | null) {
 }
 
 /**
- * Makes the learner's own editable copy of a published deck; returns the new deck's id. The copy starts
- * with the author's published settings for the deck, if any, and (signed in) counts towards popularity.
- * `deckOverrides` are the learner's current per-deck settings (from useSrsData), extended with the copy's.
+ * Makes the learner's own editable copy of a published deck; returns the new deck's id. If the author
+ * included their settings, the copy gets a preset of its own with them (named after the deck). Signed in,
+ * the copy also counts towards the deck's popularity. `settings` are the learner's current SRS settings.
  */
-export async function copyPublishedDeck(published: PublishedDeck, deckOverrides: Record<string, Partial<DeckOptions>>): Promise<string> {
+export async function copyPublishedDeck(published: PublishedDeck, settings: SrsSettings): Promise<string> {
   const id = `user-${crypto.randomUUID()}`;
   await addUserDeck({ ...published.deck, id, official: false });
-  if (published.deckSettings) await updateSrsSettings({ deckOverrides: { ...deckOverrides, [id]: published.deckSettings } });
+  const shared = published.deckSettings;
+  if (shared) {
+    const own: SrsSettings["deckOverrides"][string] = {};
+    let presets = settings.presets;
+    if (PRESET_OPTION_KEYS.some((k) => shared[k] !== undefined)) {
+      const presetId = `copy-${id}`;
+      presets = [...presets, { ...presets[0], ...pickPresetOptions(shared), id: presetId, name: published.deck.title.slice(0, 60) }];
+      own.presetId = presetId;
+    }
+    if (typeof shared.newPerDay === "number") own.newPerDay = shared.newPerDay;
+    await updateSrsSettings({ presets, deckOverrides: { ...settings.deckOverrides, [id]: own } });
+  }
   const supabase = getSupabaseBrowserClient();
   const user = supabase ? (await supabase.auth.getUser()).data.user : null;
   if (supabase && user) {
@@ -282,5 +290,8 @@ export async function copyPublishedDeck(published: PublishedDeck, deckOverrides:
   return id;
 }
 
-/** The learner's per-deck settings, for passing to copyPublishedDeck. */
-export const useDeckOverridesForCopy = () => useSrsData().settings.deckOverrides;
+const pickPresetOptions = (s: PublishedDeckSettings): Partial<PresetOptions> =>
+  Object.fromEntries(PRESET_OPTION_KEYS.filter((k) => s[k] !== undefined).map((k) => [k, s[k]]));
+
+/** The learner's SRS settings, for passing to copyPublishedDeck. */
+export const useSettingsForCopy = () => useSrsData().settings;

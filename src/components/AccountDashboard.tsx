@@ -29,6 +29,7 @@ import { checkUsername, claimUsername, isValidUsername, saveAvatar, setUsername 
 import { notifyProfileChanged } from "@/lib/supabase/useUser";
 import { useNow } from "@/lib/useNow";
 import { useUserDecks } from "@/lib/userDecks";
+import { presetAvatarFor, presetAvatarValue, PRESET_AVATARS } from "@/lib/avatars";
 import { Avatar } from "./Avatar";
 import { PageTabs } from "./PageTabs";
 
@@ -89,6 +90,7 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
   const [busy, setBusy] = useState(false);
   const [photoError, setPhotoError] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   const change = async (read: () => Promise<string | null>) => {
     setBusy(true);
@@ -113,7 +115,7 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
 
   return (
     <section className="account-head">
-      <Avatar url={avatarUrl} name={username ?? email} size={96} />
+      <Avatar url={avatarUrl} name={username ?? email} size={96} seed={userId} />
       <div className="account-id">
         <h1 className="account-name">{username ?? t.title}</h1>
         <p className="muted account-meta">
@@ -123,7 +125,10 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
         <div className="avatar-actions">
           <input ref={fileInput} type="file" accept="image/*" hidden onChange={onFile} />
           <button className="btn nav small" disabled={!username || busy} onClick={() => fileInput.current?.click()}>
-            {avatarUrl ? t.changePhoto : t.addPhoto}
+            {avatarUrl && !presetAvatarFor(avatarUrl) ? t.changePhoto : t.addPhoto}
+          </button>
+          <button className="btn nav small" disabled={!username || busy} aria-expanded={picking} onClick={() => setPicking((p) => !p)}>
+            {t.choosePicture}
           </button>
           {avatarUrl && (
             <button className="link-button inline" disabled={busy} onClick={() => void change(async () => null)}>
@@ -131,6 +136,26 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
             </button>
           )}
         </div>
+        {picking && (
+          <div className="avatar-picker" role="group" aria-label={t.choosePicture}>
+            {PRESET_AVATARS.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className={avatarUrl === presetAvatarValue(a.id) ? "selected" : undefined}
+                aria-pressed={avatarUrl === presetAvatarValue(a.id)}
+                aria-label={a.id}
+                disabled={busy}
+                onClick={() => {
+                  setPicking(false);
+                  void change(async () => presetAvatarValue(a.id));
+                }}
+              >
+                <Avatar url={presetAvatarValue(a.id)} name={null} size={44} />
+              </button>
+            ))}
+          </div>
+        )}
         {!username && <p className="hint">{t.photoNeedsUsername}</p>}
         {photoError && <p className="form-error">{t.errorPhoto}</p>}
       </div>
@@ -243,6 +268,7 @@ function Stats({ t, activity }: { t: T; activity: AccountActivity }) {
 /** All-time statistics and achievements, from the whole review history (not just the activity window). */
 function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; activity: AccountActivity; lang: string }) {
   const history = useStudyHistory(userId);
+  const [showAchievements, setShowAchievements] = useState(false);
   const srs = useSrsData();
   const own = useUserDecks();
   const now = useNow();
@@ -281,24 +307,29 @@ function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; 
       <h2 className="section-title" id="achievements">
         {t.achievementsTitle} · {fill(t.achievementsCount, { done, total: list.length })}
       </h2>
-      <ul className="achievements">
-        {list.map((a) => (
-          <li key={a.id} className={a.done ? "done" : undefined}>
-            <span className="achievement-badge" aria-hidden="true">
-              {a.done ? "★" : "☆"}
-            </span>
-            <span>
-              <strong>{t.achievement[a.id].title}</strong>
-              <span className="muted">{t.achievement[a.id].text}</span>
-              {!a.done && (
-                <span className="achievement-progress" role="progressbar" aria-valuemin={0} aria-valuemax={a.goal} aria-valuenow={a.progress}>
-                  <span style={{ width: `${(a.progress / a.goal) * 100}%` }} />
-                </span>
-              )}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <button type="button" className="btn nav" aria-expanded={showAchievements} onClick={() => setShowAchievements((v) => !v)}>
+        {showAchievements ? t.hideAchievements : t.showAchievements}
+      </button>
+      {showAchievements && (
+        <ul className="achievements">
+          {list.map((a) => (
+            <li key={a.id} className={a.done ? "done" : undefined}>
+              <span className="achievement-badge" aria-hidden="true">
+                {a.done ? "★" : "☆"}
+              </span>
+              <span>
+                <strong>{t.achievement[a.id].title}</strong>
+                <span className="muted">{t.achievement[a.id].text}</span>
+                {!a.done && (
+                  <span className="achievement-progress" role="progressbar" aria-valuemin={0} aria-valuemax={a.goal} aria-valuenow={a.progress}>
+                    <span style={{ width: `${(a.progress / a.goal) * 100}%` }} />
+                  </span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }

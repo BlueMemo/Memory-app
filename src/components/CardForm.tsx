@@ -41,7 +41,7 @@ export function CardForm(props: {
 
   async function save() {
     if (!valid || saving) return;
-    const base: Card = props.card ?? { id: crypto.randomUUID(), answer: "" };
+    const base: Card = props.card ?? { id: crypto.randomUUID(), answer: "", createdAt: new Date().toISOString() };
     const card: Card = { ...base, answer: form.answer.trim() };
     if (!ordered) card.prompt = form.prompt.trim();
     for (const key of ["visualization", "note", "dueBy"] as const) {
@@ -63,6 +63,13 @@ export function CardForm(props: {
       onSubmit={(e) => {
         e.preventDefault();
         void save();
+      }}
+      onKeyDown={(e) => {
+        // Cmd+Enter (Ctrl+Enter on Windows) saves from any field, even the multi-line memory cue.
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          void save();
+        }
       }}
     >
       {props.decks.length > 1 && !props.card && (
@@ -101,8 +108,8 @@ export function CardForm(props: {
         <span className="hint">{t.dueByHint}</span>
       </div>
       <div className="controls left">
-        <button type="submit" className="btn accent" disabled={!valid || saving}>
-          {saving ? t.saving : t.save}
+        <button type="submit" className="btn accent" disabled={!valid || saving} title={t.saveShortcut}>
+          {saving ? t.saving : t.save} <kbd>⌘ ↵</kbd>
         </button>
         {props.actions}
       </div>
@@ -112,7 +119,7 @@ export function CardForm(props: {
 
 /**
  * CardForm in a dialog over a study session (E edits the current card, A adds one). Takes a deck id, not
- * the session's deck, because a session may show only one chapter and saving must keep the whole deck.
+ * the session's deck, so saving always works on the learner's current version of the whole deck.
  */
 export function CardDialog(props: { deckId: string; card?: Card; onClose: (saved: boolean) => void }) {
   const t = useI18n().t.cardForm;

@@ -74,14 +74,26 @@ export function computeStats(reviews: ReviewEntry[], cards: Record<string, Store
 export type AchievementId =
   | "firstReview"
   | "reviews100"
+  | "reviews500"
   | "reviews1000"
+  | "reviews5000"
   | "reviews10000"
+  | "cards50"
+  | "cards500"
+  | "streak3"
   | "streak7"
   | "streak30"
+  | "streak100"
+  | "mature10"
   | "mature50"
+  | "mature250"
+  | "retention90"
   | "perfectTest"
+  | "tests10"
+  | "firstDeck"
   | "deckBuilder"
-  | "nightOwl";
+  | "nightOwl"
+  | "earlyBird";
 
 export interface Achievement {
   id: AchievementId;
@@ -97,18 +109,38 @@ const isLate = (iso: string) => {
   return h >= 23 || h < 4;
 };
 
+/** Hours (local time) for "Early bird". */
+const isEarly = (iso: string) => {
+  const h = new Date(iso).getHours();
+  return h >= 5 && h < 7;
+};
+
 export function achievements(stats: StudyStats, reviews: ReviewEntry[], ownDecks: number): Achievement[] {
+  // Retention only counts once there are enough due reviews for the share to mean something.
+  const steadyRetention = stats.retention !== null && stats.retention >= 0.9 && reviews.filter((r) => r.state === State.Review).length >= 100 ? 1 : 0;
   const goals: [AchievementId, number, number][] = [
     ["firstReview", stats.totalReviews, 1],
     ["reviews100", stats.totalReviews, 100],
+    ["reviews500", stats.totalReviews, 500],
     ["reviews1000", stats.totalReviews, 1000],
+    ["reviews5000", stats.totalReviews, 5000],
     ["reviews10000", stats.totalReviews, 10000],
+    ["cards50", stats.cardsStudied, 50],
+    ["cards500", stats.cardsStudied, 500],
+    ["streak3", stats.bestStreak, 3],
     ["streak7", stats.bestStreak, 7],
     ["streak30", stats.bestStreak, 30],
+    ["streak100", stats.bestStreak, 100],
+    ["mature10", stats.matureCards, 10],
     ["mature50", stats.matureCards, 50],
+    ["mature250", stats.matureCards, 250],
+    ["retention90", steadyRetention, 1],
     ["perfectTest", stats.perfectTests, 1],
+    ["tests10", stats.testsTaken, 10],
+    ["firstDeck", ownDecks, 1],
     ["deckBuilder", ownDecks, 5],
     ["nightOwl", reviews.filter((r) => isLate(r.review)).length, 25],
+    ["earlyBird", reviews.filter((r) => isEarly(r.review)).length, 25],
   ];
   return goals.map(([id, value, goal]) => ({ id, progress: Math.min(value, goal), goal, done: value >= goal }));
 }

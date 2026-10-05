@@ -12,6 +12,9 @@ import {
   makeScheduler,
   nextDayStart,
   normalizeSettings,
+  presetForDeck,
+  DEFAULT_PRESET_ID,
+  DEFAULT_PRESET_OPTIONS,
   parseStep,
   parseSteps,
   settingsForDeck,
@@ -25,7 +28,7 @@ import {
 } from "./core";
 
 const units = { m: "m", h: "h", d: "d", mo: "mo", y: "y" };
-const scheduler = makeScheduler(DEFAULT_SETTINGS, { fuzz: false });
+const scheduler = makeScheduler(settingsForDeck(DEFAULT_SETTINGS, "d"), { fuzz: false });
 const at = (iso: string) => new Date(iso);
 const minutes = (from: Date, to: Date) => Math.round((to.getTime() - from.getTime()) / 60_000);
 
@@ -73,8 +76,11 @@ describe("answering cards (new: Again 5m, Hard 10m, Good/Easy by FSRS; relearn 1
     expect(minutes(t, new Date(lapse.card.due))).toBe(10);
   });
 
-  it("uses a deck's own waits and personal parameters", () => {
-    const settings = normalizeSettings({ deckOverrides: { d: { againStep: "2m", hardStep: "20m" } } });
+  it("uses the waits of the deck's preset and personal parameters", () => {
+    const settings = normalizeSettings({
+      presets: [{ id: "exam", name: "Exam", againStep: "2m", hardStep: "20m" }],
+      deckOverrides: { d: { presetId: "exam" } },
+    });
     const deck = makeScheduler(settingsForDeck(settings, "d"), { fuzz: false });
     const due = previewDue(deck, undefined, now);
     expect(minutes(now, due[Rating.Again])).toBe(2);
@@ -85,7 +91,7 @@ describe("answering cards (new: Again 5m, Hard 10m, Good/Easy by FSRS; relearn 1
     const base = previewDue(scheduler, undefined, now)[Rating.Good];
     const parameters = [...scheduler.parameters.w];
     parameters[2] *= 4;
-    const personal = makeScheduler({ ...DEFAULT_SETTINGS, parameters }, { fuzz: false });
+    const personal = makeScheduler({ ...settingsForDeck(DEFAULT_SETTINGS, "d"), parameters }, { fuzz: false });
     expect(previewDue(personal, undefined, now)[Rating.Good].getTime()).toBeGreaterThan(base.getTime());
   });
 });
@@ -117,12 +123,20 @@ describe("queue", () => {
     expect(pickNext(queue({ now }))).toEqual({ kind: "card", cardId: "a", queue: "new" });
   });
 
-  it("waits for learning cards that aren't due yet, and shows them early within 20 minutes", () => {
-    const later = { [cardKey("d", "a")]: stored(State.Learning, "2026-10-01T11:00:00") };
-    const soon = { [cardKey("d", "a")]: stored(State.Learning, "2026-10-01T10:15:00") };
+  it("waits for learning cards until they're due, even if nothing else is left", () => {
+    const soon = { [cardKey("d", "a")]: stored(State.Learning, "2026-10-01T10:05:00") };
+    const due = { [cardKey("d", "a")]: stored(State.Learning, "2026-10-01T09:59:00") };
     const ids = { cardIds: ["a"] };
-    expect(pickNext(queue({ now, cards: later, ...ids }))).toEqual({ kind: "wait", until: at("2026-10-01T11:00:00") });
-    expect(pickNext(queue({ now, cards: soon, ...ids }))).toEqual({ kind: "card", cardId: "a", queue: "learning" });
+    expect(pickNext(queue({ now, cards: soon, ...ids }))).toEqual({ kind: "wait", until: at("2026-10-01T10:05:00") });
+    expect(pickNext(queue({ now, cards: due, ...ids }))).toEqual({ kind: "card", cardId: "a", queue: "learning" });
+  });
+
+  it("brings a card answered Again back only after its wait", () => {
+    const again = answerCard(scheduler, "d", "a", undefined, Rating.Again, now).card;
+    const cards = { [cardKey("d", "a")]: again };
+    const next = pickNext(queue({ now, cards, cardIds: ["a"] }));
+    expect(next.kind).toBe("wait");
+    expect(pickNext(queue({ now: new Date(now.getTime() + 5 * 60_000), cards, cardIds: ["a"] })).kind).toBe("card");
   });
 
   it("ignores reviews due after today and reports done", () => {
@@ -179,18 +193,37 @@ describe("settings", () => {
   it("repairs missing or out-of-range values", () => {
     expect(normalizeSettings(null)).toEqual(DEFAULT_SETTINGS);
     const s = normalizeSettings({ desiredRetention: 2, newPerDay: -5, againStep: "nonsense", enableForNewDecks: false, parameters: [1, 2] });
-    expect(s.desiredRetention).toBe(0.99);
+    expect(s.presets[0].desiredRetention).toBe(0.99);
     expect(s.newPerDay).toBe(0);
-    expect(s.againStep).toBe(DEFAULT_SETTINGS.againStep);
+    expect(s.presets[0].againStep).toBe(DEFAULT_PRESET_OPTIONS.againStep);
     expect(s.enableForNewDecks).toBe(false);
     expect(s.parameters).toBeNull();
   });
 
-  it("keeps only real per-deck changes", () => {
-    const s = normalizeSettings({ newPerDay: 10, deckOverrides: { a: { newPerDay: 10 }, b: { newPerDay: 5, hardStep: "bad" } } });
-    expect(s.deckOverrides).toEqual({ b: { newPerDay: 5 } });
-    expect(settingsForDeck(s, "b").newPerDay).toBe(5);
-    expect(settingsForDeck(s, "a").newPerDay).toBe(10);
+  it("upgrades older settings: top-level options become the default preset, deck options a preset of their own", () => {
+    const s = normalizeSettings({ desiredRetention: 0.85, reviewsPerDay: 50, deckOverrides: { a: { newPerDay: 5 }, b: { hardStep: "15m", chapters: true } } });
+    expect(s.presets[0]).toMatchObject({ id: DEFAULT_PRESET_ID, desiredRetention: 0.85 });
+    expect(s.deckOverrides.a).toEqual({ newPerDay: 5 });
+    expect(settingsForDeck(s, "b")).toMatchObject({ hardStep: "15m", desiredRetention: 0.85 });
+    expect(settingsForDeck(s, "a").hardStep).toBe("10m");
+    expect("reviewsPerDay" in s).toBe(false);
+  });
+
+  it("falls back to the default preset when a deck's preset is gone", () => {
+    const s = normalizeSettings({ deckOverrides: { a: { presetId: "removed", newPerDay: 3 } } });
+    expect(presetForDeck(s, "a").id).toBe(DEFAULT_PRESET_ID);
+    expect(settingsForDeck(s, "a").newPerDay).toBe(3);
+  });
+
+  it("has no daily review limit", () => {
+    const cards = Object.fromEntries(
+      Array.from({ length: 300 }, (_, i) => [
+        cardKey("d", `c${i}`),
+        { due: "2026-10-01T08:00:00", stability: 5, difficulty: 5, elapsedDays: 3, scheduledDays: 3, learningSteps: 0, reps: 2, lapses: 0, state: State.Review, lastReview: null },
+      ]),
+    );
+    const cardIds = Array.from({ length: 300 }, (_, i) => `c${i}`);
+    expect(deckCounts(queue({ now: at("2026-10-01T10:00:00"), cards, cardIds })).review).toBe(300);
   });
 
   it("applies a deck's own daily limit to its queue", () => {

@@ -74,7 +74,8 @@ export async function optimizeParameters(settings: SrsSettings): Promise<Optimiz
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         cards: [...byCard.values()],
-        relearningSteps: (parseSteps(settings.relearningSteps) ?? []).length,
+        // The default preset's relearning steps (decks may differ, but the model is shared).
+        relearningSteps: (parseSteps(settings.presets[0].relearningSteps) ?? []).length,
       }),
     });
     if (response.status === 422) return { status: "not_enough", reviewCount };

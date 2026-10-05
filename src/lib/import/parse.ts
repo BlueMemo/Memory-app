@@ -204,8 +204,8 @@ export function findProblems(drafts: Draft[], kind: Kind): Problem[][] {
   });
 }
 
-export function draftToCard(d: Draft, kind: Kind, id: string): Card {
-  const card: Card = { id, answer: d.answer };
+export function draftToCard(d: Draft, kind: Kind, id: string, createdAt = new Date().toISOString()): Card {
+  const card: Card = { id, answer: d.answer, createdAt };
   if (kind === "unordered") card.prompt = d.prompt;
   if (d.visualization) card.visualization = d.visualization;
   if (d.note) card.note = d.note;
