@@ -746,6 +746,13 @@ export const en = {
     cancel: "Cancel",
     changePasswordTitle: "Password",
     studyOptions: "Study options →",
+    newEmailLabel: "New email address",
+    emailChangeHint:
+      "We'll send a confirmation link to the new address, and also to your current one. Your email only changes after you've confirmed. Open the links in this same browser.",
+    sendEmailChange: "Send confirmation",
+    emailChangeSent: "Check your inbox: we sent confirmation links to {email} (and to your current address). Your email changes once you've confirmed.",
+    errorEmailSame: "That's already your email address.",
+    errorEmailTaken: "That email address is already used by another account.",
     exportTitle: "Your data",
     exportHint:
       "Download a copy of everything stored in your account as one file: profile, decks, saved decks, review history and schedules, test results, settings and anything you've shared.",
