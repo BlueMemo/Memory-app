@@ -6,11 +6,13 @@ import { useEffect, useState } from "react";
 import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
 import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
+import { CHAPTER_SIZE } from "@/lib/chapters";
 import { useSavedDecks } from "@/lib/editableDecks";
 import { fill } from "@/lib/practice";
 import {
   DECK_OPTION_KEYS,
   DEFAULT_SETTINGS,
+  SRS_OPTION_KEYS,
   deckOptionChanges,
   parseStep,
   parseSteps,
@@ -49,8 +51,8 @@ export function SrsSettingsView({ deckId }: { deckId: string | null }) {
         {t.backToLibrary}
       </Link>
       <section className="page-intro">
-        <h1>{t.title}</h1>
-        <p>{t.lead}</p>
+        <h1>{deck ? t.deckTitle : t.title}</h1>
+        <p>{deck ? t.deckLead : t.lead}</p>
       </section>
 
       {decks.length > 0 && (
@@ -82,27 +84,28 @@ export function SrsSettingsView({ deckId }: { deckId: string | null }) {
   );
 }
 
-/** Decks the learner could give their own options: those with spaced repetition on, or already customised. */
+/** Decks the learner can set options for: everything in their library, plus official decks in use. */
 function useDecksWithSrs(enabled: Record<string, boolean>, settings: SrsSettings): Deck[] {
   const userDecks = useUserDecks();
   const savedDecks = useSavedDecks();
   const overrides = useDeckOverrides();
   const all = new Map<string, Deck>();
-  for (const d of [...userDecks, ...savedDecks, ...officialDecks.map((o) => resolveDeck(o, overrides))]) {
-    if (!all.has(d.id)) all.set(d.id, d);
+  for (const d of [...userDecks, ...savedDecks]) all.set(d.id, d);
+  for (const d of officialDecks.map((o) => resolveDeck(o, overrides))) {
+    if (!all.has(d.id) && (enabled[d.id] === true || settings.deckOverrides[d.id] !== undefined)) all.set(d.id, d);
   }
-  return [...all.values()]
-    .filter((d) => enabled[d.id] === true || settings.deckOverrides[d.id] !== undefined)
-    .sort((a, b) => a.title.localeCompare(b.title));
+  return [...all.values()].sort((a, b) => a.title.localeCompare(b.title));
 }
 
 function OptionsForm({ settings, deck, t }: { settings: SrsSettings; deck: Deck | null; t: T }) {
-  const startCustom = deck ? settings.deckOverrides[deck.id] !== undefined : true;
+  // "Own settings" is about the spaced-repetition options; chapters and exam date are always the deck's own.
+  const own = deck ? settings.deckOverrides[deck.id] : undefined;
+  const startCustom = deck ? SRS_OPTION_KEYS.some((k) => own?.[k] !== undefined) : true;
   const [custom, setCustom] = useState(startCustom);
   const [form, setForm] = useState<SrsSettings>(deck ? settingsForDeck(settings, deck.id) : settings);
   const [justSaved, setJustSaved] = useState(false);
   // A deck that follows the defaults shows them, read-only, until "own settings" is switched on.
-  const shown = deck && !custom ? settings : form;
+  const shown = deck && !custom ? { ...settings, chapters: form.chapters, examDate: form.examDate } : form;
   const editable = !deck || custom;
 
   const againOk = parseStep(form.againStep) !== null;
@@ -120,7 +123,8 @@ function OptionsForm({ settings, deck, t }: { settings: SrsSettings; deck: Deck 
       await updateSrsSettings(form);
     } else {
       const overrides = { ...settings.deckOverrides };
-      const changes = custom ? deckOptionChanges(form as DeckOptions, settings) : {};
+      // Without "own settings" only the deck-only options (chapters, exam date) are kept.
+      const changes = deckOptionChanges(custom ? form : { ...settings, chapters: form.chapters, examDate: form.examDate }, settings);
       if (Object.keys(changes).length) overrides[deck.id] = changes;
       else delete overrides[deck.id];
       await updateSrsSettings({ deckOverrides: overrides });
@@ -136,6 +140,24 @@ function OptionsForm({ settings, deck, t }: { settings: SrsSettings; deck: Deck 
         if (valid) void save();
       }}
     >
+      {deck && (
+        <fieldset className="plain-fieldset deck-only">
+          <h2>{t.deckSection}</h2>
+          <label className="check-field">
+            <input type="checkbox" checked={form.chapters} onChange={(e) => set({ chapters: e.target.checked })} />
+            <span>
+              <strong>{fill(t.chapters, { size: CHAPTER_SIZE })}</strong>
+              <span className="hint">{fill(t.chaptersHint, { size: CHAPTER_SIZE })}</span>
+            </span>
+          </label>
+          <div className="field">
+            <label htmlFor="exam-date">{t.examDate}</label>
+            <input id="exam-date" type="date" value={form.examDate ?? ""} onChange={(e) => set({ examDate: e.target.value || null })} />
+            <span className="hint">{t.examDateHint}</span>
+          </div>
+          <h2>{t.srsSection}</h2>
+        </fieldset>
+      )}
       {deck ? (
         <label className="check-field">
           <input

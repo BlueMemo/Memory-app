@@ -2,6 +2,8 @@
 
 import { chapterCount, chapterDeck, parseChapter } from "@/lib/chapters";
 import { resolveDeck, useDeckOverrides, useDeckOverridesStatus } from "@/lib/deckOverrides";
+import { settingsForDeck } from "@/lib/srs/core";
+import { useSrsData, useSrsStatus } from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
 import { useMounted } from "@/lib/useMounted";
 import { useUserDeck } from "@/lib/userDecks";
@@ -33,6 +35,8 @@ export function DeckGate({
   const userDeck = useUserDeck(deckId);
   const overrides = useDeckOverrides();
   const overridesStatus = useDeckOverridesStatus();
+  const srs = useSrsData();
+  const srsStatus = useSrsStatus();
   const mounted = useMounted();
 
   if (!mounted) return null;
@@ -40,13 +44,15 @@ export function DeckGate({
   const deck = officialDeck ? resolveDeck(officialDeck, overrides) : userDeck;
   if (!deck) return <DeckNotFound />;
 
-  // Remount practice/review when what's being practised changes: another chapter or mode, or the deck's
-  // content changing underneath (e.g. edits saved on another device).
-  const version = `${deck.id}-${deck === officialDeck ? "original" : "own"}-${deck.cards.length}`;
+  // Remount practice/review when what's being practised changes: another chapter or mode, or switching
+  // between the original and a personal version. Not when cards are added or edited mid-session (A / E).
+  const version = `${deck.id}-${deck === officialDeck ? "original" : "own"}`;
   if (mode === "view") return <DeckView deck={deck} />;
   if (mode === "review") return <ReviewSession key={version} deck={deck} />;
 
-  const n = parseChapter(deck, chapter);
+  // Chapters are a per-deck setting; wait for it before deciding what ?chapter= means.
+  if (chapter !== undefined && srsStatus === "loading") return null;
+  const n = parseChapter(deck, chapter, settingsForDeck(srs.settings, deck.id).chapters);
   if (n === null) return <PracticeSession key={`${version}-all-${startIn}`} deck={deck} startIn={startIn} />;
   const part = chapterDeck(deck, n);
   return (

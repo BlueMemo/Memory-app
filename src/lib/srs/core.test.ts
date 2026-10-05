@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   answerCard,
+  applyDeadline,
+  buryCard,
   cardKey,
+  deadlineFor,
   dayStart,
   DEFAULT_SETTINGS,
   deckCounts,
@@ -193,5 +196,46 @@ describe("settings", () => {
   it("applies a deck's own daily limit to its queue", () => {
     const settings = normalizeSettings({ deckOverrides: { d: { newPerDay: 1 } } });
     expect(deckCounts(queue({ now: at("2026-10-01T10:00:00"), settings })).new).toBe(1);
+  });
+});
+
+describe("deadlines and burying", () => {
+  const now = at("2026-10-01T10:00:00");
+
+  it("picks the earliest of a deck's exam date and a card's own date", () => {
+    expect(deadlineFor(null, undefined)).toBeNull();
+    expect(deadlineFor("2026-10-20", "2026-10-10")).toBe("2026-10-10");
+    expect(deadlineFor("2026-10-05", "bad")).toBe("2026-10-05");
+  });
+
+  it("pulls a review forward to the day before the deadline", () => {
+    const card = answerCard(scheduler, "d", "a", undefined, Rating.Easy, now).card;
+    expect(new Date(card.due).getTime()).toBeGreaterThan(at("2026-10-04T10:00:00").getTime());
+    const capped = applyDeadline(card, "2026-10-04", now);
+    expect(new Date(capped.due).getTime()).toBe(at("2026-10-03T04:00:00").getTime());
+    expect(applyDeadline(card, "2030-01-01", now)).toBe(card); // already due before a far deadline
+    expect(applyDeadline(card, "2026-10-01", now)).toBe(card); // the deadline has passed
+  });
+
+  it("previews the capped interval on the answer buttons", () => {
+    const due = previewDue(scheduler, undefined, now, "2026-10-03");
+    expect(due[Rating.Easy].getTime()).toBe(at("2026-10-02T04:00:00").getTime());
+    expect(minutes(now, due[Rating.Again])).toBe(5); // short learning steps are untouched
+  });
+
+  it("buries a new card until tomorrow, out of today's queue", () => {
+    const buried = buryCard(undefined, now);
+    expect(new Date(buried.due).getTime()).toBe(at("2026-10-02T04:00:00").getTime());
+    const cards = { [cardKey("d", "a")]: buried };
+    expect(deckCounts(queue({ now, cards })).new).toBe(2);
+    expect(deckCounts(queue({ now: at("2026-10-02T09:00:00"), cards })).new).toBe(3);
+  });
+
+  it("buries a due review card until tomorrow", () => {
+    const learned = answerCard(scheduler, "d", "a", undefined, Rating.Good, now).card;
+    const t = new Date(learned.due);
+    const buried = buryCard(learned, t);
+    expect(buried.state).toBe(State.Review);
+    expect(new Date(buried.due).getTime()).toBeGreaterThan(t.getTime());
   });
 });

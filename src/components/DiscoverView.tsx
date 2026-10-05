@@ -126,7 +126,7 @@ function PublishedTile({ published }: { published: PublishedDeck }) {
         <Link href={href}>{deck.title}</Link>
       </h3>
       <p className="muted published-author">{fill(dict.discover.byAuthor, { author: published.author ?? dict.sharedDeck.unknownAuthor })}</p>
-      <p>{deck.description}</p>
+      {deck.description && <p>{deck.description}</p>}
       <div className="tile-footer">
         <span className="muted">{fill(dict.decks.cardCount, { n: deck.cards.length })}</span>
       </div>

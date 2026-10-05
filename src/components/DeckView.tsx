@@ -7,6 +7,8 @@ import { removeDeckOverride, useDeckOverrides } from "@/lib/deckOverrides";
 import { isSharedDeck } from "@/lib/editableDecks";
 import { useSavedDeckIds } from "@/lib/library";
 import { fill } from "@/lib/practice";
+import { settingsForDeck } from "@/lib/srs/core";
+import { useSrsData } from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
 import { SaveDeckButton } from "./SaveDeckButton";
 import { SharePanel } from "./SharePanel";
@@ -15,7 +17,8 @@ import { SrsDeckPanel } from "./SrsDeckPanel";
 export function DeckView({ deck }: { deck: Deck }) {
   const { lang, t } = useI18n();
   const ordered = deck.kind === "ordered";
-  const chapters = hasChapters(deck);
+  const srs = useSrsData();
+  const chapters = hasChapters(deck, settingsForDeck(srs.settings, deck.id).chapters);
   const shared = isSharedDeck(deck.id);
   const saved = useSavedDeckIds().includes(deck.id);
   const overrides = useDeckOverrides();
@@ -46,7 +49,7 @@ export function DeckView({ deck }: { deck: Deck }) {
         )}
       </div>
       <h1 className="deck-title">{deck.title}</h1>
-      <p className="deck-description">{deck.description}</p>
+      {deck.description && <p className="deck-description">{deck.description}</p>}
 
       <div className="deck-actions">
         {chapters ? (
@@ -78,7 +81,13 @@ export function DeckView({ deck }: { deck: Deck }) {
             {t.deck.editDeck}
           </Link>
         )}
+        <Link href={`/library/settings?deck=${encodeURIComponent(deck.id)}`} className="btn nav">
+          {t.deck.deckSettings}
+        </Link>
       </div>
+      {!chapters && deck.cards.length > CHAPTER_SIZE && (
+        <p className="fine-print">{fill(t.deck.chaptersOffHint, { n: deck.cards.length, size: CHAPTER_SIZE })}</p>
+      )}
       {edited && (
         <p className="fine-print">
           {t.deck.editedHint}{" "}

@@ -14,9 +14,13 @@ import { useUser } from "@/lib/supabase/useUser";
 import { useUserDecks } from "@/lib/userDecks";
 import type { Deck } from "@/lib/types";
 import type { ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { CreateDeckTile } from "./CreateDeckTile";
 import { DeckTile } from "./DeckTile";
 import { DeleteDeckButton } from "./DeleteDeckButton";
+import { GearIcon } from "./GearIcon";
+import { isTyping } from "./PracticeSession";
 import { ImportGuestDataPrompt } from "./ImportGuestDataPrompt";
 import { SrsCounts } from "./ReviewSession";
 import { SaveDeckButton } from "./SaveDeckButton";
@@ -50,11 +54,17 @@ export function LibraryView() {
             { key: "saved", title: t.savedDecks, decks: sorted(savedDecks), withCreate: false },
           ];
 
+  const settingsLink = (deck: Deck) => (
+    <Link href={`/library/settings?deck=${encodeURIComponent(deck.id)}`} className="save-btn" title={t.deckSettings} aria-label={`${t.deckSettings}: ${deck.title}`}>
+      <GearIcon />
+    </Link>
+  );
   const ownActions = (deck: Deck) => (
     <div className="tile-actions">
       <Link href={`/library/edit/${deck.id}`} className="save-btn">
         {t.editDeck}
       </Link>
+      {settingsLink(deck)}
       <DeleteDeckButton deckId={deck.id} />
     </div>
   );
@@ -63,9 +73,23 @@ export function LibraryView() {
       <Link href={`/library/edit/${deck.id}`} className="save-btn">
         {t.editDeck}
       </Link>
+      {settingsLink(deck)}
       <SaveDeckButton deckId={deck.id} />
     </div>
   );
+
+  // A adds a card, B opens the card browser (not while typing, and not with modifier keys).
+  const router = useRouter();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e)) return;
+      const key = e.key.toLowerCase();
+      if (key === "a") router.push("/library/add");
+      else if (key === "b") router.push("/library/cards");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [router]);
 
   return (
     <main className="page">
@@ -80,11 +104,18 @@ export function LibraryView() {
 
       <div className="library-toolbar">
         <ViewSwitch view={prefs.libraryView} />
-        {userDecks.length + savedDecks.length > 0 && (
-          <Link href="/library/cards" className="tile-open">
-            {t.browseCards}
-          </Link>
-        )}
+        <div className="library-quick">
+          {userDecks.length + savedDecks.length > 0 && (
+            <>
+              <Link href="/library/add" className="btn accent">
+                {t.addCard} <kbd>A</kbd>
+              </Link>
+              <Link href="/library/cards" className="btn nav">
+                {t.browseCards} <kbd>B</kbd>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {sections.map((section) => (

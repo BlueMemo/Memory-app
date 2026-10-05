@@ -20,6 +20,8 @@ export interface Card {
   /** A free-form note from the deck author. */
   note?: string;
   illustration?: { name: IllustrationName; side?: "left" | "right" };
+  /** "YYYY-MM-DD": spaced repetition makes sure the card comes up again before this day (e.g. a test). */
+  dueBy?: string;
   /** Learner-supplied images (data URLs), shown alongside the matching text during practice. */
   promptImage?: string;
   answerImage?: string;

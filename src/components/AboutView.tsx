@@ -3,6 +3,8 @@
 import { useI18n } from "@/i18n";
 import { renderBold } from "@/lib/rich-text";
 
+export const CONTACT_EMAIL = "memoblue.team@gmail.com";
+
 export function AboutView() {
   const t = useI18n().t.about;
   return (
@@ -22,6 +24,13 @@ export function AboutView() {
       <section className="about-section">
         <h2>{t.teamTitle}</h2>
         <p className="placeholder">{t.teamPlaceholder}</p>
+      </section>
+
+      <section className="about-section" id="contact">
+        <h2>{t.contactTitle}</h2>
+        <p>
+          {t.contactBody} <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </p>
       </section>
     </main>
   );

@@ -25,6 +25,14 @@ export function useEditableDecks(): Deck[] {
   return [...own, ...saved];
 }
 
+/** Any deck by id, whole (never a chapter), as the learner sees it: their own, or an official one with their edits. */
+export function useAnyDeck(id: string): Deck | undefined {
+  const own = useUserDecks();
+  const overrides = useDeckOverrides();
+  const official = getDeck(id);
+  return own.find((d) => d.id === id) ?? (official ? resolveDeck(official, overrides) : undefined);
+}
+
 /** True for decks that belong to everyone (official), where edits become the learner's personal version. */
 export function isSharedDeck(deckId: string): boolean {
   return getDeck(deckId) !== undefined;

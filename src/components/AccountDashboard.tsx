@@ -15,13 +15,14 @@ import {
   recentActivity,
   type HeatLevel,
 } from "@/lib/activity";
-import { useAccountActivity, type AccountActivity } from "@/lib/accountActivity";
+import { useAccountActivity, useStudyHistory, type AccountActivity } from "@/lib/accountActivity";
 import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
 import { useEditableDecks } from "@/lib/editableDecks";
 import { readAvatarFile } from "@/lib/images";
 import { fill } from "@/lib/practice";
 import { deckCounts } from "@/lib/srs/core";
 import { isDeckEnabled, useSrsData, useSrsStatus } from "@/lib/srs/store";
+import { achievements, computeStats, MATURE_DAYS } from "@/lib/studyStats";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { checkUsername, claimUsername, isValidUsername, saveAvatar, setUsername as changeUsername } from "@/lib/supabase/profiles";
 import { notifyProfileChanged } from "@/lib/supabase/useUser";
@@ -57,6 +58,8 @@ export function AccountDashboard({ userId, email, createdAt, username, avatarUrl
 
       <h2 className="section-title">{t.activityTitle}</h2>
       <Activity t={t} activity={activity} lang={lang} />
+
+      <StudyStatistics t={t} userId={userId} activity={activity} lang={lang} />
 
       <h2 className="section-title">{t.recentTitle}</h2>
       <Recent t={t} activity={activity} lang={lang} />
@@ -220,6 +223,69 @@ function Stats({ t, activity }: { t: T; activity: AccountActivity }) {
       <Stat value={due} label={t.statDue} />
       <Stat value={activity.status === "loading" ? "–" : activity.testCount} label={t.statTests} />
     </div>
+  );
+}
+
+/** All-time statistics and achievements, from the whole review history (not just the activity window). */
+function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; activity: AccountActivity; lang: string }) {
+  const history = useStudyHistory(userId);
+  const srs = useSrsData();
+  const own = useUserDecks();
+  const now = useNow();
+  const stats = useMemo(
+    () => computeStats(history.reviews, srs.cards, activity.tests, activity.testCount, now),
+    [history.reviews, srs.cards, activity.tests, activity.testCount, now],
+  );
+  if (history.status === "loading") return null;
+  const percent = (v: number | null) => (v === null ? "–" : `${Math.round(v * 100)} %`);
+  const number = (n: number) => n.toLocaleString(lang === "sv" ? "sv-SE" : "en-GB");
+  const list = achievements(stats, history.reviews, own.length);
+  const done = list.filter((a) => a.done).length;
+
+  return (
+    <>
+      <h2 className="section-title">{t.statsTitle}</h2>
+      {stats.totalReviews === 0 && stats.testsTaken === 0 ? (
+        <p className="empty-state">{t.statsEmpty}</p>
+      ) : (
+        <>
+          <div className="stat-grid">
+            <Stat value={number(stats.totalReviews)} label={t.statsReviews} />
+            <Stat value={number(stats.cardsStudied)} label={t.statsCardsStudied} />
+            <Stat value={percent(stats.retention)} label={t.statsRetention} />
+            <Stat value={number(stats.reviews30)} label={t.statsReviews30} />
+            <Stat value={number(stats.matureCards)} label={t.statsMature} />
+            <Stat value={percent(stats.averageTest)} label={t.statsAverageTest} />
+            <Stat value={number(stats.activeDays)} label={t.statsActiveDays} />
+          </div>
+          <p className="fine-print">
+            {fill(t.statsRetentionHint, { recent: percent(stats.retention30) })} {fill(t.statsMatureHint, { days: MATURE_DAYS })}
+          </p>
+        </>
+      )}
+
+      <h2 className="section-title">
+        {t.achievementsTitle} · {fill(t.achievementsCount, { done, total: list.length })}
+      </h2>
+      <ul className="achievements">
+        {list.map((a) => (
+          <li key={a.id} className={a.done ? "done" : undefined}>
+            <span className="achievement-badge" aria-hidden="true">
+              {a.done ? "★" : "☆"}
+            </span>
+            <span>
+              <strong>{t.achievement[a.id].title}</strong>
+              <span className="muted">{t.achievement[a.id].text}</span>
+              {!a.done && (
+                <span className="achievement-progress" role="progressbar" aria-valuemin={0} aria-valuemax={a.goal} aria-valuenow={a.progress}>
+                  <span style={{ width: `${(a.progress / a.goal) * 100}%` }} />
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

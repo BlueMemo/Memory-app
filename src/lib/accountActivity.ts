@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { ACTIVITY_WINDOW_DAYS, type TestResult } from "./activity";
 import { getSupabaseBrowserClient } from "./supabase/client";
+import type { ReviewEntry } from "./studyStats";
 
 export interface AccountActivity {
   /** "error" means at least one query failed (e.g. a table the SQL file adds hasn't been created yet). */
@@ -85,4 +86,39 @@ export function useAccountActivity(userId: string): AccountActivity {
   }, [userId]);
 
   return activity;
+}
+
+/** The learner's whole review history (up to MAX_ROWS answers), for the statistics and achievements. */
+export function useStudyHistory(userId: string): { status: "loading" | "ready" | "error"; reviews: ReviewEntry[] } {
+  const [history, setHistory] = useState<{ status: "loading" | "ready" | "error"; reviews: ReviewEntry[] }>({ status: "loading", reviews: [] });
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    let cancelled = false;
+    (async () => {
+      const reviews: ReviewEntry[] = [];
+      for (let from = 0; from < MAX_ROWS; from += PAGE) {
+        const { data, error } = await supabase
+          .from("srs_review_logs")
+          .select("deck_id, card_id, rating, state, review")
+          .eq("user_id", userId)
+          .order("review", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) return { status: "error" as const, reviews };
+        reviews.push(
+          ...data.map((r) => ({ deckId: r.deck_id as string, cardId: r.card_id as string, rating: r.rating as number, state: r.state as number, review: r.review as string })),
+        );
+        if (data.length < PAGE) break;
+      }
+      return { status: "ready" as const, reviews };
+    })().then((result) => {
+      if (!cancelled) setHistory(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  return history;
 }

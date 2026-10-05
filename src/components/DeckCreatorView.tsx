@@ -65,7 +65,7 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
   const srsOn = srsChoice ?? srsSaved;
   const savedIds = useSavedDeckIds();
 
-  const detailsValid = title.trim() !== "" && description.trim() !== "";
+  const detailsValid = title.trim() !== "";
 
   const finalize = async () => {
     const defaultInstructions =

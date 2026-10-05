@@ -71,6 +71,10 @@ export interface DeckOptions {
   relearningSteps: string;
   /** Longest interval in days. */
   maximumInterval: number;
+  /** Learn the deck in chapters of CHAPTER_SIZE cards (lib/chapters.ts). Off unless switched on. */
+  chapters: boolean;
+  /** "YYYY-MM-DD": reviews are pulled forward so every card is due again before this day (e.g. a test). */
+  examDate: string | null;
 }
 
 /** All spaced-repetition settings: defaults for every deck, per-deck changes, and the personal FSRS model. */
@@ -97,6 +101,8 @@ export const DEFAULT_SETTINGS: SrsSettings = {
   hardStep: "10m",
   relearningSteps: default_relearning_steps.join(" "),
   maximumInterval: 36500,
+  chapters: false,
+  examDate: null,
   deckOverrides: {},
   parameters: null,
   optimizedAt: null,
@@ -104,7 +110,8 @@ export const DEFAULT_SETTINGS: SrsSettings = {
   autoOptimize: true,
 };
 
-export const DECK_OPTION_KEYS = [
+/** The spaced-repetition options a deck can either take from the defaults or set itself. */
+export const SRS_OPTION_KEYS = [
   "desiredRetention",
   "newPerDay",
   "reviewsPerDay",
@@ -113,6 +120,11 @@ export const DECK_OPTION_KEYS = [
   "relearningSteps",
   "maximumInterval",
 ] as const satisfies readonly (keyof DeckOptions)[];
+
+/** Options that only make sense for one deck (never set for all decks at once). */
+export const DECK_ONLY_KEYS = ["chapters", "examDate"] as const satisfies readonly (keyof DeckOptions)[];
+
+export const DECK_OPTION_KEYS = [...SRS_OPTION_KEYS, ...DECK_ONLY_KEYS] as const;
 
 export const SETTINGS_LIMITS = {
   desiredRetention: { min: 0.7, max: 0.99 },
@@ -143,8 +155,12 @@ function normalizeDeckOptions(raw: unknown, fallback: DeckOptions): DeckOptions 
     hardStep: step(s.hardStep, fallback.hardStep),
     relearningSteps: steps(s.relearningSteps, fallback.relearningSteps),
     maximumInterval: Math.round(num(s.maximumInterval, "maximumInterval")),
+    chapters: typeof s.chapters === "boolean" ? s.chapters : fallback.chapters,
+    examDate: s.examDate === null ? null : isDateString(s.examDate) ? s.examDate : fallback.examDate,
   };
 }
+
+const isDateString = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
 
 /** Keeps only the deck options that differ from the defaults. */
 export function deckOptionChanges(options: DeckOptions, defaults: DeckOptions): Partial<DeckOptions> {
@@ -161,7 +177,7 @@ const isParameters = (v: unknown): v is number[] =>
 /** Fills in missing or out-of-range values, e.g. from older saved settings. */
 export function normalizeSettings(raw: unknown): SrsSettings {
   const s = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof SrsSettings, unknown>>;
-  const defaults = normalizeDeckOptions(s, DEFAULT_SETTINGS);
+  const defaults = { ...normalizeDeckOptions(s, DEFAULT_SETTINGS), chapters: false, examDate: null };
   const overrides: Record<string, Partial<DeckOptions>> = {};
   if (s.deckOverrides && typeof s.deckOverrides === "object") {
     for (const [deckId, own] of Object.entries(s.deckOverrides as Record<string, unknown>)) {
@@ -284,6 +300,25 @@ export function toReviewRecord(deckId: string, cardId: string, log: ReviewLog): 
   };
 }
 
+/** The earliest of a deck's exam date and a card's own "due by" date, or null if neither is set. */
+export function deadlineFor(examDate: string | null, cardDueBy: string | undefined): string | null {
+  const dates = [examDate, cardDueBy].filter((d): d is string => isDateString(d));
+  return dates.length ? dates.sort()[0] : null;
+}
+
+/**
+ * Pulls a review forward so it comes due before a deadline ("YYYY-MM-DD", e.g. a test): at the latest the
+ * day before, at the usual day rollover. Has no effect once that day has arrived, or on short learning steps.
+ */
+export function applyDeadline(card: StoredCard, deadline: string | null, now: Date): StoredCard {
+  if (!deadline) return card;
+  const [y, m, d] = deadline.split("-").map(Number);
+  const latest = new Date(y, m - 1, d - 1, DAY_ROLLOVER_HOUR);
+  if (latest.getTime() <= now.getTime() || new Date(card.due).getTime() <= latest.getTime()) return card;
+  const days = Math.max(0, Math.round((latest.getTime() - dayStart(now).getTime()) / 86_400_000));
+  return { ...card, due: latest.toISOString(), scheduledDays: days };
+}
+
 /** Answers a card: returns its new scheduling state and the review log entry. */
 export function answerCard(
   scheduler: FSRS,
@@ -292,20 +327,28 @@ export function answerCard(
   stored: StoredCard | undefined,
   grade: Grade,
   now: Date,
+  deadline: string | null = null,
 ): { card: StoredCard; record: ReviewRecord } {
   const { card, log } = scheduler.next(toFsrsCard(stored, now), now, grade);
-  return { card: fromFsrsCard(card), record: toReviewRecord(deckId, cardId, log) };
+  return { card: applyDeadline(fromFsrsCard(card), deadline, now), record: toReviewRecord(deckId, cardId, log) };
 }
 
 /** When each answer button would schedule the card next, for the labels above the buttons. */
-export function previewDue(scheduler: FSRS, stored: StoredCard | undefined, now: Date): Record<Grade, Date> {
+export function previewDue(scheduler: FSRS, stored: StoredCard | undefined, now: Date, deadline: string | null = null): Record<Grade, Date> {
   const preview = scheduler.repeat(toFsrsCard(stored, now), now);
+  const due = (g: Grade) => new Date(applyDeadline(fromFsrsCard(preview[g].card), deadline, now).due);
   return {
-    [Rating.Again]: preview[Rating.Again].card.due,
-    [Rating.Hard]: preview[Rating.Hard].card.due,
-    [Rating.Good]: preview[Rating.Good].card.due,
-    [Rating.Easy]: preview[Rating.Easy].card.due,
+    [Rating.Again]: due(Rating.Again),
+    [Rating.Hard]: due(Rating.Hard),
+    [Rating.Good]: due(Rating.Good),
+    [Rating.Easy]: due(Rating.Easy),
   } as Record<Grade, Date>;
+}
+
+/** Like Anki's "Bury": the card waits until tomorrow (the next day rollover) without being answered. */
+export function buryCard(stored: StoredCard | undefined, now: Date): StoredCard {
+  const base = stored ?? fromFsrsCard(createEmptyCard(now));
+  return { ...base, due: nextDayStart(now).toISOString() };
 }
 
 export function dayStart(now: Date, rolloverHour = DAY_ROLLOVER_HOUR): Date {
@@ -366,7 +409,8 @@ function classify(input: QueueInput) {
   for (const id of input.cardIds) {
     const s = input.cards[cardKey(input.deckId, id)];
     if (!s || s.state === State.New) {
-      fresh.push(id);
+      // A new card with a due date is a buried one, waiting until that day.
+      if (!s || new Date(s.due).getTime() < endOfDay) fresh.push(id);
       continue;
     }
     const due = new Date(s.due).getTime();

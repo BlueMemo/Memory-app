@@ -63,7 +63,7 @@ export function SharedDeckView({ id }: { id: string }) {
       </div>
       <h1 className="deck-title">{deck.title}</h1>
       <p className="muted published-author">{fill(t.by, { author: published.author ?? t.unknownAuthor })}</p>
-      <p className="deck-description">{deck.description}</p>
+      {deck.description && <p className="deck-description">{deck.description}</p>}
 
       {state.newerId && (
         <p className="fine-print">

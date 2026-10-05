@@ -14,6 +14,43 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Study tools, quick add, stats round (2026-10-05, second round)**:
+  - **Shortcuts while studying** (practice revision/test and spaced-repetition review): **U** undo,
+    **−** bury until tomorrow (review only — practice has no schedule), **A** add a card, **E** edit the
+    current card, **Tab** hint (the card's *memory cue*; in tests the association object; for ordered
+    revision only the first letter, since the cue *is* what's asked). Visible buttons too (`StudyTools`,
+    `memoryHint` in `PracticeSession.tsx`). Practice undo = the reducer's `restore` with a history of
+    earlier states; review undo/bury = `SrsChange` from `reviewCard`/`buryCard`, reverted by
+    `undoSrsChange` (`lib/srs/store.ts`), whose DB writes go through one queue (`enqueue`) so an undo's
+    delete never overtakes the insert. Burying a new card stores it as state New with a future due date,
+    which `classify` treats as "not today". Add/Edit open `CardDialog` (`components/CardForm.tsx`), which
+    always saves the **whole** deck (`useAnyDeck`), never a chapter slice. DeckGate no longer remounts a
+    session when the card count changes, so adding a card mid-session keeps your progress.
+  - **Quick add** (`/library/add`, `QuickAddView.tsx`; **A** in the Library, **B** opens the card
+    browser): choose the deck, save, and a fresh empty card appears until you press Done. Remembers the
+    last deck (`localStorage` `quickAdd.deck`).
+  - **Due dates**: a card can have its own "learn by" date (`Card.dueBy`) and a deck an **exam date**
+    (per-deck setting `examDate`); `applyDeadline` pulls any review that would land later forward to the
+    day before the earliest of the two (`deadlineFor`), also in the answer-button previews.
+  - **Chapters are opt-in** now: per-deck setting `chapters` (default off), `hasChapters(deck, enabled)`;
+    the deck page hints at it for decks over 10 cards.
+  - **Per-deck settings** (`/library/settings?deck=<id>`, titled "Deck settings"): chapters + exam date
+    (always the deck's own) and the spaced-repetition options (follow defaults, or "own settings"). Reached
+    from a gear on every deck in the Library and a "Deck settings" button on the deck page. All of it lives
+    in `settings.deckOverrides` (`lib/srs/core.ts`, keys `SRS_OPTION_KEYS` + `DECK_ONLY_KEYS`) — no schema
+    change. The list offers every library deck, not only ones with spaced repetition on.
+  - **Statistics + achievements** on the account page (`StudyStatistics` in `AccountDashboard.tsx`, pure
+    logic in `lib/studyStats.ts`, all-time history via `useStudyHistory`): reviews, different cards,
+    retention (share of *due* reviews not answered Again, all time and last 30 days), cards in long-term
+    memory (interval ≥ 21 days), average test score, days studied; ten achievements with progress bars.
+    Accounts only (that's where the history is).
+  - Smaller: deck description is optional; the About page has a "Contact us" section with
+    memoblue.team@gmail.com (`CONTACT_EMAIL` in `AboutView.tsx`); "memory queue" was a mistranslation
+    and now reads "memory cue" / "minnesbild" everywhere visible; link-styled buttons are no longer
+    underlined; the header gear is a drawn icon (`GearIcon.tsx`) since ⚙ is missing from some fonts.
+  - Reported bug "a button covers text" in the FSRS optimisation section: couldn't be reproduced (no
+    overlap found at desktop or phone width); spacing there was tightened up. Ask for a screenshot if
+    it's still seen.
 - **Ten-point change round (2026-10-05)** — asked for by the team, decided via a questionnaire (unanswered
   questions got the recommended default, listed here):
   1. **Big reveal cards**: revision rounds, the test and spaced-repetition reviews now use one large card

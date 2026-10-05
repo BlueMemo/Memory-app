@@ -487,6 +487,12 @@ h2:not(.section-title) {
   text-align: center;
 }
 
+/* Links styled as buttons (e.g. "Start", "Edit deck") look like buttons, not underlined text. */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
 .btn.accent {
   background: var(--accent);
   color: var(--brand-on-blue);
@@ -2700,6 +2706,15 @@ ul.overview-list {
   border-top: 1px solid var(--line);
 }
 
+.optimizer .controls {
+  margin: 16px 0;
+  align-items: center;
+}
+
+.optimizer .check-field {
+  margin-top: 20px;
+}
+
 .field select {
   font: inherit;
   padding: 10px 12px;
@@ -2849,4 +2864,222 @@ ul.overview-list {
   margin: 0;
   padding-left: 1.4em;
   line-height: 1.8;
+}
+
+/* ---------- Study tools: hint, undo / bury / add / edit, card dialog ---------- */
+
+kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 0.75em;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--muted);
+  background: var(--bg);
+}
+
+.reveal-hint {
+  margin: 16px 0 0;
+  padding: 10px 16px;
+  max-width: 560px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.45;
+  animation: rise 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reveal-actions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.reveal-actions .reveal-button {
+  margin-top: 0;
+}
+
+.reveal-hint-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.reveal-hint-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.study-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin-top: 14px;
+}
+
+.study-tools .link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.study-tools .link-button:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.study-tools .link-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6vh 16px 16px;
+  background: rgba(0, 0, 0, 0.55);
+  overflow-y: auto;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 560px;
+  align-items: stretch;
+  text-align: left;
+  padding: 24px;
+}
+
+.dialog h2 {
+  margin: 0 0 2px;
+  font-size: 1.4rem;
+}
+
+.card-form {
+  margin-top: 16px;
+}
+
+.card-form textarea {
+  min-height: 80px;
+}
+
+.library-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.library-quick .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 14px;
+  text-decoration: none;
+}
+
+.library-quick .btn.nav kbd {
+  background: transparent;
+}
+
+.btn.accent kbd {
+  color: var(--brand-on-blue);
+  border-color: rgba(0, 0, 0, 0.25);
+  background: transparent;
+}
+
+.tile-actions a.save-btn:has(svg) {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---------- Account statistics and achievements ---------- */
+
+.achievements {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.achievements li {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  opacity: 0.7;
+}
+
+.achievements li.done {
+  opacity: 1;
+  border-color: var(--accent);
+}
+
+.achievements li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.achievements .muted {
+  font-size: 0.9rem;
+}
+
+.achievement-badge {
+  font-size: 1.4rem;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.achievements li.done .achievement-badge {
+  color: #f5c84c;
+}
+
+.achievement-progress {
+  display: block;
+  height: 5px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.achievement-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.card-form a.btn {
+  display: inline-block;
+  text-decoration: none;
 }

@@ -21,12 +21,34 @@ import {
 import { recordPracticeResult } from "@/lib/practiceResults";
 import { renderBold, renderCapsHighlight } from "@/lib/rich-text";
 import type { Card, Deck } from "@/lib/types";
+import { CardDialog } from "./CardForm";
 import { ThoughtBubble } from "./Illustration";
 
 /** How long learners get to invent their own object before a suggestion is offered. */
 const SUGGESTION_DELAY_MS = 20_000;
 
 type T = Dict["practice"];
+type StudyT = Dict["study"];
+
+/**
+ * The memory cue offered as a hint before the answer (Tab): in tests, the association that leads to the
+ * answer; in revision, the scene. When the cue would give away what's being asked (an ordered route's
+ * object), or there is none, it's the answer's first letter instead.
+ */
+export function memoryHint(deck: Deck, card: Card, test: boolean, t: StudyT): ReactNode {
+  const firstLetter = (word: string) => fill(t.firstLetter, { letter: word.trim().charAt(0).toUpperCase() });
+  if (test) {
+    if (card.object) return card.object;
+    if (card.visualization) return renderCapsHighlight(card.visualization);
+    return card.suggestion ?? firstLetter(card.answer);
+  }
+  if (deck.kind === "ordered") return firstLetter(card.object ?? card.suggestion ?? card.answer);
+  return card.visualization ? renderCapsHighlight(card.visualization) : firstLetter(card.answer);
+}
+
+/** Keys typed into a form field (e.g. the card dialog) must not trigger study shortcuts. */
+export const isTyping = (e: KeyboardEvent) =>
+  e.target instanceof HTMLElement && (e.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName));
 
 export type StartIn = "beginning" | "review" | "test";
 
@@ -45,7 +67,8 @@ export function PracticeSession({
   positionOffset?: number;
   chapter?: { number: number; count: number };
 }) {
-  const t = useI18n().t.practice;
+  const { t: dict } = useI18n();
+  const t = dict.practice;
   const steps = useMemo(() => buildSteps(deck), [deck]);
   const [state, dispatch] = useReducer(practiceReducer, { deck, stepCount: steps.length, startIn }, (arg) =>
     arg.startIn === "review"
@@ -56,6 +79,25 @@ export function PracticeSession({
   );
   const [showInstructions, setShowInstructions] = useState(false);
   const recordedRound = useRef<number | null>(null);
+  // Earlier states, so U can undo grades; the open card dialog; and which card's hint is showing.
+  const [history, setHistory] = useState<SessionState[]>([]);
+  const [dialog, setDialog] = useState<"add" | "edit" | null>(null);
+  const cardKey = `${state.round}-${state.pos}`;
+  const [hintFor, setHintFor] = useState<string | null>(null);
+  const studying = state.phase === "revision" || state.phase === "test";
+
+  const grade = (g: "again" | "known") => {
+    if (!state.flipped) return;
+    setHistory((h) => [...h, state]);
+    dispatch({ type: "grade", grade: g });
+  };
+  const undo = () => {
+    const previous = history.at(-1);
+    if (!previous) return;
+    setHistory((h) => h.slice(0, -1));
+    setHintFor(null);
+    dispatch({ type: "restore", state: previous });
+  };
 
   useEffect(() => {
     if (state.phase === "results" && recordedRound.current !== state.round) {
@@ -74,7 +116,7 @@ export function PracticeSession({
   const next = () => (state.step < steps.length - 1 ? dispatch({ type: "next" }) : startRevision(allIds));
 
   const onKey = useEffectEvent((e: KeyboardEvent) => {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || dialog || isTyping(e)) return;
     const go = e.key === " " || e.key === "Enter";
     // Handle the keys ourselves so a focused button isn't activated a second time.
     const handle = (fn: () => void) => {
@@ -84,6 +126,13 @@ export function PracticeSession({
     if (showInstructions) {
       if (go) handle(() => setShowInstructions(false));
       return;
+    }
+    if (e.key.toLowerCase() === "u" && history.length) return handle(undo);
+    if (studying) {
+      const key = e.key.toLowerCase();
+      if (key === "a") return handle(() => setDialog("add"));
+      if (key === "e") return handle(() => setDialog("edit"));
+      if (e.key === "Tab" && !e.shiftKey && !state.flipped) return handle(() => setHintFor(cardKey));
     }
     switch (state.phase) {
       case "intro":
@@ -99,8 +148,8 @@ export function PracticeSession({
       case "revision":
       case "test":
         if (e.key === " ") handle(() => dispatch({ type: "flip" }));
-        else if (e.key === "1") handle(() => dispatch({ type: "grade", grade: "again" }));
-        else if (e.key === "2") handle(() => dispatch({ type: "grade", grade: "known" }));
+        else if (e.key === "1") handle(() => grade("again"));
+        else if (e.key === "2") handle(() => grade("known"));
         break;
     }
   });
@@ -190,27 +239,38 @@ export function PracticeSession({
           </>
         )}
 
-        {(state.phase === "revision" || state.phase === "test") && (
+        {studying && deck.cards.some((c) => c.id === state.queue[state.pos]) && (
           <>
             <FlipCard
-              key={`${state.round}-${state.pos}`}
+              key={cardKey}
               deck={deck}
               card={cardById(state.queue[state.pos])}
               position={positionOf(state.queue[state.pos])}
               test={state.phase === "test"}
               flipped={state.flipped}
               onFlip={() => dispatch({ type: "flip" })}
+              showHint={hintFor === cardKey}
+              onHint={() => setHintFor(cardKey)}
               t={t}
             />
             <div className="controls">
-              <button className="btn again" disabled={!state.flipped} onClick={() => dispatch({ type: "grade", grade: "again" })}>
+              <button className="btn again" disabled={!state.flipped} onClick={() => grade("again")}>
                 {state.phase === "test" ? t.missedIt : t.again}
               </button>
-              <button className="btn good" disabled={!state.flipped} onClick={() => dispatch({ type: "grade", grade: "known" })}>
+              <button className="btn good" disabled={!state.flipped} onClick={() => grade("known")}>
                 {state.phase === "test" ? t.knewIt : t.gotIt}
               </button>
             </div>
+            <StudyTools t={dict.study} canUndo={history.length > 0} onUndo={undo} onAdd={() => setDialog("add")} onEdit={() => setDialog("edit")} />
             <p className="keys">{state.phase === "test" ? t.testKeys : t.revisionKeys}</p>
+            <p className="keys">{dict.study.keysPractice}</p>
+            {dialog && (
+              <CardDialog
+                deckId={deck.id}
+                card={dialog === "edit" ? cardById(state.queue[state.pos]) : undefined}
+                onClose={() => setDialog(null)}
+              />
+            )}
           </>
         )}
 
@@ -421,7 +481,7 @@ function CardImage({ src }: { src?: string }) {
   return <img src={src} alt="" className="card-image" />;
 }
 
-/** For ordered decks: the object placed at a stop, or the memory queue sentence when there's no short object word. */
+/** For ordered decks: the object placed at a stop, or the memory cue sentence when there's no short object word. */
 function ordinalAssociation(card: Card): ReactNode {
   if (card.object) return card.object;
   if (card.visualization) return renderCapsHighlight(card.visualization);
@@ -476,9 +536,13 @@ export function FlipCard(props: {
   test: boolean;
   flipped: boolean;
   onFlip: () => void;
+  /** Whether the memory-cue hint (Tab) is showing, and how to show it. */
+  showHint?: boolean;
+  onHint?: () => void;
   t: T;
 }) {
   const { deck, card, position: n, test, flipped, onFlip, t } = props;
+  const study = useI18n().t.study;
   const ordered = deck.kind === "ordered";
 
   const frontTitle = ordered ? (test ? fill(t.number, { n }) : fill(t.stop, { n })) : card.prompt;
@@ -535,6 +599,7 @@ export function FlipCard(props: {
         <p className="big">{frontTitle}</p>
         {!ordered && <CardImage src={card.promptImage} />}
         <p className="cue">{frontCue}</p>
+        {!flipped && props.showHint && <p className="reveal-hint">{memoryHint(deck, card, test, study)}</p>}
       </div>
       {flipped ? (
         <div className="reveal-answer" aria-live="polite">
@@ -545,10 +610,47 @@ export function FlipCard(props: {
           {card.note && <CardNote note={card.note} t={t} />}
         </div>
       ) : (
-        <span className="reveal-button" aria-hidden="true">
-          {t.clickToFlip}
-        </span>
+        <div className="reveal-actions">
+          {props.onHint && !props.showHint && (
+            <button
+              type="button"
+              className="reveal-hint-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                props.onHint!();
+              }}
+            >
+              {study.hint} <kbd>Tab</kbd>
+            </button>
+          )}
+          <span className="reveal-button" aria-hidden="true">
+            {t.clickToFlip}
+          </span>
+        </div>
       )}
+    </div>
+  );
+}
+
+/** Undo / bury / add / edit, under the answer buttons in practice and in spaced-repetition review. */
+export function StudyTools(props: { t: StudyT; canUndo: boolean; onUndo: () => void; onBury?: () => void; onAdd: () => void; onEdit: () => void }) {
+  const { t } = props;
+  return (
+    <div className="study-tools">
+      <button type="button" className="link-button" disabled={!props.canUndo} onClick={props.onUndo}>
+        {t.undo} <kbd>U</kbd>
+      </button>
+      {props.onBury && (
+        <button type="button" className="link-button" title={t.buryHint} onClick={props.onBury}>
+          {t.bury} <kbd>−</kbd>
+        </button>
+      )}
+      <button type="button" className="link-button" onClick={props.onAdd}>
+        {t.addCard} <kbd>A</kbd>
+      </button>
+      <button type="button" className="link-button" onClick={props.onEdit}>
+        {t.editCard} <kbd>E</kbd>
+      </button>
     </div>
   );
 }
