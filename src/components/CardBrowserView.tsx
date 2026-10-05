@@ -8,18 +8,21 @@ import { fill } from "@/lib/practice";
 import { cardKey, formatInterval, nextDayStart, State, type StoredCard } from "@/lib/srs/core";
 import { forgetCard, isDeckEnabled, useSrsData } from "@/lib/srs/store";
 import type { Card, Deck } from "@/lib/types";
+import { compareCards, type CardSort } from "@/lib/cardSort";
 import { saveEditedDeck, useEditableDecks } from "@/lib/editableDecks";
 import { useMounted } from "@/lib/useMounted";
 import { useNow } from "@/lib/useNow";
+import { CardSortSelect } from "./CardSortSelect";
 
 type Filter = "all" | "due" | "new" | "learning" | "review";
-type SortKey = "deck" | "question" | "answer" | "due";
 
 interface Row {
   key: string;
   deck: Deck;
   card: Card;
   position: number;
+  /** Across all decks, in library order: what "Created" sorts by. */
+  order: number;
   enabled: boolean;
   stored?: StoredCard;
 }
@@ -31,7 +34,7 @@ const searchText = (c: Card) => [c.prompt, c.answer, c.visualization, c.object, 
  * alike — searchable, with an editor for the selected card.
  */
 export function CardBrowserView() {
-  const { t: dict } = useI18n();
+  const { t: dict, lang } = useI18n();
   const t = dict.browser;
   const decks = useEditableDecks();
   const srs = useSrsData();
@@ -40,20 +43,23 @@ export function CardBrowserView() {
   const [query, setQuery] = useState("");
   const [deckFilter, setDeckFilter] = useState("all");
   const [filter, setFilter] = useState<Filter>("all");
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "deck", dir: 1 });
+  const [sort, setSort] = useState<CardSort>("created-asc");
   const [selected, setSelected] = useState<string | null>(null);
 
   const endOfDay = nextDayStart(now).getTime();
-  const rows: Row[] = decks.flatMap((deck) =>
-    deck.cards.map((card, i) => ({
-      key: cardKey(deck.id, card.id),
-      deck,
-      card,
-      position: i + 1,
-      enabled: isDeckEnabled(srs, deck.id),
-      stored: srs.cards[cardKey(deck.id, card.id)],
-    })),
-  );
+  const rows: Row[] = decks
+    .flatMap((deck) =>
+      deck.cards.map((card, i) => ({
+        key: cardKey(deck.id, card.id),
+        deck,
+        card,
+        position: i + 1,
+        order: 0,
+        enabled: isDeckEnabled(srs, deck.id),
+        stored: srs.cards[cardKey(deck.id, card.id)],
+      })),
+    )
+    .map((r, i) => ({ ...r, order: i }));
 
   const matches = (r: Row) => {
     if (deckFilter !== "all" && r.deck.id !== deckFilter) return false;
@@ -74,23 +80,14 @@ export function CardBrowserView() {
   };
 
   const question = (r: Row) => (r.deck.kind === "ordered" ? fill(t.stop, { n: r.position }) : (r.card.prompt ?? ""));
-  const sortValue = (r: Row): string | number => {
-    switch (sort.key) {
-      case "question":
-        return r.deck.kind === "ordered" ? r.position : question(r).toLowerCase();
-      case "answer":
-        return r.card.answer.toLowerCase();
-      case "due":
-        return r.enabled && r.stored ? new Date(r.stored.due).getTime() : Number.MAX_SAFE_INTEGER;
-      default:
-        return `${r.deck.title.toLowerCase()}\u0000${String(r.position).padStart(5, "0")}`;
-    }
-  };
-  const visible = rows.filter(matches).sort((a, b) => {
-    const x = sortValue(a);
-    const y = sortValue(b);
-    return (x < y ? -1 : x > y ? 1 : 0) * sort.dir;
+  // Same sort orders as a deck's "What's inside" table; A–Z on a memory route uses what's at the stop.
+  const sortable = (r: Row) => ({
+    question: r.deck.kind === "ordered" ? r.card.answer : question(r),
+    position: r.order + 1,
+    enabled: r.enabled,
+    stored: r.stored,
   });
+  const visible = rows.filter(matches).sort((a, b) => compareCards(sortable(a), sortable(b), sort, lang));
   const selectedRow = rows.find((r) => r.key === selected);
 
   const dueLabel = (r: Row) => {
@@ -99,19 +96,6 @@ export function CardBrowserView() {
     const ms = new Date(r.stored.due).getTime() - now.getTime();
     return ms <= 0 ? dict.srs.now : fill(dict.srs.inTime, { time: formatInterval(ms, dict.srs.units) });
   };
-
-  const header = (key: SortKey, label: string) => (
-    <th aria-sort={sort.key === key ? (sort.dir === 1 ? "ascending" : "descending") : undefined}>
-      <button
-        type="button"
-        className="sort-btn"
-        onClick={() => setSort(sort.key === key ? { key, dir: sort.dir === 1 ? -1 : 1 } : { key, dir: 1 })}
-      >
-        {label}
-        {sort.key === key ? (sort.dir === 1 ? " ▲" : " ▼") : ""}
-      </button>
-    </th>
-  );
 
   if (!mounted) return null;
 
@@ -152,16 +136,17 @@ export function CardBrowserView() {
                 <option value="learning">{t.filterLearning}</option>
                 <option value="review">{t.filterReview}</option>
               </select>
+              <CardSortSelect value={sort} onChange={setSort} />
             </div>
             <p className="muted browser-count">{fill(t.count, { n: visible.length })}</p>
             <div className="table-wrap">
               <table className="browser-table">
                 <thead>
                   <tr>
-                    {header("question", t.colQuestion)}
-                    {header("answer", t.colAnswer)}
-                    {header("deck", t.colDeck)}
-                    {header("due", t.colDue)}
+                    <th>{t.colQuestion}</th>
+                    <th>{t.colAnswer}</th>
+                    <th className="col-deck">{t.colDeck}</th>
+                    <th className="col-due">{t.colDue}</th>
                   </tr>
                 </thead>
                 <tbody>

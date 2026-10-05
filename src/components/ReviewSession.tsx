@@ -30,7 +30,7 @@ import {
 } from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
 import { CardDialog } from "./CardForm";
-import { FlipCard, isTyping, StudyTools } from "./PracticeSession";
+import { FlipCard, isTyping, StudyBar } from "./PracticeSession";
 
 const BUTTONS: { grade: Grade; key: "again" | "hard" | "good" | "easy" }[] = [
   { grade: Rating.Again, key: "again" },
@@ -53,6 +53,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
   const [history, setHistory] = useState<SrsChange[]>([]);
   const [dialog, setDialog] = useState<"add" | "edit" | null>(null);
   const [hintFor, setHintFor] = useState<string | null>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const input: QueueInput = {
     deckId: deck.id,
@@ -118,6 +119,8 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     const key = e.key.toLowerCase();
     if (key === "u" && history.length) return handle(undo);
     if (!current) return;
+    if (e.key === "?") return handle(() => setShortcutsOpen((o) => !o));
+    if (e.key === "Escape" && shortcutsOpen) return handle(() => setShortcutsOpen(false));
     if (e.key === "-" || e.key === "−") return handle(bury);
     if (key === "a") return handle(() => setDialog("add"));
     if (key === "e") return handle(() => setDialog("edit"));
@@ -142,6 +145,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
       <Link href={`/decks/${deck.id}`} className="exit-btn">
         {dict.practice.exit}
       </Link>
+      <span className="chapter-label">{deck.title}</span>
     </div>
   );
 
@@ -168,12 +172,6 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     <div className="practice">
       {exit}
       <div className="practice-main">
-        <header className="practice-header">
-          <span className="badge">{t.reviewBadge}</span>
-          <h1>{deck.title}</h1>
-          <SrsCounts counts={counts} active={current?.queue} t={t} />
-        </header>
-
         {status === "error" && <p className="notice error">{signedIn ? t.saveErrorRemote : t.saveErrorLocal}</p>}
 
         {card && current ? (
@@ -187,35 +185,52 @@ export function ReviewSession({ deck }: { deck: Deck }) {
               flipped={flipped}
               onFlip={() => setFlipped(true)}
               showHint={hintFor === hintKey}
-              onHint={() => setHintFor(hintKey)}
               t={dict.practice}
             />
-            {flipped && labels ? (
-              <div className="controls srs-answers">
-                {BUTTONS.map((b) => (
-                  <button key={b.grade} className={`btn srs-${b.key}`} onClick={() => answer(b.grade)}>
-                    <span className="srs-interval">{labels[b.grade]}</span>
-                    {t[b.key]}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="controls">
-                <button className="btn accent wide" onClick={() => setFlipped(true)}>
-                  {t.showAnswer}
-                </button>
-              </div>
-            )}
-            <StudyTools
+            <StudyBar
               t={dict.study}
+              left={<SrsCounts counts={counts} active={current.queue} t={t} />}
               canUndo={history.length > 0}
               onUndo={undo}
               onBury={bury}
               onAdd={() => setDialog("add")}
               onEdit={() => setDialog("edit")}
-            />
-            <p className="keys">{t.keys}</p>
-            <p className="keys">{dict.study.keysReview}</p>
+              shortcutsOpen={shortcutsOpen}
+              onToggleShortcuts={() => setShortcutsOpen((o) => !o)}
+              shortcuts={[
+                [dict.study.keySpace, dict.study.showAnswer],
+                ["1", t.again],
+                ["2", t.hard],
+                [`3 / ${dict.study.keySpace}`, t.good],
+                ["4", t.easy],
+                ["Tab", dict.study.hint],
+                ["U", dict.study.undo],
+                ["−", dict.study.bury],
+                ["A", dict.study.addCard],
+                ["E", dict.study.editCard],
+                ["?", dict.study.shortcuts],
+              ]}
+            >
+              {flipped && labels ? (
+                BUTTONS.map((b) => (
+                  <button key={b.grade} className={`btn srs-${b.key}`} onClick={() => answer(b.grade)}>
+                    <span className="srs-interval">{labels[b.grade]}</span>
+                    {t[b.key]}
+                  </button>
+                ))
+              ) : (
+                <>
+                  {hintFor !== hintKey && (
+                    <button type="button" className="btn nav" onClick={() => setHintFor(hintKey)}>
+                      {dict.study.hint}
+                    </button>
+                  )}
+                  <button type="button" className="btn accent" onClick={() => setFlipped(true)}>
+                    {dict.study.showAnswer}
+                  </button>
+                </>
+              )}
+            </StudyBar>
             {dialog && <CardDialog deckId={deck.id} card={dialog === "edit" ? card : undefined} onClose={() => setDialog(null)} />}
           </>
         ) : (
@@ -232,7 +247,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
             {history.length > 0 && (
               <p>
                 <button type="button" className="link-button" onClick={undo}>
-                  {dict.study.undo} <kbd>U</kbd>
+                  {dict.study.undo}
                 </button>
               </p>
             )}

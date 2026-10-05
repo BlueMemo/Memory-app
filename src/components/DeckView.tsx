@@ -10,6 +10,7 @@ import { fill } from "@/lib/practice";
 import { settingsForDeck } from "@/lib/srs/core";
 import { useSrsData } from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
+import { DeckCardsTable } from "./DeckCardsTable";
 import { SaveDeckButton } from "./SaveDeckButton";
 import { SharePanel } from "./SharePanel";
 import { SrsDeckPanel } from "./SrsDeckPanel";
@@ -135,22 +136,7 @@ export function DeckView({ deck }: { deck: Deck }) {
         </>
       )}
 
-      <h2 className="section-title">{t.deck.inside}</h2>
-      {ordered ? (
-        <ol className="inside-list">
-          {deck.cards.map((c) => (
-            <li key={c.id}>{c.answer}</li>
-          ))}
-        </ol>
-      ) : (
-        <ul className="inside-list">
-          {deck.cards.map((c) => (
-            <li key={c.id}>
-              {c.prompt}: <strong>{c.answer}</strong>
-            </li>
-          ))}
-        </ul>
-      )}
+      <DeckCardsTable deck={deck} editable={editable} />
     </main>
   );
 }

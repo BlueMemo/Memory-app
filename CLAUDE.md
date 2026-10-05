@@ -14,6 +14,29 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Minimal study view, card tables, sharing options (2026-10-05, third round)**:
+  - **Study screen** (practice revision/test and spaced-repetition review): no box around the card, just
+    the question in smaller text and the answer underneath once shown (`.study-card`); no generic labels
+    ("What's the answer?" etc. — a deck's own test question is still shown); no "Spaced repetition" badge
+    or deck heading on top (the deck title sits small next to Exit). Everything else is in a fixed
+    **bottom bar** (`StudyBar` in `PracticeSession.tsx`): the blue/red/green counts (review), Hint + Show
+    answer, then the grade buttons, plus Undo / Bury / Add / Edit and a **Keyboard shortcuts** list (also
+    **?**); the old always-visible key hints are gone. The card fills the space above the bar, so the
+    page only scrolls for long cards.
+  - **Deck page "What's inside"** is now a table like the card browser (`DeckCardsTable.tsx`), and both
+    sort with one menu (`CardSortSelect`, logic in `lib/cardSort.ts`): due soonest/latest, A–Z/Z–A,
+    created oldest/newest. Cards have no timestamps; deck order is creation order.
+  - **Discover**: the Type filter also offers Official / Community; a Sort menu: most popular (copies),
+    A–Z, Z–A, newest, oldest (official decks keep their order except for A–Z/Z–A). Community decks show
+    the creator's profile photo and copy count.
+  - **Publish options** (`SharePanel.tsx`): show in Discover, show my profile photo, include my settings
+    for this deck (spaced-repetition options + chapters; the exam date is never published). A copy starts
+    with those settings. Popularity = copies: `published_deck_copies` (one per learner and version) with
+    a trigger keeping `published_decks.copy_count`; the `published_decks_latest` view adds
+    `total_copies` across versions. **Schema changed again** — `schema.sql` must be re-run (Erik), which
+    also covers the earlier sharing tables.
+  - Import recognises a "Minnesbild" column. A French glossary (31 words, with memory cues) was made as an
+    importable file for David (not part of the repo).
 - **Study tools, quick add, stats round (2026-10-05, second round)**:
   - **Shortcuts while studying** (practice revision/test and spaced-repetition review): **U** undo,
     **−** bury until tomorrow (review only — practice has no schedule), **A** add a card, **E** edit the

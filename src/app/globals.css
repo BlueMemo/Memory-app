@@ -448,11 +448,6 @@ h2:not(.section-title) {
   padding: 14px 28px;
 }
 
-.inside-list {
-  margin: 0;
-  padding-left: 1.4em;
-  line-height: 1.9;
-}
 
 .link-muted {
   color: var(--muted);
@@ -877,70 +872,71 @@ ul.overview-list {
   }
 }
 
-/* Reveal cards (revision, test and spaced repetition): the question stays on top, the answer appears below. */
+/* Study cards (revision, test and spaced repetition): no box, just the question and, once revealed,
+   the answer underneath. Sized to fill the space above the study bar; the page only scrolls for long cards. */
 
-.reveal-card {
+.study-card {
   width: 100%;
-  max-width: 960px;
-  /* Fill the space between the progress bar and the answer buttons, so both stay on screen. */
-  min-height: clamp(320px, calc(100vh - 430px), 620px);
-  justify-content: flex-start;
-  gap: 0;
-  padding: clamp(24px, 5vw, 48px);
+  max-width: 760px;
+  min-height: calc(100dvh - 330px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 12px 8px 24px;
+  text-align: center;
+  color: var(--ink);
 }
 
-.reveal-card[role="button"] {
+.study-card[role="button"] {
   cursor: pointer;
 }
 
-.reveal-card:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 4px;
+.study-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 6px;
+  border-radius: 12px;
 }
 
-.reveal-question,
-.reveal-answer {
+.study-question,
+.study-answer {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.reveal-question {
-  padding-bottom: 24px;
-}
-
-.reveal-card .big {
-  font-size: clamp(2rem, 5vw, 2.8rem);
-}
-
-.reveal-card .big.sentence {
-  max-width: 560px;
-}
-
-.reveal-card .cue {
-  max-width: 520px;
-}
-
-.reveal-answer {
-  padding-top: 24px;
-  border-top: 1px dashed var(--line);
-  animation: rise 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.reveal-button {
-  margin-top: auto;
-  padding: 10px 20px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--muted);
+.study-text {
+  margin: 0;
+  max-width: 640px;
+  font-size: clamp(1.2rem, 2.6vw, 1.5rem);
   font-weight: 600;
-  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
-.reveal-card[role="button"]:hover .reveal-button {
-  border-color: var(--accent);
+.study-text.answer {
   color: var(--accent);
+}
+
+.study-text.sentence {
+  font-weight: 500;
+}
+
+.study-answer {
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  max-width: 640px;
+  animation: rise 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.study-answer .sub {
+  font-size: 1rem;
+}
+
+.practice-header.compact {
+  margin-bottom: 4px;
 }
 
 /* Instructions card */
@@ -1394,19 +1390,6 @@ ul.overview-list {
 .srs-count.active strong {
   text-decoration: underline;
   text-underline-offset: 3px;
-}
-
-.srs-answers {
-  gap: 8px;
-}
-
-.srs-answers .btn {
-  min-width: 84px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 8px 14px 10px;
 }
 
 .srs-interval {
@@ -2820,8 +2803,25 @@ ul.overview-list {
 }
 
 .published-author {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: -4px 0 8px;
   font-size: 0.9rem;
+}
+
+.publish-options {
+  margin: 12px 0 4px;
+}
+
+.publish-options legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.publish-options .check-field {
+  margin-bottom: 12px;
 }
 
 .share-panel {
@@ -2875,63 +2875,6 @@ kbd {
   font-size: 1.05rem;
   line-height: 1.45;
   animation: rise 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.reveal-actions {
-  margin-top: auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.reveal-actions .reveal-button {
-  margin-top: 0;
-}
-
-.reveal-hint-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
-  border: 1px dashed var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-.reveal-hint-button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.study-tools {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px 18px;
-  margin-top: 14px;
-}
-
-.study-tools .link-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.study-tools .link-button:hover:not(:disabled) {
-  color: var(--ink);
-}
-
-.study-tools .link-button:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 
 .dialog-backdrop {
@@ -3133,4 +3076,177 @@ main [id] {
   .page-tabs a {
     flex-shrink: 0;
   }
+}
+
+/* ---------- Study bar (bottom of the screen while answering cards) ---------- */
+
+.practice:has(.study-bar) {
+  padding-bottom: 120px;
+}
+
+.study-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+.study-bar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.study-bar-left .srs-counts {
+  margin: 0;
+  justify-content: flex-start;
+}
+
+.study-bar-main {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.study-bar-main .btn {
+  min-width: 0;
+  padding: 10px 18px;
+}
+
+.study-bar-main .btn[class*="srs-"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 76px;
+  padding: 7px 12px 9px;
+}
+
+.study-bar-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 2px 12px;
+}
+
+.study-bar-tools button {
+  border: none;
+  background: transparent;
+  padding: 4px 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.study-bar-tools button:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.study-bar-tools button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.shortcuts-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shortcuts-panel {
+  position: absolute;
+  right: 16px;
+  bottom: calc(100% + 8px);
+  width: min(320px, calc(100vw - 32px));
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.shortcuts-panel dl {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.shortcuts-panel dl > div {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.shortcuts-panel dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+@media (max-width: 720px) {
+  .study-bar-inner {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .study-bar-left .srs-counts {
+    justify-content: center;
+  }
+
+  .study-bar-main {
+    order: -1;
+    flex-wrap: wrap;
+  }
+
+  .study-bar-tools {
+    justify-content: center;
+  }
+
+  .practice:has(.study-bar) {
+    padding-bottom: 190px;
+  }
+
+  .study-card {
+    min-height: calc(100dvh - 420px);
+  }
+}
+
+/* ---------- Card lists: sort menu and the deck page's table ---------- */
+
+.sort-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.sort-select select {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.inside-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.browser-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }

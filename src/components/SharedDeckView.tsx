@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { dictionaries, useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
-import { copyPublishedDeck, getPublishedDeck, type PublishedDeck } from "@/lib/publishedDecks";
+import { copyPublishedDeck, getPublishedDeck, useDeckOverridesForCopy, type PublishedDeck } from "@/lib/publishedDecks";
+import { Avatar } from "./Avatar";
 
 /** /shared/[id]: a published deck version, opened from Discover or a shared link. */
 export function SharedDeckView({ id }: { id: string }) {
@@ -16,6 +17,7 @@ export function SharedDeckView({ id }: { id: string }) {
     status: "loading",
   });
   const [copying, setCopying] = useState(false);
+  const deckOverrides = useDeckOverridesForCopy();
 
   useEffect(() => {
     let live = true;
@@ -46,7 +48,7 @@ export function SharedDeckView({ id }: { id: string }) {
 
   async function copy() {
     setCopying(true);
-    const newId = await copyPublishedDeck(published);
+    const newId = await copyPublishedDeck(published, deckOverrides);
     router.push(`/decks/${newId}`);
   }
 
@@ -62,7 +64,11 @@ export function SharedDeckView({ id }: { id: string }) {
         <span className="tag">{fill(t.version, { n: published.version })}</span>
       </div>
       <h1 className="deck-title">{deck.title}</h1>
-      <p className="muted published-author">{fill(t.by, { author: published.author ?? t.unknownAuthor })}</p>
+      <p className="muted published-author">
+        <Avatar url={published.avatarUrl} name={published.author} size={28} />
+        {fill(t.by, { author: published.author ?? t.unknownAuthor })}
+        {published.copies > 0 && <span> · {fill(dict.discover.copies, { n: published.copies })}</span>}
+      </p>
       {deck.description && <p className="deck-description">{deck.description}</p>}
 
       {state.newerId && (

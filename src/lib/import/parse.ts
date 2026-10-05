@@ -97,7 +97,7 @@ export function stripHtml(s: string): string {
 }
 
 const HEADER_WORDS =
-  /^(front|back|question|answer|prompt|term|definition|word|translation|meaning|note|notes|extra|cue|scene|memory cue|memory queue|visualization|fråga|svar|framsida|baksida|ord|översättning|anteckning)$/i;
+  /^(front|back|question|answer|prompt|term|definition|word|translation|meaning|note|notes|extra|cue|scene|memory cue|memory queue|visualization|minnesbild|fråga|svar|framsida|baksida|ord|översättning|anteckning)$/i;
 
 function looksLikeHeader(row: string[]): boolean {
   return row.length > 1 && row.every((c) => HEADER_WORDS.test(c.trim()));
@@ -139,7 +139,7 @@ export function parseImport(text: string, options: ParseOptions): Parsed {
 const ROLE_BY_NAME: [RegExp, Role][] = [
   [/^(front|question|prompt|term|word|fråga|framsida|ord)$/i, "prompt"],
   [/^(back|answer|definition|translation|meaning|svar|baksida|översättning)$/i, "answer"],
-  [/^(cue|scene|memory cue|memory queue|visualization)$/i, "visualization"],
+  [/^(cue|scene|memory cue|memory queue|visualization|minnesbild)$/i, "visualization"],
   [/^(note|notes|extra|anteckning)$/i, "note"],
 ];
 

@@ -264,9 +264,20 @@ create table if not exists public.published_decks (
   deck jsonb not null,
   -- Lower-cased title, description and card text, for search.
   search_text text not null default '',
+  -- Publishing options: show the author's profile photo, and the author's own settings for the deck
+  -- (spaced repetition options, chapters) that a copy starts with.
+  show_avatar boolean not null default true,
+  deck_settings jsonb,
+  -- How many learners added a copy of this version to their library (kept by a trigger, see below).
+  copy_count int not null default 0,
   created_at timestamptz not null default now(),
   unique (author_id, source_deck_id, version)
 );
+
+-- For databases where published_decks was created before these columns existed.
+alter table public.published_decks add column if not exists show_avatar boolean not null default true;
+alter table public.published_decks add column if not exists deck_settings jsonb;
+alter table public.published_decks add column if not exists copy_count int not null default 0;
 
 alter table public.published_decks enable row level security;
 
@@ -287,9 +298,49 @@ create policy "Authors unpublish their own decks"
 
 create index if not exists published_decks_listed_created_idx on public.published_decks (listed, created_at desc);
 
--- The newest version of each published deck (what Discover lists and searches).
-create or replace view public.published_decks_latest
+-- Who added a copy of which version: one row per learner and version, so popularity can't be inflated
+-- by copying the same deck over and over. Learners only see and add their own rows.
+create table if not exists public.published_deck_copies (
+  published_id uuid not null references public.published_decks(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (published_id, user_id)
+);
+
+alter table public.published_deck_copies enable row level security;
+
+drop policy if exists "Learners record their own copies" on public.published_deck_copies;
+create policy "Learners record their own copies"
+  on public.published_deck_copies
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Keeps published_decks.copy_count up to date (authors can't update their rows themselves).
+create or replace function public.count_published_copy()
+returns trigger as $$
+begin
+  update public.published_decks set copy_count = copy_count + 1 where id = new.published_id;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists on_published_deck_copied on public.published_deck_copies;
+create trigger on_published_deck_copied
+  after insert on public.published_deck_copies
+  for each row execute function public.count_published_copy();
+
+-- The newest version of each published deck (what Discover lists and searches), with its popularity:
+-- copies of all its versions together. Dropped first because its columns changed over time.
+drop view if exists public.published_decks_latest;
+create view public.published_decks_latest
   with (security_invoker = true) as
-  select distinct on (author_id, source_deck_id) *
-  from public.published_decks
-  order by author_id, source_deck_id, version desc;
+  select distinct on (p.author_id, p.source_deck_id)
+    p.*,
+    (
+      select coalesce(sum(v.copy_count), 0)::int
+      from public.published_decks v
+      where v.author_id = p.author_id and v.source_deck_id = p.source_deck_id
+    ) as total_copies
+  from public.published_decks p
+  order by p.author_id, p.source_deck_id, p.version desc;

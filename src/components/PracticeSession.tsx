@@ -84,6 +84,7 @@ export function PracticeSession({
   const [dialog, setDialog] = useState<"add" | "edit" | null>(null);
   const cardKey = `${state.round}-${state.pos}`;
   const [hintFor, setHintFor] = useState<string | null>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const studying = state.phase === "revision" || state.phase === "test";
 
   const grade = (g: "again" | "known") => {
@@ -128,6 +129,8 @@ export function PracticeSession({
       return;
     }
     if (e.key.toLowerCase() === "u" && history.length) return handle(undo);
+    if (studying && e.key === "?") return handle(() => setShortcutsOpen((o) => !o));
+    if (studying && e.key === "Escape" && shortcutsOpen) return handle(() => setShortcutsOpen(false));
     if (studying) {
       const key = e.key.toLowerCase();
       if (key === "a") return handle(() => setDialog("add"));
@@ -178,10 +181,11 @@ export function PracticeSession({
 
       <div className="practice-main" style={showInstructions ? { display: "none" } : undefined}>
         {header && (
-          <header className="practice-header">
+          <header className={`practice-header${studying ? " compact" : ""}`}>
             {header.badge && <span className="badge">{header.badge}</span>}
-            <h1>{header.title}</h1>
-            <p>{header.text}</p>
+            {/* While answering cards, only the badge and progress show: the card itself is the focus. */}
+            {!studying && <h1>{header.title}</h1>}
+            {!studying && <p>{header.text}</p>}
           </header>
         )}
         {inFlow && <Progress deck={deck} state={state} steps={steps} />}
@@ -250,20 +254,49 @@ export function PracticeSession({
               flipped={state.flipped}
               onFlip={() => dispatch({ type: "flip" })}
               showHint={hintFor === cardKey}
-              onHint={() => setHintFor(cardKey)}
               t={t}
             />
-            <div className="controls">
-              <button className="btn again" disabled={!state.flipped} onClick={() => grade("again")}>
-                {state.phase === "test" ? t.missedIt : t.again}
-              </button>
-              <button className="btn good" disabled={!state.flipped} onClick={() => grade("known")}>
-                {state.phase === "test" ? t.knewIt : t.gotIt}
-              </button>
-            </div>
-            <StudyTools t={dict.study} canUndo={history.length > 0} onUndo={undo} onAdd={() => setDialog("add")} onEdit={() => setDialog("edit")} />
-            <p className="keys">{state.phase === "test" ? t.testKeys : t.revisionKeys}</p>
-            <p className="keys">{dict.study.keysPractice}</p>
+            <StudyBar
+              t={dict.study}
+              canUndo={history.length > 0}
+              onUndo={undo}
+              onAdd={() => setDialog("add")}
+              onEdit={() => setDialog("edit")}
+              shortcutsOpen={shortcutsOpen}
+              onToggleShortcuts={() => setShortcutsOpen((o) => !o)}
+              shortcuts={[
+                [dict.study.keySpace, dict.study.showAnswer],
+                ["1", state.phase === "test" ? t.missedIt : t.again],
+                ["2", state.phase === "test" ? t.knewIt : t.gotIt],
+                ["Tab", dict.study.hint],
+                ["U", dict.study.undo],
+                ["A", dict.study.addCard],
+                ["E", dict.study.editCard],
+                ["?", dict.study.shortcuts],
+              ]}
+            >
+              {state.flipped ? (
+                <>
+                  <button className="btn again" onClick={() => grade("again")}>
+                    {state.phase === "test" ? t.missedIt : t.again}
+                  </button>
+                  <button className="btn good" onClick={() => grade("known")}>
+                    {state.phase === "test" ? t.knewIt : t.gotIt}
+                  </button>
+                </>
+              ) : (
+                <>
+                  {hintFor !== cardKey && (
+                    <button type="button" className="btn nav" onClick={() => setHintFor(cardKey)}>
+                      {dict.study.hint}
+                    </button>
+                  )}
+                  <button type="button" className="btn accent" onClick={() => dispatch({ type: "flip" })}>
+                    {dict.study.showAnswer}
+                  </button>
+                </>
+              )}
+            </StudyBar>
             {dialog && (
               <CardDialog
                 deckId={deck.id}
@@ -536,21 +569,18 @@ export function FlipCard(props: {
   test: boolean;
   flipped: boolean;
   onFlip: () => void;
-  /** Whether the memory-cue hint (Tab) is showing, and how to show it. */
+  /** Whether the memory-cue hint (Tab) is showing. */
   showHint?: boolean;
-  onHint?: () => void;
   t: T;
 }) {
   const { deck, card, position: n, test, flipped, onFlip, t } = props;
   const study = useI18n().t.study;
   const ordered = deck.kind === "ordered";
 
+  // Just the question: a deck's own test question, or the stop/number/prompt. No generic labels such as
+  // "What's the answer?" — that's understood.
   const frontTitle = ordered ? (test ? fill(t.number, { n }) : fill(t.stop, { n })) : card.prompt;
-  const frontCue = test
-    ? deckTestQuestion(deck, card, n) ?? (ordered ? fill(t.testDefaultOrdered, { n }) : t.testDefaultUnordered)
-    : ordered
-      ? t.revisionOrderedCue
-      : t.revisionUnorderedCue;
+  const question = (test && deckTestQuestion(deck, card, n)) || frontTitle;
 
   let back: { title: ReactNode; titleClass?: string; sub?: string; line?: ReactNode; image?: string };
   if (test) {
@@ -582,11 +612,11 @@ export function FlipCard(props: {
     };
   }
 
-  // One large card: the question stays at the top the whole time, and the answer appears underneath it
-  // once revealed (click, Enter, or Space via the session's keyboard listener).
+  // No box around it: the question, then the answer underneath once revealed (click, Enter or Space via
+  // the session's keyboard listener). "Show answer", hint and grading live in the StudyBar below.
   return (
     <div
-      className={`reveal-card face deal${flipped ? " revealed" : ""}`}
+      className={`study-card deal${flipped ? " revealed" : ""}`}
       role={flipped ? undefined : "button"}
       tabIndex={flipped ? undefined : 0}
       aria-label={flipped ? undefined : t.clickToFlip}
@@ -595,62 +625,82 @@ export function FlipCard(props: {
         if (!flipped && e.key === "Enter") onFlip();
       }}
     >
-      <div className="reveal-question">
-        <p className="big">{frontTitle}</p>
+      <div className="study-question">
+        <p className="study-text">{question}</p>
         {!ordered && <CardImage src={card.promptImage} />}
-        <p className="cue">{frontCue}</p>
         {!flipped && props.showHint && <p className="reveal-hint">{memoryHint(deck, card, test, study)}</p>}
       </div>
-      {flipped ? (
-        <div className="reveal-answer" aria-live="polite">
-          <p className={`big${back.titleClass ? ` ${back.titleClass}` : ""}`}>{back.title}</p>
+      {flipped && (
+        <div className="study-answer" aria-live="polite">
+          <p className={`study-text answer${back.titleClass ? ` ${back.titleClass}` : ""}`}>{back.title}</p>
           <CardImage src={back.image} />
           {back.sub && <p className="sub">{back.sub}</p>}
           {back.line && <p className="learn-text muted">{back.line}</p>}
           {card.note && <CardNote note={card.note} t={t} />}
-        </div>
-      ) : (
-        <div className="reveal-actions">
-          {props.onHint && !props.showHint && (
-            <button
-              type="button"
-              className="reveal-hint-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                props.onHint!();
-              }}
-            >
-              {study.hint} <kbd>Tab</kbd>
-            </button>
-          )}
-          <span className="reveal-button" aria-hidden="true">
-            {t.clickToFlip}
-          </span>
         </div>
       )}
     </div>
   );
 }
 
-/** Undo / bury / add / edit, under the answer buttons in practice and in spaced-repetition review. */
-export function StudyTools(props: { t: StudyT; canUndo: boolean; onUndo: () => void; onBury?: () => void; onAdd: () => void; onEdit: () => void }) {
+/**
+ * The bar along the bottom while answering cards: an optional status on the left (spaced-repetition
+ * counts), the main actions in the middle (hint / show answer, then the grade buttons), and undo, bury,
+ * add, edit plus a "Keyboard shortcuts" list on the right, so the shortcuts aren't always on screen.
+ */
+export function StudyBar(props: {
+  t: StudyT;
+  left?: ReactNode;
+  children: ReactNode;
+  canUndo: boolean;
+  onUndo: () => void;
+  onBury?: () => void;
+  onAdd: () => void;
+  onEdit: () => void;
+  shortcuts: [key: string, action: string][];
+  shortcutsOpen: boolean;
+  onToggleShortcuts: () => void;
+}) {
   const { t } = props;
   return (
-    <div className="study-tools">
-      <button type="button" className="link-button" disabled={!props.canUndo} onClick={props.onUndo}>
-        {t.undo} <kbd>U</kbd>
-      </button>
-      {props.onBury && (
-        <button type="button" className="link-button" title={t.buryHint} onClick={props.onBury}>
-          {t.bury} <kbd>−</kbd>
-        </button>
+    <div className="study-bar">
+      {props.shortcutsOpen && (
+        <div className="shortcuts-panel" role="dialog" aria-label={t.shortcuts}>
+          <dl>
+            {props.shortcuts.map(([key, action]) => (
+              <div key={key + action}>
+                <dt>
+                  <kbd>{key}</kbd>
+                </dt>
+                <dd>{action}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       )}
-      <button type="button" className="link-button" onClick={props.onAdd}>
-        {t.addCard} <kbd>A</kbd>
-      </button>
-      <button type="button" className="link-button" onClick={props.onEdit}>
-        {t.editCard} <kbd>E</kbd>
-      </button>
+      <div className="study-bar-inner">
+        <div className="study-bar-left">{props.left}</div>
+        <div className="study-bar-main">{props.children}</div>
+        <div className="study-bar-tools">
+          <button type="button" disabled={!props.canUndo} onClick={props.onUndo}>
+            {t.undo}
+          </button>
+          {props.onBury && (
+            <button type="button" title={t.buryHint} onClick={props.onBury}>
+              {t.bury}
+            </button>
+          )}
+          <button type="button" onClick={props.onAdd}>
+            {t.addCard}
+          </button>
+          <button type="button" onClick={props.onEdit}>
+            {t.editCard}
+          </button>
+          <button type="button" className="shortcuts-button" aria-expanded={props.shortcutsOpen} onClick={props.onToggleShortcuts}>
+            {t.shortcuts} <kbd>?</kbd>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
