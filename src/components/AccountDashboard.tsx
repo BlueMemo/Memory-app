@@ -78,7 +78,7 @@ export function AccountDashboard({ userId, email, createdAt, username, avatarUrl
       <Recent t={t} activity={activity} lang={lang} />
 
       <h2 className="section-title" id="details">{t.detailsTitle}</h2>
-      <Details t={t} userId={userId} username={username} />
+      <Details t={t} userId={userId} username={username} email={email} />
     </main>
   );
 }
@@ -394,11 +394,12 @@ function Recent({ t, activity, lang }: { t: T; activity: AccountActivity; lang: 
   );
 }
 
-function Details({ t, userId, username }: { t: T; userId: string; username: string | null }) {
+function Details({ t, userId, username, email }: { t: T; userId: string; username: string | null; email: string }) {
   return (
     <div className="account-details">
       {username && <UsernameEditor t={t} userId={userId} username={username} />}
       <PasswordEditor t={t} />
+      <DeleteAccount t={t} confirmWord={username ?? email} />
       <div className="account-links">
         <Link href="/library/settings" className="tile-open">
           {t.studyOptions}
@@ -515,6 +516,70 @@ function PasswordEditor({ t }: { t: T }) {
       <div className="controls left">
         <button type="submit" className="btn nav small" disabled={submitting}>
           {t.updatePassword}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function DeleteAccount({ t, confirmWord }: { t: T; confirmWord: string }) {
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (typed.trim() !== confirmWord) return;
+    const supabase = getSupabaseBrowserClient()!;
+    setSubmitting(true);
+    setError(null);
+    const { error: rpcError } = await supabase.rpc("delete_my_account");
+    if (rpcError) {
+      setSubmitting(false);
+      // PGRST202: the function isn't in the database yet (schema.sql not re-run).
+      setError(rpcError.code === "PGRST202" ? t.deleteNotReady : t.deleteError);
+      return;
+    }
+    await supabase.auth.signOut({ scope: "local" });
+    // A full reload drops everything held in memory for the deleted account.
+    window.location.href = "/";
+  };
+
+  if (!open) {
+    return (
+      <div className="detail-row">
+        <span className="detail-label">{t.deleteTitle}</span>
+        <button className="link-button danger inline" onClick={() => setOpen(true)}>
+          {t.deleteOpen}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form className="detail-form delete-account" onSubmit={submit}>
+      <h3 className="detail-heading">{t.deleteTitle}</h3>
+      <p className="muted">{t.deleteWarning}</p>
+      <div className="field">
+        <label htmlFor="delete-confirm">{t.deleteConfirmLabel.replace("{word}", confirmWord)}</label>
+        <input
+          id="delete-confirm"
+          type="text"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+        />
+      </div>
+      {error && <p className="form-error">{error}</p>}
+      <div className="controls left">
+        <button type="submit" className="btn danger small" disabled={submitting || typed.trim() !== confirmWord}>
+          {t.deleteButton}
+        </button>
+        <button type="button" className="btn nav small" onClick={() => setOpen(false)} disabled={submitting}>
+          {t.cancel}
         </button>
       </div>
     </form>

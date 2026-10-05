@@ -746,6 +746,14 @@ export const en = {
     cancel: "Cancel",
     changePasswordTitle: "Password",
     studyOptions: "Study options →",
+    deleteTitle: "Delete account",
+    deleteOpen: "Delete my account",
+    deleteWarning:
+      "This permanently deletes your account and everything in it: your decks, saved decks, review history, test results, settings and profile, plus any decks you've shared. It can't be undone. Copies other people already added to their own libraries stay with them.",
+    deleteConfirmLabel: "To confirm, type {word}",
+    deleteButton: "Delete everything",
+    deleteError: "We couldn't delete your account. Please try again, or contact us if it keeps failing.",
+    deleteNotReady: "Account deletion isn't set up on the server yet (supabase/schema.sql needs re-running).",
   },
 };
 
