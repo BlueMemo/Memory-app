@@ -746,6 +746,13 @@ export const en = {
     cancel: "Cancel",
     changePasswordTitle: "Password",
     studyOptions: "Study options →",
+    exportTitle: "Your data",
+    exportHint:
+      "Download a copy of everything stored in your account as one file: profile, decks, saved decks, review history and schedules, test results, settings and anything you've shared.",
+    exportButton: "Download my data",
+    exportWorking: "Preparing…",
+    exportDone: "Your file has been downloaded.",
+    exportError: "We couldn't prepare your data. Please try again, or contact us if it keeps failing.",
     deleteTitle: "Delete account",
     deleteOpen: "Delete my account",
     deleteWarning:
