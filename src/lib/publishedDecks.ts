@@ -66,6 +66,11 @@ interface Row {
 const COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, show_avatar, deck_settings, copy_count, deck";
 /** The latest-version view also has the popularity across versions. */
 const LATEST_COLUMNS = `${COLUMNS}, total_copies`;
+/**
+ * The columns from before publish options and popularity existed. Used as a fallback while a database
+ * hasn't been updated with the latest schema.sql yet, so sharing keeps working (without those extras).
+ */
+const LEGACY_COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, deck";
 
 /** Lower-cased deck text that search matches against: title, description and the cards' own text. */
 export function deckSearchText(deck: Deck): string {
@@ -120,27 +125,34 @@ export async function searchPublishedDecks(filters: SearchFilters, limit = 30): 
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return [];
   if (filters.type === "official") return [];
-  let request = supabase.from("published_decks_latest").select(LATEST_COLUMNS).eq("listed", true);
-  if (filters.language !== "all") request = request.eq("language", filters.language);
-  if (filters.type === "ordered" || filters.type === "unordered") request = request.eq("kind", filters.type);
-
   const words = searchWords(filters.query);
+  let authorIds: string[] = [];
   if (words.length) {
-    // Each word must match the deck's text, or the whole query must match an author's username.
     const { data: authors } = await supabase.from("profiles").select("id").ilike("username", `%${words.join(" ")}%`).limit(20);
-    const authorIds = (authors ?? []).map((a) => a.id as string);
-    const textMatch = `and(${words.map((w) => `search_text.ilike."%${w}%"`).join(",")})`;
-    request = request.or(authorIds.length ? `${textMatch},author_id.in.(${authorIds.join(",")})` : textMatch);
+    authorIds = (authors ?? []).map((a) => a.id as string);
   }
-  request =
-    filters.sort === "popular"
-      ? request.order("total_copies", { ascending: false }).order("created_at", { ascending: false })
-      : filters.sort === "az" || filters.sort === "za"
-        ? request.order("title", { ascending: filters.sort === "az" })
-        : request.order("created_at", { ascending: filters.sort === "oldest" });
-  const { data, error } = await request.limit(limit);
-  if (error) return null; // e.g. the table doesn't exist yet: schema.sql hasn't been re-run
-  const rows = data as Row[];
+
+  const run = (columns: string, withPopularity: boolean) => {
+    let request = supabase.from("published_decks_latest").select(columns).eq("listed", true);
+    if (filters.language !== "all") request = request.eq("language", filters.language);
+    if (filters.type === "ordered" || filters.type === "unordered") request = request.eq("kind", filters.type);
+    if (words.length) {
+      // Each word must match the deck's text, or the whole query must match an author's username.
+      const textMatch = `and(${words.map((w) => `search_text.ilike."%${w}%"`).join(",")})`;
+      request = request.or(authorIds.length ? `${textMatch},author_id.in.(${authorIds.join(",")})` : textMatch);
+    }
+    request =
+      filters.sort === "popular" && withPopularity
+        ? request.order("total_copies", { ascending: false }).order("created_at", { ascending: false })
+        : filters.sort === "az" || filters.sort === "za"
+          ? request.order("title", { ascending: filters.sort === "az" })
+          : request.order("created_at", { ascending: filters.sort === "oldest" });
+    return request.limit(limit);
+  };
+  let { data, error } = await run(LATEST_COLUMNS, true);
+  if (error) ({ data, error } = await run(LEGACY_COLUMNS, false));
+  if (error) return null; // e.g. the table doesn't exist yet: schema.sql hasn't been run
+  const rows = data as unknown as Row[];
   const people = await authors(rows.map((r) => r.author_id));
   return rows.map((r) => toPublished(r, people));
 }
@@ -149,7 +161,8 @@ export async function searchPublishedDecks(filters: SearchFilters, limit = 30): 
 export async function getPublishedDeck(id: string): Promise<{ deck: PublishedDeck; newerId: string | null } | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase || !/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const { data } = await supabase.from("published_decks").select(COLUMNS).eq("id", id).maybeSingle();
+  let { data } = await supabase.from("published_decks").select(COLUMNS).eq("id", id).maybeSingle();
+  if (!data) ({ data } = await supabase.from("published_decks").select(LEGACY_COLUMNS).eq("id", id).maybeSingle());
   if (!data) return null;
   const row = data as Row;
   const [people, latest] = await Promise.all([
@@ -181,27 +194,32 @@ export async function publishDeck(deck: Deck, options: PublishOptions, settings?
     .eq("source_deck_id", deck.id)
     .maybeSingle();
   const snapshot: Deck = { ...deck, official: false };
-  const { data, error } = await supabase
-    .from("published_decks")
-    .insert({
-      author_id: user.id,
-      source_deck_id: deck.id,
-      version: ((latest?.version as number | undefined) ?? 0) + 1,
-      listed: options.listed,
-      show_avatar: options.showAvatar,
-      deck_settings: options.includeSettings && settings ? withoutExamDate(settings) : null,
-      title: deck.title,
-      description: deck.description,
-      language: deck.language,
-      kind: deck.kind,
-      card_count: deck.cards.length,
-      deck: snapshot,
-      search_text: deckSearchText(deck),
-    })
-    .select(COLUMNS)
-    .single();
+  const insert = (row: Record<string, unknown>, columns: string) => supabase.from("published_decks").insert(row).select(columns).single();
+  const row: Record<string, unknown> = {
+    author_id: user.id,
+    source_deck_id: deck.id,
+    version: ((latest?.version as number | undefined) ?? 0) + 1,
+    listed: options.listed,
+    show_avatar: options.showAvatar,
+    deck_settings: options.includeSettings && settings ? withoutExamDate(settings) : null,
+    title: deck.title,
+    description: deck.description,
+    language: deck.language,
+    kind: deck.kind,
+    card_count: deck.cards.length,
+    deck: snapshot,
+    search_text: deckSearchText(deck),
+  };
+  let { data, error } = await insert(row, COLUMNS);
+  if (error) {
+    // An older database without the publish-option columns: publish without them.
+    const legacy = { ...row };
+    delete legacy.show_avatar;
+    delete legacy.deck_settings;
+    ({ data, error } = await insert(legacy, LEGACY_COLUMNS));
+  }
   if (error || !data) return null;
-  return toPublished(data as Row, {});
+  return toPublished(data as unknown as Row, {});
 }
 
 function withoutExamDate(settings: Partial<DeckOptions>): Partial<DeckOptions> | null {
@@ -224,13 +242,11 @@ type Publication = { loading: boolean; latest: PublishedDeck | null; available: 
 async function loadPublication(sourceDeckId: string, userId: string | null): Promise<Publication> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase || !userId) return { loading: false, latest: null, available: true };
-  const { data, error } = await supabase
-    .from("published_decks_latest")
-    .select(LATEST_COLUMNS)
-    .eq("author_id", userId)
-    .eq("source_deck_id", sourceDeckId)
-    .maybeSingle();
-  return { loading: false, latest: data ? toPublished(data as Row, {}) : null, available: !error };
+  const query = (columns: string) =>
+    supabase.from("published_decks_latest").select(columns).eq("author_id", userId).eq("source_deck_id", sourceDeckId).maybeSingle();
+  let { data, error } = await query(LATEST_COLUMNS);
+  if (error) ({ data, error } = await query(LEGACY_COLUMNS));
+  return { loading: false, latest: data ? toPublished(data as unknown as Row, {}) : null, available: !error };
 }
 
 /** The latest published version of one of the signed-in learner's own decks (null if unpublished). */
