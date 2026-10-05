@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Newsreader } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
+import { THEME_SCRIPT } from "@/lib/themeScript";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,7 +27,11 @@ export const viewport: Viewport = { themeColor: "#121417" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${newsreader.variable}`}>
+    // The theme script sets data-* attributes on <html> before React hydrates, hence suppressHydrationWarning.
+    <html lang="en" className={`${geistSans.variable} ${newsreader.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <SiteHeader />
         {children}

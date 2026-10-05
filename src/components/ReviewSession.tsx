@@ -9,6 +9,7 @@ import {
   deckCounts,
   formatInterval,
   makeScheduler,
+  settingsForDeck,
   pickNext,
   previewDue,
   Rating,
@@ -54,7 +55,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
   // Button labels show the unfuzzed interval, like Anki; the actual schedule adds a little fuzz.
   let labels: Record<number, string> | null = null;
   if (current) {
-    const due = previewDue(makeScheduler(data.settings, { fuzz: false }), stored, now);
+    const due = previewDue(makeScheduler(settingsForDeck(data.settings, deck.id), { fuzz: false }), stored, now);
     labels = Object.fromEntries(BUTTONS.map((b) => [b.grade, formatInterval(due[b.grade].getTime() - now.getTime(), t.units)]));
   }
 

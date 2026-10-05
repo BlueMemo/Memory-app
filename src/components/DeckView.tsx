@@ -9,6 +9,7 @@ import { useSavedDeckIds } from "@/lib/library";
 import { fill } from "@/lib/practice";
 import type { Deck } from "@/lib/types";
 import { SaveDeckButton } from "./SaveDeckButton";
+import { SharePanel } from "./SharePanel";
 import { SrsDeckPanel } from "./SrsDeckPanel";
 
 export function DeckView({ deck }: { deck: Deck }) {
@@ -88,6 +89,7 @@ export function DeckView({ deck }: { deck: Deck }) {
       )}
 
       <SrsDeckPanel deck={deck} />
+      {!shared && <SharePanel deck={deck} />}
 
       {chapters && (
         <>

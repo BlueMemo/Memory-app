@@ -7,7 +7,7 @@ import { DeckTile } from "./DeckTile";
 
 // The demo every "try it" button starts: an ordered memory route of 10 items, so a first-time
 // visitor gets the "I remembered all ten" moment the landing page promises.
-const DEMO_HREF = "/decks/largest-countries/practice";
+export const DEMO_HREF = "/decks/largest-countries/practice";
 
 // Simple line icons for the three steps (picture it, place it, walk it).
 const stepIcons = [
@@ -17,7 +17,7 @@ const stepIcons = [
 ];
 
 export function LandingView() {
-  const t = useI18n().t.landing;
+  const { landing: t, techniques } = useI18n().t;
   return (
     <main className="page landing">
       <section className="landing-hero">
@@ -54,12 +54,15 @@ export function LandingView() {
       </section>
 
       <section className="landing-section">
-        <h2>{t.whyTitle}</h2>
+        <h2>{t.techniquesTitle}</h2>
         <ul className="landing-why">
-          {t.why.map((item) => (
-            <li key={item.title}>
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
+          {techniques.sections.map((s) => (
+            <li key={s.id}>
+              <Link href={`/techniques#${s.id}`} className="technique-card">
+                <h3>{s.title}</h3>
+                <p>{s.summary}</p>
+                <span className="technique-more">{techniques.readMore} →</span>
+              </Link>
             </li>
           ))}
         </ul>

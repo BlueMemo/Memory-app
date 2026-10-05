@@ -336,6 +336,9 @@ function InstructionsCard({ deck, t, hint, onClick }: { deck: Deck; t: T; hint: 
 }
 
 function WalkStep({ deck, step, positionOffset, t }: { deck: Deck; step: Step; positionOffset: number; t: T }) {
+  // If any card in the deck has a thought bubble, every step keeps the bubble's headroom, so the card
+  // stays in the same place while walking through instead of jumping down whenever a bubble appears.
+  const wrapClass = `learn-wrap${deck.cards.some((c) => c.illustration) ? " has-bubble" : ""}`;
   if (step.type !== "card") {
     const note =
       step.type === "note"
@@ -346,7 +349,7 @@ function WalkStep({ deck, step, positionOffset, t }: { deck: Deck; step: Step; p
             body: deck.kind === "ordered" ? t.reviseBodyOrdered : t.reviseBodyUnordered,
           };
     return (
-      <div className="learn-wrap">
+      <div className={wrapClass}>
         <div className="face learn-card note deal">
           <span className="badge">{note.badge}</span>
           <p className="big">{note.title}</p>
@@ -364,7 +367,7 @@ function WalkStep({ deck, step, positionOffset, t }: { deck: Deck; step: Step; p
   const bubble = card.illustration;
 
   return (
-    <div className={`learn-wrap${bubble ? " has-bubble" : ""}`}>
+    <div className={wrapClass}>
       {bubble && <ThoughtBubble name={bubble.name} side={bubble.side} />}
       <div className="face learn-card deal">
         <span className="badge">{ordered ? fill(t.stop, { n }) : card.prompt}</span>
@@ -465,7 +468,7 @@ function SuggestionReveal({ suggestion, t }: { suggestion: string; t: T }) {
   );
 }
 
-/** A card that flips to reveal the answer; also used by the spaced repetition review (as a test card). */
+/** A large question card that reveals the answer below the question; also used by the spaced repetition review (as a test card). */
 export function FlipCard(props: {
   deck: Deck;
   card: Card;
@@ -515,33 +518,37 @@ export function FlipCard(props: {
     };
   }
 
+  // One large card: the question stays at the top the whole time, and the answer appears underneath it
+  // once revealed (click, Enter, or Space via the session's keyboard listener).
   return (
     <div
-      className="scene deal"
-      role="button"
-      tabIndex={0}
-      aria-pressed={flipped}
-      aria-label={t.clickToFlip}
-      onClick={onFlip}
+      className={`reveal-card face deal${flipped ? " revealed" : ""}`}
+      role={flipped ? undefined : "button"}
+      tabIndex={flipped ? undefined : 0}
+      aria-label={flipped ? undefined : t.clickToFlip}
+      onClick={flipped ? undefined : onFlip}
       onKeyDown={(e) => {
-        if (e.key === "Enter") onFlip();
+        if (!flipped && e.key === "Enter") onFlip();
       }}
     >
-      <div className={`card${flipped ? " flipped" : ""}`}>
-        <div className="face front" aria-hidden={flipped}>
-          <p className="big">{frontTitle}</p>
-          {!ordered && <CardImage src={card.promptImage} />}
-          <p className="cue">{frontCue}</p>
-          <p className="hint">{t.clickToFlip}</p>
-        </div>
-        <div className="face back" aria-hidden={!flipped}>
+      <div className="reveal-question">
+        <p className="big">{frontTitle}</p>
+        {!ordered && <CardImage src={card.promptImage} />}
+        <p className="cue">{frontCue}</p>
+      </div>
+      {flipped ? (
+        <div className="reveal-answer" aria-live="polite">
           <p className={`big${back.titleClass ? ` ${back.titleClass}` : ""}`}>{back.title}</p>
           <CardImage src={back.image} />
           {back.sub && <p className="sub">{back.sub}</p>}
           {back.line && <p className="learn-text muted">{back.line}</p>}
           {card.note && <CardNote note={card.note} t={t} />}
         </div>
-      </div>
+      ) : (
+        <span className="reveal-button" aria-hidden="true">
+          {t.clickToFlip}
+        </span>
+      )}
     </div>
   );
 }

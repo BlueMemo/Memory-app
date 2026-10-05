@@ -41,6 +41,15 @@
   color-scheme: light;
 }
 
+/* The "Text size" setting: everything sized in rem scales with it. */
+:root[data-text-size="large"] {
+  font-size: 112.5%;
+}
+
+:root[data-text-size="larger"] {
+  font-size: 125%;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -861,43 +870,70 @@ ul.overview-list {
   }
 }
 
-/* Flip cards (revision and test) */
+/* Reveal cards (revision, test and spaced repetition): the question stays on top, the answer appears below. */
 
-.scene {
+.reveal-card {
   width: 100%;
-  max-width: 490px;
-  aspect-ratio: 4 / 3;
-  min-height: 385px;
-  perspective: 1200px;
+  max-width: 960px;
+  /* Fill the space between the progress bar and the answer buttons, so both stay on screen. */
+  min-height: clamp(320px, calc(100vh - 430px), 620px);
+  justify-content: flex-start;
+  gap: 0;
+  padding: clamp(24px, 5vw, 48px);
+}
+
+.reveal-card[role="button"] {
   cursor: pointer;
 }
 
-.scene:focus-visible {
+.reveal-card:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 4px;
-  border-radius: 20px;
 }
 
-.card {
-  position: relative;
+.reveal-question,
+.reveal-answer {
   width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.card.flipped {
-  transform: rotateY(180deg);
+.reveal-question {
+  padding-bottom: 24px;
 }
 
-.card .face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
+.reveal-card .big {
+  font-size: clamp(2rem, 5vw, 2.8rem);
 }
 
-.card .back {
-  transform: rotateY(180deg);
+.reveal-card .big.sentence {
+  max-width: 560px;
+}
+
+.reveal-card .cue {
+  max-width: 520px;
+}
+
+.reveal-answer {
+  padding-top: 24px;
+  border-top: 1px dashed var(--line);
+  animation: rise 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reveal-button {
+  margin-top: auto;
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.reveal-card[role="button"]:hover .reveal-button {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Instructions card */
@@ -1297,6 +1333,7 @@ ul.overview-list {
 .settings-link {
   font-size: 1.15rem;
   line-height: 1;
+  display: inline-flex;
   padding: 6px 8px;
   border-radius: 999px;
   color: var(--muted);
@@ -2076,6 +2113,14 @@ ul.overview-list {
   }
 }
 
+/* The "Reduce motion" setting (data-motion on <html>, see lib/preferences.ts). */
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 /* ---------- Account page ---------- */
 
 .page.account-page {
@@ -2326,7 +2371,8 @@ ul.overview-list {
 
 /* ---------- Landing page (/) ---------- */
 
-.landing a.btn {
+.landing a.btn,
+.techniques a.btn {
   display: inline-block;
   text-decoration: none;
 }
@@ -2450,4 +2496,357 @@ ul.overview-list {
 .landing-final p {
   margin: 0 0 22px;
   color: var(--muted);
+}
+
+.landing-why li:has(.technique-card) {
+  padding: 0;
+}
+
+.technique-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 16px;
+}
+
+.technique-card:hover {
+  background: var(--accent-soft);
+}
+
+.technique-card p {
+  flex: 1;
+}
+
+.technique-more {
+  margin-top: 14px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* ---------- Memory techniques (/techniques) ---------- */
+
+.techniques-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -8px 0 8px;
+}
+
+.techniques-toc a {
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.techniques-toc a:hover {
+  border-color: var(--accent);
+}
+
+.technique {
+  margin-top: 48px;
+  scroll-margin-top: 24px;
+  line-height: 1.6;
+}
+
+.technique h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 6px;
+  font-size: clamp(1.6rem, 4vw, 2rem);
+}
+
+.technique-number {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.technique-summary {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.technique h3 {
+  margin: 22px 0 8px;
+  font-size: 1rem;
+}
+
+.technique ol {
+  margin: 0;
+  padding-left: 1.3em;
+}
+
+.technique li {
+  margin-bottom: 6px;
+}
+
+.technique-in-app {
+  margin-top: 22px;
+  padding: 4px 18px 14px;
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+}
+
+.technique-in-app h3 {
+  margin-top: 12px;
+}
+
+.technique-in-app p {
+  margin: 0;
+}
+
+/* ---------- General settings (/settings) ---------- */
+
+.settings-form + .settings-form {
+  margin-top: 36px;
+}
+
+.choice {
+  border: none;
+  padding: 0;
+  margin: 0 0 20px;
+  max-width: none;
+}
+
+.choice legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.segmented {
+  display: inline-flex;
+  align-self: flex-start;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.segmented.stacked {
+  display: flex;
+  align-self: stretch;
+  flex-direction: column;
+  max-width: 480px;
+}
+
+.choice .segmented label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.segmented:not(.stacked) label + label {
+  border-left: 1px solid var(--line);
+}
+
+.segmented.stacked label + label {
+  border-top: 1px solid var(--line);
+}
+
+.choice .segmented label.active {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* ---------- Spaced repetition settings (/library/settings) ---------- */
+
+.plain-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.plain-fieldset:disabled {
+  opacity: 0.55;
+}
+
+.optimizer {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.field select {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+/* ---------- Library layout (tiles / rows / list) ---------- */
+
+.library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.segmented.small button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.segmented.small button + button {
+  border-left: 1px solid var(--line);
+}
+
+.segmented.small button.active {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.deck-grid.rows {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.deck-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.deck-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 12px 16px;
+  background: var(--card);
+}
+
+.deck-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.deck-list-title {
+  flex: 1 1 220px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.deck-list-title:hover {
+  color: var(--accent);
+}
+
+.deck-list .tile-actions {
+  margin-left: auto;
+}
+
+/* ---------- Discover search and shared decks ---------- */
+
+.discover-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  margin: 4px 0 8px;
+}
+
+.discover-search input[type="search"] {
+  flex: 1 1 280px;
+  font: inherit;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.discover-search input[type="search"]:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.discover-search label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.discover-search select {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.published-author {
+  margin: -4px 0 8px;
+  font-size: 0.9rem;
+}
+
+.share-panel {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.share-panel h2 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.share-status {
+  margin: 12px 0;
+}
+
+.shared-card-list {
+  margin: 0;
+  padding-left: 1.4em;
+  line-height: 1.8;
 }

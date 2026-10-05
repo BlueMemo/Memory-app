@@ -243,3 +243,53 @@ create policy "Users manage their own review logs"
   with check (auth.uid() = user_id);
 
 create index if not exists srs_review_logs_user_review_idx on public.srs_review_logs (user_id, review desc);
+
+-- ---------- Shared decks ----------
+
+-- Published copies of learners' own decks. A published version never changes: publishing again adds a
+-- new row with the next version number for the same (author, source deck), and Discover shows the
+-- latest. `listed = false` means "only people with the link": the row is still readable by anyone who
+-- has its id (a random uuid), it just isn't listed or searchable.
+create table if not exists public.published_decks (
+  id uuid primary key default gen_random_uuid(),
+  author_id uuid not null references auth.users(id) on delete cascade,
+  source_deck_id text not null,
+  version int not null default 1 check (version >= 1),
+  listed boolean not null default true,
+  title text not null check (char_length(title) between 1 and 200),
+  description text not null default '',
+  language text not null,
+  kind text not null check (kind in ('ordered', 'unordered')),
+  card_count int not null default 0,
+  deck jsonb not null,
+  -- Lower-cased title, description and card text, for search.
+  search_text text not null default '',
+  created_at timestamptz not null default now(),
+  unique (author_id, source_deck_id, version)
+);
+
+alter table public.published_decks enable row level security;
+
+drop policy if exists "Published decks are publicly readable" on public.published_decks;
+create policy "Published decks are publicly readable"
+  on public.published_decks for select
+  using (true);
+
+drop policy if exists "Authors publish their own decks" on public.published_decks;
+create policy "Authors publish their own decks"
+  on public.published_decks for insert
+  with check (auth.uid() = author_id);
+
+drop policy if exists "Authors unpublish their own decks" on public.published_decks;
+create policy "Authors unpublish their own decks"
+  on public.published_decks for delete
+  using (auth.uid() = author_id);
+
+create index if not exists published_decks_listed_created_idx on public.published_decks (listed, created_at desc);
+
+-- The newest version of each published deck (what Discover lists and searches).
+create or replace view public.published_decks_latest
+  with (security_invoker = true) as
+  select distinct on (author_id, source_deck_id) *
+  from public.published_decks
+  order by author_id, source_deck_id, version desc;

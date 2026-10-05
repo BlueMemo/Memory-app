@@ -1,5 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="14" fill="#121417"/>
-  <path d="M20 52 V31 A12 12 0 0 1 44 31 V52" fill="none" stroke="#ecebe6" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="32" cy="40" r="5.5" fill="#6f9cff"/>
+  <g transform="translate(3.2 1.6) scale(0.9)">
+    <path d="M18.5 56 V28 A13.5 13.5 0 0 1 45.5 28 V56 Z" fill="#1e3a8a"/>
+    <g fill="#6f9cff">
+      <path d="M21 56 V40 H22.5 V38 H24 V40 H25 V38 H26.5 V40 H28 V56 Z"/>
+      <path d="M36 56 V40 H37.5 V38 H39 V40 H40 V38 H41.5 V40 H43 V56 Z"/>
+      <rect x="26" y="45" width="12" height="11"/>
+      <path d="M28.5 45 V36 H35.5 V45 Z"/>
+      <path d="M28 36 L32 29.5 L36 36 Z"/>
+    </g>
+    <path d="M29.8 56 V51.5 A2.2 2.2 0 0 1 34.2 51.5 V56 Z" fill="#1e3a8a"/>
+    <path d="M0 -10 L2.35 -3.24 L9.51 -3.09 L3.8 1.24 L5.88 8.09 L0 4 L-5.88 8.09 L-3.8 1.24 L-9.51 -3.09 L-2.35 -3.24 Z" fill="#f5c84c" transform="translate(23 28) scale(0.24)"/>
+    <path d="M0 -10 L2.35 -3.24 L9.51 -3.09 L3.8 1.24 L5.88 8.09 L0 4 L-5.88 8.09 L-3.8 1.24 L-9.51 -3.09 L-2.35 -3.24 Z" fill="#f5c84c" transform="translate(41 27) scale(0.24)"/>
+    <path d="M0 -10 L2.35 -3.24 L9.51 -3.09 L3.8 1.24 L5.88 8.09 L0 4 L-5.88 8.09 L-3.8 1.24 L-9.51 -3.09 L-2.35 -3.24 Z" fill="#f5c84c" transform="translate(32 21) scale(0.3)"/>
+    <path d="M16 56 V28 A16 16 0 0 1 48 28 V56" fill="none" stroke="#ecebe6" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M9 57.5 H55" stroke="#ecebe6" stroke-width="4" stroke-linecap="round"/>
+  </g>
 </svg>

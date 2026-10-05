@@ -113,8 +113,9 @@ export function practiceReducer(state: SessionState, action: Action): SessionSta
       };
 
     case "flip":
+      // Reveals the answer (the question stays visible above it); there's nothing to hide again.
       if (state.phase !== "revision" && state.phase !== "test") return state;
-      return { ...state, flipped: !state.flipped };
+      return state.flipped ? state : { ...state, flipped: true };
 
     case "grade": {
       // A card can only be graded after it has been flipped to check the answer.

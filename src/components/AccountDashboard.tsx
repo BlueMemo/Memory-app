@@ -321,7 +321,7 @@ function Details({ t, userId, username }: { t: T; userId: string; username: stri
       {username && <UsernameEditor t={t} userId={userId} username={username} />}
       <PasswordEditor t={t} />
       <div className="account-links">
-        <Link href="/settings" className="tile-open">
+        <Link href="/library/settings" className="tile-open">
           {t.studyOptions}
         </Link>
         <Link href="/library" className="tile-open">

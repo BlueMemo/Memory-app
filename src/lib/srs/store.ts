@@ -9,6 +9,7 @@ import {
   DEFAULT_SETTINGS,
   makeScheduler,
   normalizeSettings,
+  settingsForDeck,
   type Grade,
   type ReviewRecord,
   type SrsSettings,
@@ -244,6 +245,9 @@ export function setActiveUserForSrs(userId: string | null) {
 
 // ---------- public API ----------
 
+/** The signed-in user whose SRS data is loaded, or null for a guest. */
+export const getActiveSrsUserId = () => activeUserId;
+
 const current = () => (activeUserId ? remote : readLocal());
 
 function apply(next: SrsData) {
@@ -298,7 +302,7 @@ export async function setDeckSrsEnabled(deckId: string, enabled: boolean) {
 export async function reviewCard(deckId: string, cardId: string, grade: Grade, now = new Date()) {
   const data = current();
   const key = cardKey(deckId, cardId);
-  const scheduler = makeScheduler(data.settings);
+  const scheduler = makeScheduler(settingsForDeck(data.settings, deckId));
   const { card, record } = answerCard(scheduler, deckId, cardId, data.cards[key], grade, now);
   apply({ ...data, cards: { ...data.cards, [key]: card }, logs: [...data.logs, record] });
   const userId = activeUserId;
