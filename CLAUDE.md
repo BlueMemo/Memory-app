@@ -42,7 +42,21 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   new address; the page's hint text describes that, so **if you turn the setting off, update
   `emailChangeHint`/`emailChangeSent` in en.ts + sv.ts**. Confirmation links must be opened in the browser
   that requested the change (PKCE), same as sign-up links. No schema change; `profiles` doesn't store the
-  email, so nothing else to update. Not tested end to end yet.
+  email, so nothing else to update. **Tested end to end 2026-10-05**: both emails arrive (from
+  `no-reply@bluememo.eu`), the address changes after both are confirmed. After sending, the page shows a
+  4-step "check both inboxes" box (`emailSent*` keys, `.email-steps`) saying who emailed whom, to click both
+  links in the same browser, and that the address stays unchanged until both are confirmed.
+- **Custom email sending is live (2026-10-05)**: Supabase's built-in sender allowed only a few emails per
+  hour for the whole project (change-email testing hit "Too many emails have been sent"), so auth emails
+  now go through **Resend** (free tier ≈ 100 emails/day, 3,000/month; EU region) over SMTP. Domain
+  `bluememo.eu` is verified in Resend via DNS records added at Namecheap Advanced DNS (a `resend._domainkey`
+  TXT, CNAMEs `rsend` and `send`, optional `_dmarc` TXT); the existing Vercel `A @` and `CNAME www`
+  records are untouched. Supabase → Authentication → Emails → SMTP: sender `no-reply@bluememo.eu` / name
+  BlueMemo, host `smtp.resend.com`, port 465, user `resend`, password = a Resend API key (a secret: it
+  lives only in Supabase, never in the repo or chat; make a new one if it leaks). Supabase email rate limit
+  raised to 300/hour (Authentication → Rate Limits). Receiving is off (`no-reply@` can't get mail).
+  Upgrade Resend's plan when sign-ups outgrow 100/day. Email wording is still Supabase's default templates —
+  branded English/Swedish templates (Authentication → Email Templates) are a possible follow-up.
 - **Export my data, built (2026-10-05, branch `feature/export-data`)** — second of the GDPR trio. A
   "Download my data" button in the account page's details builds one JSON file in the browser
   (`lib/exportData.ts`, `ExportData` in `AccountDashboard.tsx`): account id/email/created date, row counts

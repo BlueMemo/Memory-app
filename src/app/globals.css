@@ -3554,3 +3554,21 @@ main [id] {
 .skill-node.available .skill-status {
   color: var(--accent);
 }
+
+.email-steps {
+  margin: 12px 0 0;
+  padding: 14px 18px;
+  max-width: 560px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 0.92rem;
+}
+
+.email-steps ol {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

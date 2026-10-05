@@ -666,6 +666,7 @@ function EmailEditor({ t, email }: { t: T; email: string }) {
   const [value, setValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -697,7 +698,7 @@ function EmailEditor({ t, email }: { t: T; email: string }) {
     }
     setEditing(false);
     setValue("");
-    setStatus({ ok: true, message: t.emailChangeSent.replace("{email}", next) });
+    setSentTo(next);
   };
 
   if (!editing) {
@@ -710,6 +711,7 @@ function EmailEditor({ t, email }: { t: T; email: string }) {
             className="link-button inline"
             onClick={() => {
               setStatus(null);
+              setSentTo(null);
               setEditing(true);
             }}
           >
@@ -717,6 +719,17 @@ function EmailEditor({ t, email }: { t: T; email: string }) {
           </button>
         </div>
         {status && <p className={status.ok ? "form-success" : "form-error"}>{status.message}</p>}
+        {sentTo && (
+          <div className="email-steps" role="status">
+            <strong>{t.emailSentTitle}</strong>
+            <ol>
+              <li>{t.emailSentStep1.replace("{new}", sentTo).replace("{old}", email)}</li>
+              <li>{t.emailSentStep2}</li>
+              <li>{t.emailSentStep3}</li>
+              <li>{t.emailSentStep4.replace("{new}", sentTo)}</li>
+            </ol>
+          </div>
+        )}
       </div>
     );
   }

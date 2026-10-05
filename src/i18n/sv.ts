@@ -823,7 +823,11 @@ export const sv: Dict = {
     emailChangeHint:
       "Vi skickar en bekräftelselänk till den nya adressen, och även till din nuvarande. E-postadressen ändras först när du har bekräftat. Öppna länkarna i samma webbläsare.",
     sendEmailChange: "Skicka bekräftelse",
-    emailChangeSent: "Kolla din inkorg: vi har skickat bekräftelselänkar till {email} (och till din nuvarande adress). E-postadressen ändras när du har bekräftat.",
+    emailSentTitle: "Nästan klart — kolla båda inkorgarna",
+    emailSentStep1: "BlueMemo (no-reply@bluememo.eu) har skickat ett bekräftelsemejl till din nya adress, {new}, och ett till din nuvarande, {old}.",
+    emailSentStep2: "Öppna båda mejlen och klicka på länken i vart och ett. Hittar du inget? Titta i skräpposten.",
+    emailSentStep3: "Öppna länkarna i samma webbläsare, där du är inloggad.",
+    emailSentStep4: "Din e-postadress förblir densamma tills båda är bekräftade. Därefter loggar du in med {new}.",
     errorEmailSame: "Det är redan din e-postadress.",
     errorEmailTaken: "Den e-postadressen används redan av ett annat konto.",
     errorEmailRateLimit: "För många e-postmeddelanden har skickats nyligen. Vänta en timme och försök igen.",
