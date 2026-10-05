@@ -226,7 +226,12 @@ export const sv: Dict = {
       },
     ],
     teamTitle: "Vilka vi är",
-    teamPlaceholder: "[Här kommer teamets berättelse: vilka ni är, varför ni startade och vart ni är på väg.]",
+    teamBody: [
+      "Vi är **David Munkhammar** och **Erik Nyabako**, två 19-åringar som just har tagit studenten. Vi bygger BlueMemo för att vi är övertygade om att ett bra minne inte är en medfödd talang, utan en teknik som vem som helst kan lära sig.",
+      "David har erfarenhet av minnestekniker och har samarbetat med **Jonas von Essen, tvåfaldig världsmästare i minne**. Där blev det tydligt hur mycket man kan komma ihåg med rätt metod, och hur få som faktiskt får lära sig den. David tog studenten med **A i alla ämnen**.",
+      "Erik tog studenten från **Affärsgymnasiet** och brinner för entreprenörskap. Han ser till att BlueMemo blir mer än en idé: en produkt som människor faktiskt vill använda, varje dag.",
+      "Tillsammans vill vi skapa **den ultimata plattformen för memorering**, där minnespalatset, active recall och spaced repetition fungerar ihop, så att du lär dig snabbare och minns längre. Vi har bara börjat, och vi vill gärna höra vad du tycker.",
+    ],
     contactTitle: "Kontakta oss",
     contactBody: "Frågor, idéer eller feedback? Vi hör gärna av dig:",
   },

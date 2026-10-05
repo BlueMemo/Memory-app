@@ -391,16 +391,14 @@ h2:not(.section-title) {
   line-height: 1.6;
 }
 
+.about-section p + p {
+  margin-top: 12px;
+}
+
 .about-section strong {
   color: var(--accent);
 }
 
-.placeholder {
-  padding: 14px 16px;
-  border: 2px dashed var(--line);
-  border-radius: 12px;
-  color: var(--muted);
-}
 
 .tags {
   display: flex;

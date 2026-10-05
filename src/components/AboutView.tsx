@@ -23,7 +23,9 @@ export function AboutView() {
 
       <section className="about-section">
         <h2>{t.teamTitle}</h2>
-        <p className="placeholder">{t.teamPlaceholder}</p>
+        {t.teamBody.map((p, i) => (
+          <p key={i}>{renderBold(p)}</p>
+        ))}
       </section>
 
       <section className="about-section" id="contact">

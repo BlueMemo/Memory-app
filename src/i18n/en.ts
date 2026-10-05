@@ -226,7 +226,12 @@ export const en = {
       },
     ],
     teamTitle: "Who we are",
-    teamPlaceholder: "[Team story goes here: who you are, why you started and where you're headed.]",
+    teamBody: [
+      "We're **David Munkhammar** and **Erik Nyabako**, two 19-year-olds who just finished upper secondary school. We're building BlueMemo because we're convinced that a great memory isn't a talent you're born with, but a technique anyone can learn.",
+      "David has experience with memory techniques and has worked with **Jonas von Essen, two-time World Memory Champion**. It showed how much you can remember with the right method, and how few people ever get to learn it. David graduated with **top grades (A) in every subject**.",
+      "Erik graduated from **Affärsgymnasiet**, a business-focused upper secondary school, and is driven by entrepreneurship. He makes sure BlueMemo becomes more than an idea: a product people actually want to use, every day.",
+      "Together we want to build **the ultimate platform for memorization**, where the memory palace, active recall and spaced repetition work together, so you learn faster and remember longer. We've only just started, and we'd love to hear what you think.",
+    ],
     contactTitle: "Contact us",
     contactBody: "Questions, ideas or feedback? We'd love to hear from you:",
   },

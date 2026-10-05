@@ -257,6 +257,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   password auth eventually anyway.
 - **Guest mode decision**: signing in is optional, not required. Guest mode (browser storage) stays the
   default for anyone who doesn't sign in; an account is an upgrade for cross-device sync, not a gate.
+- **Supabase project access (2026-10-05)**: the project belongs to Erik's Supabase account; David's
+  Supabase account isn't a member of its organization (CLI login works but sees no projects), so David
+  can't run `schema.sql`. Until Erik invites him (Organization settings → Team), Erik runs schema changes.
+  **Still pending**: re-running `schema.sql` for `published_decks` (sharing shows "not available" until then).
 - **Supabase project**: created under the project name "Memory App" (region: eu-west-1 / Ireland). Uses
   the newer Supabase "publishable key" format (`sb_publishable_...`), not the legacy JWT anon key — both
   work as the `NEXT_PUBLIC_SUPABASE_ANON_KEY` value, but new setup should use the publishable key from
@@ -288,7 +292,9 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   `components/AuthSync.tsx`) and transparently reads/writes Supabase when signed in, browser storage
   otherwise — callers never branch on auth state themselves. Mutators are `async` because the signed-in
   path awaits a network call.
-- The About page's "Who we are" text is a placeholder waiting for the team's own story.
+- The About page's "Who we are" text (`about.teamBody`) is the team's story: David and Erik, 19, David's
+  work with Jonas von Essen and top grades, Erik from Affärsgymnasiet, the "ultimate platform for
+  memorization" vision. Written 2026-10-05 from David's notes.
 - `src/i18n/`: site text. `en.ts` is the source of truth; `sv.ts` must have the same keys. Deck content has
   its own `language` and is never translated by the site.
 
