@@ -750,7 +750,11 @@ export const en = {
     emailChangeHint:
       "We'll send a confirmation link to the new address, and also to your current one. Your email only changes after you've confirmed. Open the links in this same browser.",
     sendEmailChange: "Send confirmation",
-    emailChangeSent: "Check your inbox: we sent confirmation links to {email} (and to your current address). Your email changes once you've confirmed.",
+    emailSentTitle: "Almost done — check both inboxes",
+    emailSentStep1: "BlueMemo (no-reply@bluememo.eu) has sent a confirmation email to your new address, {new}, and another to your current one, {old}.",
+    emailSentStep2: "Open both emails and click the link in each. Can't find one? Check your spam folder.",
+    emailSentStep3: "Open the links in this same browser, where you're signed in.",
+    emailSentStep4: "Your email stays the same until both are confirmed. After that, sign in with {new} from now on.",
     errorEmailSame: "That's already your email address.",
     errorEmailTaken: "That email address is already used by another account.",
     errorEmailRateLimit: "Too many emails have been sent recently. Please wait an hour and try again.",
