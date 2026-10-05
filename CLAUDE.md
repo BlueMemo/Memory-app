@@ -32,7 +32,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
-- **Account deletion, in progress on branch `feature/delete-account` (2026-10-05)** — first of the GDPR
+- **Account deletion, built and tested (2026-10-05, branch `feature/delete-account`)** — first of the GDPR
   trio (then export my data, change email). Signed-in users get a "Delete account" row in the account
   page's details; it expands to a warning plus "type your username to confirm". It calls the Postgres
   function `public.delete_my_account()` (end of `supabase/schema.sql`: `security definer`, executable only by
@@ -42,8 +42,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   `auth.users` with `on delete cascade` (decks, saves, results, settings, SRS data, profile, published decks
   and their copy records). Decision: shared decks are deleted too; copies others already added stay (they
   are independent user decks). **Requires re-running `schema.sql`**; until then the button shows "isn't set
-  up on the server yet". After deleting, the browser signs out locally and reloads `/`. Not tested against
-  a real account yet — test with a throwaway sign-up.
+  up on the server yet". After deleting, the browser signs out locally and reloads `/`. Tested end to end on
+  2026-10-05 with a throwaway account: deleted, signed out. `schema.sql` was re-run for it.
 - **Minimal study view, card tables, sharing options (2026-10-05, third round)**:
   - **Study screen** (practice revision/test and spaced-repetition review): no box around the card, just
     the question in smaller text and the answer underneath once shown (`.study-card`); no generic labels
