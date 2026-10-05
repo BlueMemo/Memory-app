@@ -72,9 +72,9 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
      all versions. `/shared/[id]` (`SharedDeckView.tsx`) shows a version (with a link to a newer one) and
      "Add a copy to my library" (a normal user deck, independent of later versions). Not built yet: saving
      a published deck *by reference* (only copies), reporting/moderation, popularity sorting.
-     Code: `lib/publishedDecks.ts`. **Pending: re-run `supabase/schema.sql`** (adds the `published_decks`
-     table and `published_decks_latest` view). Until then Discover says community decks aren't available
-     and the share panel says sharing isn't available.
+     Code: `lib/publishedDecks.ts`. Schema (`published_decks` table + `published_decks_latest`
+     view) was re-run 2026-10-05; without it Discover says community decks aren't available and the
+     share panel says sharing isn't available.
   7. **Spaced repetition settings moved to the Library** (`/library/settings`, `SrsSettingsView.tsx`;
      linked from the Library page, each deck's SRS panel with `?deck=<id>`, and the account page) — the
      header gear is now general settings (8). New-card waits: **Again 5m, Hard 10m** (settings `againStep`
@@ -148,7 +148,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
     (≈10 KB), not a Supabase Storage bucket — no bucket/policies to set up and nothing to test blind. The
     column has a length cap (60k chars) since profiles are publicly readable. **If profiles ever get
     listed in bulk (phase 4 sharing), move photos to Supabase Storage** so those lists stay light.
-  - *Pending*: re-run `supabase/schema.sql` (adds `profiles.avatar_url`). Until then everything else on
+  - *Done 2026-10-05*: `schema.sql` re-run (adds `profiles.avatar_url`). Before that everything else on
     the page works, `useUser()` falls back to selecting just the username, and saving a photo shows an
     error instead of silently doing nothing.
   - `useUser()` now returns `avatarUrl` too, and `notifyUsernameChanged` became `notifyProfileChanged`
@@ -277,7 +277,9 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 - **Supabase project access (2026-10-05)**: the project belongs to Erik's Supabase account; David's
   Supabase account isn't a member of its organization (CLI login works but sees no projects), so David
   can't run `schema.sql`. Until Erik invites him (Organization settings → Team), Erik runs schema changes.
-  **Still pending**: re-running `schema.sql` for `published_decks` (sharing shows "not available" until then).
+  **Schema status (2026-10-05)**: Erik re-ran the whole `schema.sql` in Supabase after the BlueMemo merge, so
+  every table (incl. `published_decks`, `avatar_url`, SRS and settings tables) exists. **Re-run it whenever
+  `supabase/schema.sql` changes.**
 - **Supabase project**: created under the project name "Memory App" (region: eu-west-1 / Ireland). Uses
   the newer Supabase "publishable key" format (`sb_publishable_...`), not the legacy JWT anon key — both
   work as the `NEXT_PUBLIC_SUPABASE_ANON_KEY` value, but new setup should use the publishable key from
