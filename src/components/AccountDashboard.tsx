@@ -29,6 +29,7 @@ import { notifyProfileChanged } from "@/lib/supabase/useUser";
 import { useNow } from "@/lib/useNow";
 import { useUserDecks } from "@/lib/userDecks";
 import { Avatar } from "./Avatar";
+import { PageTabs } from "./PageTabs";
 
 type T = Dict["account"];
 
@@ -53,18 +54,30 @@ export function AccountDashboard({ userId, email, createdAt, username, avatarUrl
       {!username && <ChooseUsername t={t} userId={userId} />}
       {activity.status === "error" && <p className="form-error">{t.activityError}</p>}
 
-      <h2 className="section-title">{t.glanceTitle}</h2>
+      <PageTabs
+        label={t.detailsTitle}
+        tabs={[
+          { id: "overview", title: t.glanceTitle },
+          { id: "activity", title: t.activityTitle },
+          { id: "stats", title: t.statsTitle },
+          { id: "achievements", title: t.achievementsTitle },
+          { id: "recent", title: t.recentTitle },
+          { id: "details", title: t.detailsTitle },
+        ]}
+      />
+
+      <h2 className="section-title" id="overview">{t.glanceTitle}</h2>
       <Stats t={t} activity={activity} />
 
-      <h2 className="section-title">{t.activityTitle}</h2>
+      <h2 className="section-title" id="activity">{t.activityTitle}</h2>
       <Activity t={t} activity={activity} lang={lang} />
 
       <StudyStatistics t={t} userId={userId} activity={activity} lang={lang} />
 
-      <h2 className="section-title">{t.recentTitle}</h2>
+      <h2 className="section-title" id="recent">{t.recentTitle}</h2>
       <Recent t={t} activity={activity} lang={lang} />
 
-      <h2 className="section-title">{t.detailsTitle}</h2>
+      <h2 className="section-title" id="details">{t.detailsTitle}</h2>
       <Details t={t} userId={userId} username={username} />
     </main>
   );
@@ -244,7 +257,7 @@ function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; 
 
   return (
     <>
-      <h2 className="section-title">{t.statsTitle}</h2>
+      <h2 className="section-title" id="stats">{t.statsTitle}</h2>
       {stats.totalReviews === 0 && stats.testsTaken === 0 ? (
         <p className="empty-state">{t.statsEmpty}</p>
       ) : (
@@ -264,7 +277,7 @@ function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; 
         </>
       )}
 
-      <h2 className="section-title">
+      <h2 className="section-title" id="achievements">
         {t.achievementsTitle} · {fill(t.achievementsCount, { done, total: list.length })}
       </h2>
       <ul className="achievements">

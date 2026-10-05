@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/i18n";
 import { renderBold } from "@/lib/rich-text";
 import { DEMO_HREF } from "./LandingView";
+import { PageTabs } from "./PageTabs";
 
 // /techniques: the memory palace, active recall and spaced repetition, each with what it is, how to
 // do it, and how BlueMemo uses it. Section ids are linked from the landing page's technique cards.
@@ -16,13 +17,7 @@ export function TechniquesView() {
         <p>{t.lead}</p>
       </section>
 
-      <nav className="techniques-toc" aria-label={t.title}>
-        {t.sections.map((s, i) => (
-          <a key={s.id} href={`#${s.id}`}>
-            {i + 1}. {s.title}
-          </a>
-        ))}
-      </nav>
+      <PageTabs label={t.title} tabs={t.sections.map((s, i) => ({ id: s.id, title: `${i + 1}. ${s.title}` }))} />
 
       {t.sections.map((s, i) => (
         <section key={s.id} id={s.id} className="technique">

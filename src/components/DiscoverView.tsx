@@ -7,6 +7,7 @@ import { dictionaries, languages, useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
 import { deckSearchText, matchesQuery, searchPublishedDecks, type PublishedDeck, type SearchFilters } from "@/lib/publishedDecks";
 import { DeckTile } from "./DeckTile";
+import { PageTabs } from "./PageTabs";
 
 const SEARCH_DELAY_MS = 300;
 
@@ -61,7 +62,15 @@ export function DiscoverView() {
         </label>
       </div>
 
-      <h2 className="section-title">{t.officialDecks}</h2>
+      <PageTabs
+        label={t.searchLabel}
+        tabs={[
+          { id: "official", title: t.officialDecks },
+          { id: "community", title: t.communityDecks },
+        ]}
+      />
+
+      <h2 className="section-title" id="official">{t.officialDecks}</h2>
       {official.length === 0 ? (
         <p className="empty-state">{t.noResults}</p>
       ) : (
@@ -74,7 +83,7 @@ export function DiscoverView() {
         </ul>
       )}
 
-      <h2 className="section-title">{t.communityDecks}</h2>
+      <h2 className="section-title" id="community">{t.communityDecks}</h2>
       {community.status === "loading" ? (
         <p className="empty-state">{t.searching}</p>
       ) : community.status === "error" ? (

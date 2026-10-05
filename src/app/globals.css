@@ -57,7 +57,8 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  /* clip, not hidden: hidden would turn body into a scroll container and break position: sticky. */
+  overflow-x: clip;
 }
 
 body {
@@ -2535,29 +2536,9 @@ ul.overview-list {
 
 /* ---------- Memory techniques (/techniques) ---------- */
 
-.techniques-toc {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: -8px 0 8px;
-}
-
-.techniques-toc a {
-  padding: 7px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--ink);
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.techniques-toc a:hover {
-  border-color: var(--accent);
-}
-
 .technique {
   margin-top: 48px;
-  scroll-margin-top: 24px;
+  scroll-margin-top: 72px;
   line-height: 1.6;
 }
 
@@ -3082,4 +3063,74 @@ kbd {
 .card-form a.btn {
   display: inline-block;
   text-decoration: none;
+}
+
+/* ---------- Section tabs on long pages (About, Memory techniques) ---------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+:root[data-motion="reduce"] {
+  scroll-behavior: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.page-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 -16px 8px;
+  padding: 10px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.page-tabs a {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.page-tabs a:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.page-tabs a.active {
+  color: var(--ink);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.about-section,
+main [id] {
+  scroll-margin-top: 72px;
+}
+
+/* On phones: one row you can swipe, fading out at the edge so it's clear there are more tabs. */
+@media (max-width: 640px) {
+  .page-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    mask-image: linear-gradient(to right, #000 85%, transparent);
+  }
+
+  .page-tabs a {
+    flex-shrink: 0;
+  }
 }

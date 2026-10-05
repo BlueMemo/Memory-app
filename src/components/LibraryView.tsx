@@ -20,6 +20,7 @@ import { CreateDeckTile } from "./CreateDeckTile";
 import { DeckTile } from "./DeckTile";
 import { DeleteDeckButton } from "./DeleteDeckButton";
 import { GearIcon } from "./GearIcon";
+import { PageTabs } from "./PageTabs";
 import { isTyping } from "./PracticeSession";
 import { ImportGuestDataPrompt } from "./ImportGuestDataPrompt";
 import { SrsCounts } from "./ReviewSession";
@@ -100,6 +101,11 @@ export function LibraryView() {
 
       <ImportGuestDataPrompt />
 
+      <PageTabs
+        label={t.title}
+        tabs={[{ id: "due", title: t.dueTitle }, ...sections.map((section) => ({ id: `group-${section.key}`, title: section.title }))]}
+      />
+
       <DueForReview decks={[...userDecks, ...officialResolved]} />
 
       <div className="library-toolbar">
@@ -119,7 +125,7 @@ export function LibraryView() {
       </div>
 
       {sections.map((section) => (
-        <section key={section.key}>
+        <section key={section.key} id={`group-${section.key}`}>
           <h2 className="section-title">{section.title}</h2>
           {section.decks.length === 0 && !section.withCreate ? (
             <div className="empty-state">
@@ -270,7 +276,7 @@ function DueForReview({ decks }: { decks: Deck[] }) {
 
   return (
     <>
-      <h2 className="section-title">{dict.library.dueTitle}</h2>
+      <h2 className="section-title" id="due">{dict.library.dueTitle}</h2>
       {due.length === 0 ? (
         <p className="empty-state">{dict.library.dueEmpty}</p>
       ) : (

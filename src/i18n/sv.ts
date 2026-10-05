@@ -209,18 +209,22 @@ export const sv: Dict = {
     lead: "Vi bygger en plats där du kan öva på att memorera vad som helst med visualisering, som minnesmästare gör, men enkelt nog för vardagligt lärande.",
     sections: [
       {
+        id: "technique",
         title: "Tekniken",
         body: "I stället för att upprepa fakta tills de fastnar gör du om varje sak du vill komma ihåg till en levande, ofta absurd bild: ett **associationsobjekt**. Hjärnan håller fast vid bilder och berättelser mycket bättre än vid listor.",
       },
       {
+        id: "memory-routes",
         title: "Minnesvägar",
         body: "När ordningen spelar roll, som rankningar, tidslinjer eller kroppens skelett, placerar du bilderna en i taget längs en **väg genom en plats du känner väl**, till exempel ditt hem. När du går vägen i tanken kommer de tillbaka i rätt ordning.",
       },
       {
+        id: "associations",
         title: "Associationer",
         body: "När ordningen inte spelar roll, som ord på ett nytt språk, får varje kort **en egen scen** med en ledtråd som låter likt. Föreställ dig scenen så följer svaret.",
       },
       {
+        id: "mostly-text",
         title: "Varför mest text?",
         body: "Vi använder medvetet väldigt få bilder. **Bilderna du skapar i din egen fantasi** är de du minns bäst.",
       },

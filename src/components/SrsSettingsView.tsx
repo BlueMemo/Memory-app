@@ -24,6 +24,7 @@ import {
 import { AUTO_OPTIMIZE_EVERY, countReviews, MIN_REVIEWS_TO_OPTIMIZE, optimizeParameters } from "@/lib/srs/optimize";
 import { updateSrsSettings, useSrsData, useSrsSignedIn, useSrsStatus } from "@/lib/srs/store";
 import { useUserDecks } from "@/lib/userDecks";
+import { PageTabs } from "./PageTabs";
 import type { Deck } from "@/lib/types";
 
 type T = ReturnType<typeof useI18n>["t"]["srsSettings"];
@@ -72,6 +73,15 @@ export function SrsSettingsView({ deckId }: { deckId: string | null }) {
           </select>
         </div>
       )}
+
+      <PageTabs
+        label={deck ? t.deckTitle : t.title}
+        tabs={[
+          { id: "deck-options", title: t.deckSection },
+          { id: "srs-options", title: t.srsSection },
+          { id: "optimizer", title: t.optimizerTitle },
+        ]}
+      />
 
       {/* Remount when the source of the values changes (signing in or out, or another deck), so the form
           starts from the right values, but not on our own saves, which would wipe the "Saved." note. */}
@@ -135,6 +145,7 @@ function OptionsForm({ settings, deck, t }: { settings: SrsSettings; deck: Deck 
   return (
     <form
       className="settings-form"
+      id={deck ? undefined : "srs-options"}
       onSubmit={(e) => {
         e.preventDefault();
         if (valid) void save();
@@ -142,7 +153,7 @@ function OptionsForm({ settings, deck, t }: { settings: SrsSettings; deck: Deck 
     >
       {deck && (
         <fieldset className="plain-fieldset deck-only">
-          <h2>{t.deckSection}</h2>
+          <h2 id="deck-options">{t.deckSection}</h2>
           <label className="check-field">
             <input type="checkbox" checked={form.chapters} onChange={(e) => set({ chapters: e.target.checked })} />
             <span>
@@ -155,7 +166,7 @@ function OptionsForm({ settings, deck, t }: { settings: SrsSettings; deck: Deck 
             <input id="exam-date" type="date" value={form.examDate ?? ""} onChange={(e) => set({ examDate: e.target.value || null })} />
             <span className="hint">{t.examDateHint}</span>
           </div>
-          <h2>{t.srsSection}</h2>
+          <h2 id="srs-options">{t.srsSection}</h2>
         </fieldset>
       )}
       {deck ? (
@@ -253,7 +264,7 @@ function Optimizer({ settings, signedIn, t }: { settings: SrsSettings; signedIn:
   }
 
   return (
-    <section className="settings-form optimizer">
+    <section className="settings-form optimizer" id="optimizer">
       <h2>{t.optimizerTitle}</h2>
       <p className="muted">{t.optimizerLead}</p>
       <p>

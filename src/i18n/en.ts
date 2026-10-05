@@ -209,18 +209,22 @@ export const en = {
     lead: "We're building a place to practise memorizing anything with visualization, the way memory champions do, made simple enough for everyday learning.",
     sections: [
       {
+        id: "technique",
         title: "The technique",
         body: "Instead of repeating facts until they stick, you turn each thing you want to remember into a vivid, often absurd image: an **association object**. Your brain holds on to pictures and stories far better than to lists.",
       },
       {
+        id: "memory-routes",
         title: "Memory routes",
         body: "When order matters, like rankings, timelines or the bones of the body, you place the images one by one along a **route through a place you know well**, such as your home. Walking the route in your mind brings them back in order.",
       },
       {
+        id: "associations",
         title: "Associations",
         body: "When order doesn't matter, like words in a new language, each card gets **its own scene** with a sound-alike hint. Picture the scene and the answer follows.",
       },
       {
+        id: "mostly-text",
         title: "Why mostly text?",
         body: "We deliberately use very few pictures. **The images you create in your own imagination** are the ones you remember best.",
       },
