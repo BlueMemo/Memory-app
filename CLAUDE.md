@@ -26,6 +26,18 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   through a pull request whose Checks (`.github/workflows/checks.yml`) passed on a branch that is up to date
   with `main`. If `main` moved meanwhile, update the branch (`gh pr update-branch` or merge `main` in) and
   let the checks run again. Keep branches short-lived; merge small and often.
+- **GitHub CLI (`gh`) so Claude can open and merge pull requests (set up 2026-10-07)**: before this, Claude
+  could only `git push`, which `main`'s protection rejects, so the user had to click through GitHub by hand.
+  Installed on Erik's computer with `winget install GitHub.cli` (`C:\Program Files\GitHub CLI\gh.exe`; a
+  shell opened before the install doesn't have it on PATH, so use the full path) and signed in with
+  `gh auth login --web` as `ErikNyabako` (scopes `repo`, `read:org`, `gist`; revoke at
+  github.com/settings/applications). Usual flow once a branch is pushed: `gh pr create --fill`, then
+  `gh pr checks --watch`, then `gh pr merge --merge` — **merge only when the user says so** ("merge it and
+  push it"). `main`'s protection: the check named `checks` must pass, the branch must be up to date with
+  `main`, applies to admins, no approvals needed. If `main` moved, `gh pr update-branch` (or merge `main` in)
+  and wait for the checks again. The other partner's computer needs the same one-time setup
+  (`winget install GitHub.cli`, `gh auth login`) for his Claude to do this; until then use the web page the
+  push prints (`.../pull/new/<branch>`).
 - **Shared files that collide**: `src/i18n/en.ts` + `sv.ts`, `globals.css`, `CLAUDE.md`, `AccountDashboard.tsx`.
   When resolving a conflict keep *both* sides' additions; never force-push.
 - **Database**: one shared Supabase project. A change to `supabase/schema.sql` takes effect for everyone the
