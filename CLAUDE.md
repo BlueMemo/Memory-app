@@ -48,6 +48,23 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   their links get the general picture. Preview text is English (server-rendered, before the visitor's
   language is known). Apps cache previews: to see a change, use a new link (e.g. add `?v=2`) or
   Facebook's Sharing Debugger (which also refreshes WhatsApp/Instagram).
+- **Visitor statistics + problem reports (2026-10-06, branch `feature/analytics-errors`)** — so the test
+  group's problems reach the team:
+  - **Problem reports** (`problem_reports` table in `schema.sql`, `lib/problemReports.ts`): browser errors
+    nobody caught (`src/instrumentation-client.ts`), pages that crash (`app/error.tsx`, which also shows
+    "Try again" + report), server errors (`src/instrumentation.ts`, `onRequestError`), and messages from
+    **Report a problem** (footer link + crash page, `ReportProblem.tsx`). Each has kind, message,
+    detail/stack, path (never the query string), browser, site version (commit) and the user id when
+    signed in. Production only for automatic ones; max 5 per page load, deduped; extension/cross-origin
+    noise ignored. Anyone may insert, only the team reads (Supabase table editor) — learners can read
+    their own, and they're in "Download my data". Kept 90 days (an insert trigger deletes older rows).
+    **Requires re-running `schema.sql`** — until then reports fail quietly, "Report a problem" says it
+    couldn't send; "Download my data" leaves the table out (`optional` in `EXPORT_TABLES`).
+  - **Visitor statistics**: Vercel Web Analytics (`@vercel/analytics`, `SiteAnalytics.tsx`) — cookieless,
+    nothing stored on the device, so still no consent banner. Query strings dropped and own-deck ids masked
+    before sending. **Must be switched on in Vercel** (project → Analytics → Enable); until then the script
+    just isn't served. Hobby plan: page views only, no custom events.
+  - Privacy policy updated (new "Visitor statistics and problem reports" section, legal basis 6.1 f).
 - **Legal pages (2026-10-06, branch `feature/legal-pages`)**: `/privacy` (privacy policy), `/terms` (terms of
   use) and `/legal` ("Who runs BlueMemo"), one data-driven `LegalView.tsx` with the texts in i18n `legal`
   (`**bold**`, `[label](/path)` links and `{email}` → `CONTACT_EMAIL`, via `renderLegal`). A `SiteFooter`

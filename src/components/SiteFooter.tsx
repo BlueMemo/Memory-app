@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/i18n";
+import { ReportProblemButton } from "./ReportProblem";
 
 /** Links to the legal pages at the bottom of every page, except while studying (the study bar is there). */
 export function SiteFooter() {
@@ -16,6 +17,7 @@ export function SiteFooter() {
         <Link href="/terms">{t.footerTerms}</Link>
         <Link href="/legal">{t.footerOperator}</Link>
         <Link href="/about#contact">{t.footerContact}</Link>
+        <ReportProblemButton className="link-button footer-report" />
       </nav>
       <span>© {new Date().getFullYear()} BlueMemo</span>
     </footer>

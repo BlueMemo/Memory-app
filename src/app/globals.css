@@ -3665,3 +3665,14 @@ main [id] {
 .tabs a.tab-highlight:hover {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
+.site-footer .footer-report {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.site-footer .footer-report:hover {
+  color: var(--ink);
+}
