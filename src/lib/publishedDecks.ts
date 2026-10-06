@@ -30,6 +30,8 @@ export interface PublishedDeck {
   deckSettings: PublishedDeckSettings | null;
   /** Copies of all versions together, for "Most popular". */
   copies: number;
+  /** Published by a moderator as an official BlueMemo deck (shown under Official decks, as made by BlueMemo). */
+  official: boolean;
   /** A moderator hid it: only its author and moderators can still open it. */
   hidden: boolean;
   /** Why it was hidden, as written by the moderator. */
@@ -54,6 +56,8 @@ export interface PublishOptions {
   showAvatar: boolean;
   /** Include the author's settings for the deck (its preset's FSRS options and new cards a day). */
   includeSettings: boolean;
+  /** Moderators only: publish it as an official BlueMemo deck (always listed). */
+  official: boolean;
 }
 
 interface Row {
@@ -69,10 +73,11 @@ interface Row {
   total_copies?: number | null;
   hidden?: boolean | null;
   hidden_reason?: string | null;
+  official?: boolean | null;
   deck: Deck;
 }
 
-const COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, show_avatar, deck_settings, copy_count, hidden, hidden_reason, deck";
+const COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, show_avatar, deck_settings, copy_count, hidden, hidden_reason, official, deck";
 /** The latest-version view also has the popularity across versions. */
 const LATEST_COLUMNS = `${COLUMNS}, total_copies`;
 /**
@@ -109,7 +114,7 @@ const toPublished = (r: Row, people: Authors): PublishedDeck => ({
   id: r.id,
   authorId: r.author_id,
   author: people[r.author_id]?.username ?? null,
-  avatarUrl: r.show_avatar === false ? null : (people[r.author_id]?.avatarUrl ?? null),
+  avatarUrl: r.show_avatar === false || r.official === true ? null : (people[r.author_id]?.avatarUrl ?? null),
   showAvatar: r.show_avatar !== false,
   sourceDeckId: r.source_deck_id,
   version: r.version,
@@ -117,6 +122,7 @@ const toPublished = (r: Row, people: Authors): PublishedDeck => ({
   createdAt: r.created_at,
   deckSettings: r.deck_settings ?? null,
   copies: r.total_copies ?? r.copy_count ?? 0,
+  official: r.official === true,
   hidden: r.hidden === true,
   hiddenReason: r.hidden_reason ?? null,
   deck: r.deck,
@@ -135,7 +141,6 @@ const searchWords = (query: string) =>
 export async function searchPublishedDecks(filters: SearchFilters, limit = 30): Promise<PublishedDeck[] | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return [];
-  if (filters.type === "official") return [];
   const words = searchWords(filters.query);
   let authorIds: string[] = [];
   if (words.length) {
@@ -145,6 +150,9 @@ export async function searchPublishedDecks(filters: SearchFilters, limit = 30): 
 
   const run = (columns: string, withPopularity: boolean) => {
     let request = supabase.from("published_decks_latest").select(columns).eq("listed", true);
+    // The official flag only exists once schema.sql has it (the fallback run below doesn't filter on it).
+    if (withPopularity && filters.type === "official") request = request.eq("official", true);
+    if (withPopularity && filters.type === "community") request = request.eq("official", false);
     if (filters.language !== "all") request = request.eq("language", filters.language);
     if (filters.type === "ordered" || filters.type === "unordered") request = request.eq("kind", filters.type);
     if (words.length) {
@@ -161,8 +169,10 @@ export async function searchPublishedDecks(filters: SearchFilters, limit = 30): 
     return request.limit(limit);
   };
   let { data, error } = await run(LATEST_COLUMNS, true);
+  const fullSchema = !error;
   if (error) ({ data, error } = await run(LEGACY_COLUMNS, false));
   if (error) return null; // e.g. the table doesn't exist yet: schema.sql hasn't been run
+  if (filters.type === "official" && !fullSchema) return []; // no official decks before the column exists
   // Hidden decks can still be read by their author; they don't belong in anyone's Discover.
   const rows = (data as unknown as Row[]).filter((r) => r.hidden !== true);
   const people = await authors(rows.map((r) => r.author_id));
@@ -222,7 +232,13 @@ export async function publishDeck(deck: Deck, options: PublishOptions, settings?
     deck: snapshot,
     search_text: deckSearchText(deck),
   };
+  // Only sent when on: databases from before the column simply don't get it. Official decks are always listed.
+  if (options.official) {
+    row.official = true;
+    row.listed = true;
+  }
   let { data, error } = await insert(row, COLUMNS);
+  if (error && options.official) return null; // never quietly publish an "official" deck as an ordinary one
   if (error) {
     // An older database without the publish-option columns: publish without them.
     const legacy = { ...row };

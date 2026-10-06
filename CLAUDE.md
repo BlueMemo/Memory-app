@@ -36,6 +36,35 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Moderator integrations (2026-10-07, branch `feature/moderator-integrations`; not tested yet)**:
+  - **Official decks are now published from the site** (replaces writing them as TypeScript in `src/decks/`,
+    which still holds the original two, the landing demo and the tests). In a moderator's own deck's
+    settings → Share, a **"Publish as an official BlueMemo deck"** checkbox (`SharePanel.tsx`, only shown
+    when `useIsAdmin`). It sets `published_decks.official` (always listed). The insert policy
+    `Authors publish their own decks` only lets moderators set `official`. Discover lists these under
+    **Official decks** after the built-in ones (the Official / Community type filter and the two sections
+    split on the flag, `searchPublishedDecks` + `DiscoverView`), tagged "Official" and "by BlueMemo" (no
+    personal avatar; same on `/shared/[id]`). **Limitation (v1)**: like community decks they are opened
+    at `/shared/<id>` and learners "Add a copy to my library" — an independent copy, not a saved reference,
+    so a new official version does not update copies (consistent with "published versions are immutable").
+    A later step could make official decks saved *by reference* (they'd update for everyone) and give them
+    stable URLs like `/decks/<slug>`; then the built-in TS decks could move to the database too.
+  - **Problem reports now work and moderators can read them.** "Report a problem" failed because the
+    `problem_reports` table did not exist in Supabase (the schema Erik last ran came from a branch made
+    before that feature was merged). Fixed by re-running `schema.sql`; the failure reason is now also logged
+    to the browser console. `/admin/reports` has a **"Problems reported by users"** section: messages from
+    users (default), caught errors, or everything; **Mark handled / Reopen**, **Delete**, technical
+    details (browser, error stack) folded away; `problem_reports.handled_at` is the new column and
+    moderators got select/update/delete policies. The "Moderation (n open)" link on the account page now
+    counts open deck reports plus unhandled user messages (not caught errors, which are noisy).
+  - **Bug found and fixed (signed-out visitors couldn't see ANY published deck)**: the moderation release
+    made the read policy on `published_decks` call `public.is_admin()`, but `is_admin()` had been revoked
+    from the `anon` role, so every read by a signed-out visitor failed with "permission denied for function
+    is_admin" (Discover's community list, `/shared/<id>` links). It now grants execute to `anon` too (it only
+    ever answers "are you a moderator", which is "no" for a visitor). **Lesson: test RLS changes signed out
+    as well as signed in** (a quick check without logging in: `curl` the REST endpoint with the publishable
+    key). **`schema.sql` must be re-run for all of this**; the one-line emergency fix for the
+    signed-out bug alone is `grant execute on function public.is_admin() to anon;`.
 - **Automatic checks on GitHub (2026-10-07, branch `feature/fix-github`)**: `.github/workflows/checks.yml`
   runs typecheck, lint, tests and a production build on every push to any branch and on pull requests
   (Node from `.nvmrc`). `npm run typecheck` now runs `next typegen` first, since a fresh clone has no

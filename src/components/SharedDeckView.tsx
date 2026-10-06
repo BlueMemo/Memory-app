@@ -62,6 +62,7 @@ export function SharedDeckView({ id }: { id: string }) {
         {t.back}
       </Link>
       <div className="tags deck-tags">
+        {published.official && <span className="tag accent">{dict.decks.official}</span>}
         <span className="tag">{ordered ? dict.decks.ordered : dict.decks.unordered}</span>
         <span className="tag">{fill(dict.decks.cardCount, { n: deck.cards.length })}</span>
         <span className="tag">{dictionaries[deck.language].languageName}</span>
@@ -69,8 +70,8 @@ export function SharedDeckView({ id }: { id: string }) {
       </div>
       <h1 className="deck-title">{deck.title}</h1>
       <p className="muted published-author">
-        <Avatar url={published.avatarUrl} name={published.author} size={28} seed={published.authorId} />
-        {fill(t.by, { author: published.author ?? t.unknownAuthor })}
+        {!published.official && <Avatar url={published.avatarUrl} name={published.author} size={28} seed={published.authorId} />}
+        {published.official ? fill(dict.discover.byAuthor, { author: dict.siteName }) : fill(t.by, { author: published.author ?? t.unknownAuthor })}
         {published.copies > 0 && <span> · {fill(dict.discover.copies, { n: published.copies })}</span>}
       </p>
       {deck.description && <p className="deck-description">{deck.description}</p>}

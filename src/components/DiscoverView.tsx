@@ -25,7 +25,10 @@ export function DiscoverView() {
     .sort((a, b) => (filters.sort === "az" ? a.title.localeCompare(b.title, lang) : filters.sort === "za" ? b.title.localeCompare(a.title, lang) : 0));
   const showOfficial = filters.type !== "community";
   const showCommunity = filters.type !== "official";
-  const community = useCommunitySearch(filters);
+  const published = useCommunitySearch(filters);
+  // Decks a moderator published as official are listed with the official ones; the rest are community decks.
+  const publishedOfficial = published.decks.filter((p) => p.official);
+  const community = { ...published, decks: published.decks.filter((p) => !p.official) };
   const searching = filters.query.trim() !== "" || filters.language !== "all" || filters.type !== "all";
 
   return (
@@ -87,13 +90,18 @@ export function DiscoverView() {
       {showOfficial && (
         <>
       <h2 className="section-title" id="official">{t.officialDecks}</h2>
-      {official.length === 0 ? (
+      {official.length === 0 && publishedOfficial.length === 0 ? (
         <p className="empty-state">{t.noResults}</p>
       ) : (
         <ul className="deck-grid">
           {official.map((deck) => (
             <li key={deck.id}>
               <DeckTile deck={deck} />
+            </li>
+          ))}
+          {publishedOfficial.map((p) => (
+            <li key={p.id}>
+              <PublishedTile published={p} />
             </li>
           ))}
         </ul>
@@ -150,6 +158,7 @@ function PublishedTile({ published }: { published: PublishedDeck }) {
   return (
     <article className="deck-tile">
       <div className="tags">
+        {published.official && <span className="tag accent">{dict.decks.official}</span>}
         <span className="tag">{deck.kind === "ordered" ? dict.decks.ordered : dict.decks.unordered}</span>
         <span className="tag">{dictionaries[deck.language].languageName}</span>
       </div>
@@ -157,8 +166,8 @@ function PublishedTile({ published }: { published: PublishedDeck }) {
         <Link href={href}>{deck.title}</Link>
       </h3>
       <p className="muted published-author">
-        <Avatar url={published.avatarUrl} name={published.author} size={22} seed={published.authorId} />
-        {fill(dict.discover.byAuthor, { author: published.author ?? dict.sharedDeck.unknownAuthor })}
+        {!published.official && <Avatar url={published.avatarUrl} name={published.author} size={22} seed={published.authorId} />}
+        {fill(dict.discover.byAuthor, { author: published.official ? dict.siteName : (published.author ?? dict.sharedDeck.unknownAuthor) })}
         {published.copies > 0 && <span> · {fill(dict.discover.copies, { n: published.copies })}</span>}
       </p>
       {deck.description && <p>{deck.description}</p>}
