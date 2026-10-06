@@ -848,6 +848,272 @@ export const en = {
     deleteError: "We couldn't delete your account. Please try again, or contact us if it keeps failing.",
     deleteNotReady: "Account deletion isn't set up on the server yet (supabase/schema.sql needs re-running).",
   },
+  legal: {
+    footerPrivacy: "Privacy",
+    footerTerms: "Terms",
+    footerOperator: "Who runs BlueMemo",
+    footerContact: "Contact",
+    updated: "Last updated: {date}",
+    updatedDate: "6 October 2026",
+    signUpConsent: "By creating an account you accept the [terms of use](/terms) and confirm that you have read the [privacy policy](/privacy).",
+    shareTerms: "Publishing lets others copy and use this deck as described in the [terms of use](/terms#your-content). Only publish what you have the right to share.",
+    privacy: {
+      title: "Privacy policy",
+      lead: "What we collect, why, and what you can do about it. Short version: we only keep what's needed to run your account, we don't track you, and you can download or delete everything yourself.",
+      sections: [
+        {
+          id: "who",
+          title: "Who is responsible",
+          body: [
+            "BlueMemo is run by **David Munkhammar** and **Erik Nyabako** in Sweden, who are jointly responsible (\"controllers\") for the personal data described here. More on the [Who runs BlueMemo](/legal) page.",
+            "Questions about your data: {email}",
+          ],
+          list: [],
+        },
+        {
+          id: "without-account",
+          title: "Using BlueMemo without an account",
+          body: [
+            "You can use BlueMemo without signing up. Then your decks, saved decks, study progress and settings are kept **only in your own browser** (local storage) and never reach us. Clearing your browser's site data removes them.",
+          ],
+          list: [],
+        },
+        {
+          id: "what",
+          title: "What we collect with an account",
+          body: ["When you create an account we store:"],
+          list: [
+            "**Email address and password.** Used to sign you in and to send account emails (confirming your address, resetting your password). The password is stored only in hashed form; we can't read it.",
+            "**Username** and, if you add one, a **profile picture.**",
+            "**Your decks and library:** decks you create or import, decks you save, your own edits of saved decks.",
+            "**Your studying:** when you review each card and how you answered, test results and your settings. This is what spaced repetition and your statistics are calculated from.",
+            "**Decks you publish**, and which published decks you copy (to count how popular a deck is).",
+          ],
+        },
+        {
+          id: "why",
+          title: "Why we use it",
+          body: [
+            "We use this data **only to provide the service you signed up for**: signing in, keeping your decks in sync across devices, scheduling reviews and showing your progress. The legal basis is that it's needed to fulfil our agreement with you (GDPR article 6.1 b).",
+            "We **don't** sell your data, show ads, use analytics or tracking tools, or send newsletters. If that ever changes, we'll update this policy and ask first where the law requires it.",
+          ],
+          list: [],
+        },
+        {
+          id: "public",
+          title: "What other people can see",
+          body: [
+            "Your **username** is public: it's shown next to decks you publish. If you choose \"Show my profile photo\" when publishing, your picture is shown too. **Published decks** can be seen by anyone with the link, and by everyone in Discover if you list them. Your email address, your other decks and your study history are never shown to others.",
+          ],
+          list: [],
+        },
+        {
+          id: "processors",
+          title: "Who we share it with",
+          body: ["We use two service providers that process data on our behalf, under data processing agreements:"],
+          list: [
+            "**Supabase** stores the database and handles sign-in and account emails. The data is stored in the EU (Ireland).",
+            "**Vercel** hosts the website. Like every web server, it handles your IP address and technical request data when you visit, and briefly keeps logs.",
+          ],
+        },
+        {
+          id: "transfers",
+          title: "Transfers outside the EU",
+          body: [
+            "Both providers are US companies. Where data can be accessed from outside the EU/EEA, the transfer is protected by the European Commission's standard contractual clauses and, where the company is certified, the EU–US Data Privacy Framework.",
+            "If you email us, your message is handled by our email provider (Google).",
+          ],
+          list: [],
+        },
+        {
+          id: "storage",
+          title: "Cookies and browser storage",
+          body: [
+            "We only use what's strictly needed for the site to work, so no cookie banner is required:",
+          ],
+          list: [
+            "**Sign-in cookies**, set when you sign in, to keep you signed in.",
+            "**Local storage** in your browser for your language, theme and layout choices, and, without an account, your decks and progress.",
+          ],
+        },
+        {
+          id: "retention",
+          title: "How long we keep it",
+          body: [
+            "We keep your data **for as long as you have an account.** When you delete your account, everything connected to it is deleted at once: profile, decks, study history, settings and decks you've published. Copies other people already made of your published decks are theirs and stay. Deleted data can remain in our providers' backups for a short time before they're overwritten.",
+          ],
+          list: [],
+        },
+        {
+          id: "rights",
+          title: "Your rights",
+          body: ["Under GDPR you have the right to:"],
+          list: [
+            "**Access and move your data:** \"Download my data\" on the account page gives you everything as a file.",
+            "**Correct it:** change your username, picture, email and password on the account page, and edit your decks at any time.",
+            "**Erase it:** \"Delete account\" on the account page deletes everything.",
+            "**Object or restrict** how we use your data, by emailing us.",
+            "**Complain** to the Swedish Authority for Privacy Protection (IMY, imy.se) if you think we handle your data wrongly. We'd appreciate the chance to fix it first.",
+          ],
+        },
+        {
+          id: "children",
+          title: "Age",
+          body: ["You need to be at least **13 years old** to create an account."],
+          list: [],
+        },
+        {
+          id: "changes",
+          title: "Changes",
+          body: [
+            "If we change this policy, we'll update the date at the top, and tell account holders by email or on the site if the change is significant.",
+          ],
+          list: [],
+        },
+      ],
+    },
+    terms: {
+      title: "Terms of use",
+      lead: "The rules for using BlueMemo, written to be read. The short version: use it to learn, only share what's yours to share, and be decent to others.",
+      sections: [
+        {
+          id: "agreement",
+          title: "The agreement",
+          body: [
+            "These terms are an agreement between you and the people who run BlueMemo (see [Who runs BlueMemo](/legal)). By using the site you accept them; by creating an account you accept them explicitly. How we handle personal data is described in the [privacy policy](/privacy).",
+          ],
+          list: [],
+        },
+        {
+          id: "service",
+          title: "The service",
+          body: [
+            "BlueMemo is a free website for learning with memory techniques and spaced repetition. We're a small team developing it as we go, so features can change, and the service can sometimes be unavailable. We can't promise it will always be available or error-free.",
+          ],
+          list: [],
+        },
+        {
+          id: "account",
+          title: "Your account",
+          body: ["To create an account you need to be at least **13 years old**. You're responsible for:"],
+          list: [
+            "giving a working email address and keeping your password to yourself,",
+            "what happens on your account,",
+            "choosing a username that doesn't impersonate someone else or offend.",
+          ],
+        },
+        {
+          id: "your-content",
+          title: "Your content and sharing",
+          body: [
+            "**Decks you create are yours.** You keep every right you have to them. To run the service, you give us permission to store, process and show your content, as far as needed to provide BlueMemo to you and, for decks you publish, to others.",
+            "**When you publish a deck**, you also give every BlueMemo user permission, free of charge, to:",
+          ],
+          list: [
+            "view and study it,",
+            "add a copy to their own library, and edit that copy for their own use,",
+            "keep their copy, even if you later publish a new version, unpublish the deck or delete your account.",
+          ],
+        },
+        {
+          id: "others-content",
+          title: "Using other people's decks",
+          body: [
+            "Published decks, and copies of them, are for **personal, non-commercial study**. Don't re-publish someone else's deck as your own, sell it, or copy decks in bulk out of BlueMemo. A published version never changes, so republishing your own edited copy needs the original author's permission.",
+          ],
+          list: [],
+        },
+        {
+          id: "rules",
+          title: "What you may not publish or do",
+          body: ["Don't publish content, or use BlueMemo in a way, that:"],
+          list: [
+            "you don't have the rights to, such as large parts of textbooks, other people's decks, or images you've found online,",
+            "is illegal, hateful, harassing, sexual, or contains someone's personal information without their consent,",
+            "is spam or advertising,",
+            "attacks, overloads or tries to get around the security of the service, or accesses other people's accounts.",
+          ],
+        },
+        {
+          id: "removal",
+          title: "Reports and removal",
+          body: [
+            "If you think a published deck breaks these terms or infringes your rights, email {email} with a link to it. We may remove content, hide it from Discover, or suspend or close accounts that break these terms, and will tell you why where we can.",
+          ],
+          list: [],
+        },
+        {
+          id: "ours",
+          title: "Our content",
+          body: [
+            "BlueMemo's name, logo, design and code, and our official decks, belong to us. You may study the official decks and keep copies in your library, but not republish or sell them.",
+          ],
+          list: [],
+        },
+        {
+          id: "liability",
+          title: "Responsibility",
+          body: [
+            "BlueMemo is provided as it is, free of charge. We do our best to keep it working and your data safe, but we're not responsible for indirect losses, for lost study data, or for how well you do on an exam. Decks published by other users are their responsibility, not ours, and we don't check them in advance. Keep your own copy of anything important (export is in each deck's settings). Nothing in these terms limits rights you have under mandatory consumer law.",
+          ],
+          list: [],
+        },
+        {
+          id: "ending",
+          title: "Ending",
+          body: [
+            "You can stop using BlueMemo and delete your account at any time, from the account page.",
+          ],
+          list: [],
+        },
+        {
+          id: "changes",
+          title: "Changes and law",
+          body: [
+            "We may update these terms. If a change matters, we'll tell account holders before it applies; if you keep using BlueMemo after that, the new terms apply. Swedish law applies, and disputes are settled by a Swedish court, unless your consumer rights say otherwise.",
+          ],
+          list: [],
+        },
+      ],
+    },
+    operator: {
+      title: "Who runs BlueMemo",
+      lead: "BlueMemo is run by two private individuals in Sweden.",
+      sections: [
+        {
+          id: "operator",
+          title: "Run by",
+          body: [
+            "**David Munkhammar** and **Erik Nyabako**, Sweden. BlueMemo is not a registered company yet; the two of us are responsible for the service and for personal data.",
+            "Email: {email}",
+          ],
+          list: [],
+        },
+        {
+          id: "providers",
+          title: "Hosting",
+          body: [
+            "The website is hosted by Vercel Inc. (USA). Accounts and data are stored with Supabase, in the EU (Ireland).",
+          ],
+          list: [],
+        },
+        {
+          id: "documents",
+          title: "Our policies",
+          body: ["[Privacy policy](/privacy) · [Terms of use](/terms)"],
+          list: [],
+        },
+        {
+          id: "report",
+          title: "Reporting content",
+          body: [
+            "To report a published deck or ask us to remove content, email {email} with a link to the deck and what's wrong. Supervisory authority for personal data: the Swedish Authority for Privacy Protection (IMY).",
+          ],
+          list: [],
+        },
+      ],
+    },
+  },
 };
 
 export type Dict = typeof en;
