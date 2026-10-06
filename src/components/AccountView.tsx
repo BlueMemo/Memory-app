@@ -7,6 +7,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { checkUsername, isValidUsername } from "@/lib/supabase/profiles";
 import { useUser } from "@/lib/supabase/useUser";
 import { AccountDashboard } from "./AccountDashboard";
+import { renderLegal } from "./LegalView";
 
 type Mode = "signIn" | "signUp" | "forgotPassword";
 type T = Dict["account"];
@@ -54,6 +55,8 @@ export function AccountView() {
 }
 
 function SignedOut({ t }: { t: T }) {
+  const { lang, t: dict } = useI18n();
+  const legal = dict.legal;
   const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -93,7 +96,8 @@ function SignedOut({ t }: { t: T }) {
       email,
       password,
       options: {
-        data: { username },
+        // lang picks the language of account emails (supabase/email-templates).
+        data: { username, lang },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`,
       },
     });
@@ -193,6 +197,7 @@ function SignedOut({ t }: { t: T }) {
             placeholder={mode === "signUp" ? t.passwordPlaceholderNew : undefined}
           />
         </div>
+        {mode === "signUp" && <p className="consent-note">{renderLegal(legal.signUpConsent)}</p>}
         {status && <p className={status.type === "error" ? "form-error" : "form-success"}>{status.message}</p>}
         <div className="controls left">
           <button type="submit" className="btn accent" disabled={submitting}>

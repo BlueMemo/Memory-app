@@ -56,8 +56,63 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   (check the page, or add a Supabase webhook + Resend later), automatic hiding after N reports, banning
   repeat offenders, an appeal form (appeals go to `CONTACT_EMAIL`), reports about profiles/usernames/photos.
   Meant to satisfy the Digital Services Act basics: an easy way to notify us, and a stated reason to the
-  affected author. The terms of use (being written separately on `feature/legal-pages`) should say users may
-  only publish what they have the right to, and that we may remove decks.
+  affected author. The terms of use (`/terms`, merged from `feature/legal-pages`) cover what users may publish and
+  that we may remove decks; its "Reporting content" section tells people to email a link, so mention the
+  in-site Report button there next time the legal text is edited.
+
+- **Start page next step (2026-10-06, branch `feature/start-page`)**: the landing hero's main button is now
+  **Study now** (`NextStep` in `LandingView.tsx`): to `/library` when the learner has saved or created decks,
+  otherwise to `/discover`, with a line saying which. The 10-countries demo became a small "New here?" link,
+  shown only to people without decks. The header's **Library tab is outlined in brand blue**
+  (`.tab-highlight`) to invite a click, except while you're on it.
+- **Share previews (2026-10-06, branch `feature/share-previews`)**: pasting a link into WhatsApp, Instagram,
+  iMessage, Discord, ... shows a title, description and picture (Open Graph + Twitter tags). `metadataBase`
+  is `https://bluememo.eu` (`lib/og/meta.ts`, which also has `pageMetadata()` — a page's `openGraph` replaces
+  the layout's rather than merging, so always go through it). Pictures are 1200×630 PNGs drawn by
+  `ogCard()` (`lib/og/card.tsx`): `app/opengraph-image.tsx` for every page, official decks
+  (`decks/[deckId]/opengraph-image.tsx`, built at build time), and published decks
+  (`shared/[id]/opengraph-image.tsx`: title, card count, "shared by <username>", fetched server-side with
+  an anonymous Supabase client in `lib/og/publishedDeckSummary.ts`). Learners' own decks are private, so
+  their links get the general picture. Preview text is English (server-rendered, before the visitor's
+  language is known). Apps cache previews: to see a change, use a new link (e.g. add `?v=2`) or
+  Facebook's Sharing Debugger (which also refreshes WhatsApp/Instagram).
+- **Visitor statistics + problem reports (2026-10-06, branch `feature/analytics-errors`)** — so the test
+  group's problems reach the team:
+  - **Problem reports** (`problem_reports` table in `schema.sql`, `lib/problemReports.ts`): browser errors
+    nobody caught (`src/instrumentation-client.ts`), pages that crash (`app/error.tsx`, which also shows
+    "Try again" + report), server errors (`src/instrumentation.ts`, `onRequestError`), and messages from
+    **Report a problem** (footer link + crash page, `ReportProblem.tsx`). Each has kind, message,
+    detail/stack, path (never the query string), browser, site version (commit) and the user id when
+    signed in. Production only for automatic ones; max 5 per page load, deduped; extension/cross-origin
+    noise ignored. Anyone may insert, only the team reads (Supabase table editor) — learners can read
+    their own, and they're in "Download my data". Kept 90 days (an insert trigger deletes older rows).
+    **Requires re-running `schema.sql`** — until then reports fail quietly, "Report a problem" says it
+    couldn't send; "Download my data" leaves the table out (`optional` in `EXPORT_TABLES`).
+  - **Visitor statistics**: Vercel Web Analytics (`@vercel/analytics`, `SiteAnalytics.tsx`) — cookieless,
+    nothing stored on the device, so still no consent banner. Query strings dropped and own-deck ids masked
+    before sending. **Must be switched on in Vercel** (project → Analytics → Enable); until then the script
+    just isn't served. Hobby plan: page views only, no custom events.
+  - Privacy policy updated (new "Visitor statistics and problem reports" section, legal basis 6.1 f).
+- **Branded account emails (2026-10-06, branch `feature/email-templates`)**: `supabase/email-templates/`
+  holds confirm sign-up, reset password, change email and magic link as BlueMemo-styled HTML (logo,
+  brand blue button, light colours for email apps), each in **Swedish and English** in one template, picked by
+  the account's user metadata `lang` (Go template `{{ if .Data.lang }}{{ if eq .Data.lang "sv" }}`). The site
+  sets `lang` at sign-up and `AuthSync` updates it when a signed-in learner's site language differs.
+  **Not live until pasted into Supabase** (Authentication → Emails; subjects + steps in that folder's
+  README) — Erik's dashboard. Next step worth doing: a custom SMTP sender on bluememo.eu (Supabase's
+  default sender is generic and rate-limited).
+- **Legal pages (2026-10-06, branch `feature/legal-pages`)**: `/privacy` (privacy policy), `/terms` (terms of
+  use) and `/legal` ("Who runs BlueMemo"), one data-driven `LegalView.tsx` with the texts in i18n `legal`
+  (`**bold**`, `[label](/path)` links and `{email}` → `CONTACT_EMAIL`, via `renderLegal`). A `SiteFooter`
+  links them on every page except the study screens. The sign-up form and the share panel link the terms.
+  What the texts commit us to: no analytics/ads/tracking, only necessary cookies (so no cookie banner),
+  minimum age 13, legal basis "contract" (GDPR 6.1 b), Supabase in the EU (Ireland) + Vercel as processors,
+  publishing grants every user the right to view, copy and keep a copy for personal non-commercial study,
+  Swedish law. **If any of that stops being true (adding analytics, a newsletter, a new provider, a new kind
+  of data), update the policy texts and their `updatedDate` in the same change.** Written by us, not a
+  lawyer — worth a review before public launch. Not included on purpose: a postal address (the Swedish
+  e-commerce law asks for one from services "normally provided for remuneration"; add it, and an
+  organisation number, once there's a company or payments).
 - **Plan: offline use + sync between devices (decided 2026-10-06: later, not before the soft launch)** —
   the goal is studying while offline and having progress sync to the account when the connection returns.
   What exists today: signed-in changes apply in memory first and save to Supabase in the background

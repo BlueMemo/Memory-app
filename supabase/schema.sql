@@ -459,6 +459,53 @@ create view public.published_decks_latest
   from public.published_decks p
   order by p.author_id, p.source_deck_id, p.version desc;
 
+-- Problem reports: errors the site catches in the browser or on the server, and messages learners send
+-- with "Report a problem". Anyone (guests too) may add one; nobody but the team can read them, except
+-- signed-in learners their own (for "Download my data"). Read them in Supabase's table editor.
+-- Kept for 90 days: every insert also clears out older rows.
+create table if not exists public.problem_reports (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in ('error', 'server-error', 'feedback')),
+  message text not null check (char_length(message) between 1 and 4000),
+  detail text check (char_length(detail) <= 8000),
+  path text check (char_length(path) <= 300),
+  user_agent text check (char_length(user_agent) <= 400),
+  version text check (char_length(version) <= 64),
+  user_id uuid references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+alter table public.problem_reports enable row level security;
+
+drop policy if exists "Anyone can send a problem report" on public.problem_reports;
+create policy "Anyone can send a problem report"
+  on public.problem_reports
+  for insert
+  to anon, authenticated
+  with check (user_id is null or user_id = auth.uid());
+
+drop policy if exists "Users read their own problem reports" on public.problem_reports;
+create policy "Users read their own problem reports"
+  on public.problem_reports
+  for select
+  to authenticated
+  using (user_id = auth.uid());
+
+create index if not exists problem_reports_created_idx on public.problem_reports (created_at desc);
+
+create or replace function public.delete_old_problem_reports()
+returns trigger as $$
+begin
+  delete from public.problem_reports where created_at < now() - interval '90 days';
+  return null;
+end;
+$$ language plpgsql security definer set search_path = '';
+
+drop trigger if exists problem_reports_cleanup on public.problem_reports;
+create trigger problem_reports_cleanup
+  after insert on public.problem_reports
+  for each statement execute function public.delete_old_problem_reports();
+
 -- Lets a signed-in learner delete their own account. Deleting the auth user removes everything they own,
 -- because every table above references auth.users with "on delete cascade" (decks, saves, review history,
 -- settings, profile, published decks and their copy records). Runs with the owner's rights because the

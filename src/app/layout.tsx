@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Newsreader } from "next/font/google";
+import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/og/meta";
+import { SiteAnalytics } from "@/components/SiteAnalytics";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { THEME_SCRIPT } from "@/lib/themeScript";
 import "./globals.css";
@@ -18,8 +21,12 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
+  // Makes the link-preview image and URLs absolute, which WhatsApp, Instagram and the rest require.
+  metadataBase: new URL(SITE_URL),
   title: { default: "BlueMemo", template: "%s · BlueMemo" },
-  description: "Flashcards built around visualization and memory routes.",
+  description: SITE_DESCRIPTION,
+  openGraph: { title: SITE_TITLE, description: SITE_DESCRIPTION, siteName: "BlueMemo", type: "website", url: "/" },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION },
 };
 
 // Matches the dark-first background, so mobile browser bars blend in.
@@ -35,6 +42,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <SiteHeader />
         {children}
+        <SiteFooter />
+        <SiteAnalytics />
       </body>
     </html>
   );

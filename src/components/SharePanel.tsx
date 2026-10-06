@@ -8,13 +8,14 @@ import { publishDeck, unpublishDeck, usePublication, type PublishedDeckSettings,
 import { CONTACT_EMAIL } from "./AboutView";
 import { useUser } from "@/lib/supabase/useUser";
 import type { Deck } from "@/lib/types";
+import { renderLegal } from "./LegalView";
 
 /**
  * In a learner's own deck's settings: publish (a new version) with its options, copy the link, unpublish.
  * `settings` are what can travel with a copy (the deck's preset options and new cards a day).
  */
 export function SharePanel({ deck, settings }: { deck: Deck; settings: PublishedDeckSettings }) {
-  const dict = useI18n().t;
+  const { t: dict } = useI18n();
   const t = dict.share;
   const { user, loading: userLoading, configured, avatarUrl } = useUser();
   const { loading, latest, available, refresh } = usePublication(deck.id, user?.id ?? null);
@@ -98,6 +99,7 @@ export function SharePanel({ deck, settings }: { deck: Deck; settings: Published
               </span>
             </label>
           </fieldset>
+          <p className="consent-note">{renderLegal(dict.legal.shareTerms)}</p>
           <div className="controls left">
             <button type="button" className="btn accent" disabled={busy} onClick={() => void publish()}>
               {busy ? t.publishing : latest ? t.publishNew : t.publish}

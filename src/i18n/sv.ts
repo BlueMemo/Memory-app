@@ -26,6 +26,11 @@ export const sv: Dict = {
     edited: "Redigerad",
   },
   landing: {
+    studyNow: "Plugga nu",
+    studyNowLibrary: "Fortsätt i ditt bibliotek: {n} kortlekar.",
+    studyNowLibraryOne: "Fortsätt i ditt bibliotek: 1 kortlek.",
+    studyNowDiscover: "Börja med att hitta en kortlek att lära dig i Upptäck.",
+    orTry: "Ny här?",
     title: "Lär dig världens tio folkrikaste länder",
     titleAccent: "på en gång.",
     lead: "Gör om det du vill lära dig till levande bilder och placera dem längs en väg du redan känner. Minnestekniken som mästarna använder, gjord enkel.",
@@ -896,5 +901,301 @@ export const sv: Dict = {
     hiddenBecause: "Orsak: {reason}",
     restore: "Återställ kortleken",
     actionError: "Det gick inte. Försök igen.",
+  },
+  problems: {
+    button: "Rapportera ett problem",
+    title: "Rapportera ett problem",
+    lead: "Något som inte fungerar, är förvirrande eller saknas? Berätta vad du gjorde och vad som hände.",
+    label: "Vad hände?",
+    placeholder: "Jag klickade på … och väntade mig … men …",
+    included: "Vi får också veta vilken sida du är på och vilken webbläsare du använder.",
+    reply: "Vill du ha svar? Skriv din e-post i meddelandet, eller mejla oss:",
+    send: "Skicka",
+    sending: "Skickar…",
+    cancel: "Avbryt",
+    close: "Stäng",
+    thanks: "Tack! Vi har fått din rapport.",
+    error: "Det gick inte att skicka. Försök igen, eller mejla oss.",
+    crashTitle: "Något gick fel",
+    crashLead: "Den här sidan stötte på ett fel. Vi har fått veta det automatiskt. Försök igen, och om det fortsätter, berätta vad du gjorde.",
+    retry: "Försök igen",
+  },
+  legal: {
+    footerPrivacy: "Integritet",
+    footerTerms: "Villkor",
+    footerOperator: "Vem driver BlueMemo",
+    footerContact: "Kontakt",
+    updated: "Senast uppdaterad: {date}",
+    updatedDate: "6 oktober 2026",
+    signUpConsent: "Genom att skapa ett konto godkänner du [användarvillkoren](/terms) och bekräftar att du har läst [integritetspolicyn](/privacy).",
+    shareTerms: "När du publicerar får andra kopiera och använda kortleken enligt [användarvillkoren](/terms#your-content). Publicera bara sådant du har rätt att dela.",
+    privacy: {
+      title: "Integritetspolicy",
+      lead: "Vad vi samlar in, varför, och vad du kan göra åt det. Kort sagt: vi sparar bara det som behövs för sidan och ditt konto, vi spårar dig inte, och du kan själv ladda ner eller radera allt.",
+      sections: [
+        {
+          id: "who",
+          title: "Vem som är ansvarig",
+          body: [
+            "BlueMemo drivs av **David Munkhammar** och **Erik Nyabako** i Sverige, som gemensamt är personuppgiftsansvariga för uppgifterna som beskrivs här. Mer på sidan [Vem driver BlueMemo](/legal).",
+            "Frågor om dina uppgifter: {email}",
+          ],
+          list: [],
+        },
+        {
+          id: "without-account",
+          title: "Använda BlueMemo utan konto",
+          body: [
+            "Du kan använda BlueMemo utan att skapa konto. Då sparas dina kortlekar, sparade kortlekar, framsteg och inställningar **bara i din egen webbläsare** (lokal lagring) och når aldrig oss. Om du rensar webbläsarens webbplatsdata försvinner de.",
+          ],
+          list: [],
+        },
+        {
+          id: "what",
+          title: "Vad vi samlar in när du har konto",
+          body: ["När du skapar ett konto sparar vi:"],
+          list: [
+            "**E-postadress och lösenord.** För att logga in dig och skicka kontomejl (bekräfta adressen, återställa lösenordet). Lösenordet sparas bara i hashad form; vi kan inte läsa det.",
+            "**Användarnamn** och, om du lägger till en, en **profilbild.**",
+            "**Dina kortlekar och ditt bibliotek:** kortlekar du skapar eller importerar, kortlekar du sparar, dina egna ändringar av sparade kortlekar.",
+            "**Ditt pluggande:** när du repeterar varje kort och hur du svarade, testresultat och dina inställningar. Det är vad repetitionsschemat och din statistik räknas fram från.",
+            "**Kortlekar du publicerar**, och vilka publicerade kortlekar du kopierar (för att räkna hur populär en kortlek är).",
+            "**Problemrapporter** kopplade till ditt konto (se nedan).",
+          ],
+        },
+        {
+          id: "why",
+          title: "Varför vi använder dem",
+          body: [
+            "Vi använder uppgifterna **bara för att leverera tjänsten du har skapat konto för**: inloggning, att hålla dina kortlekar synkade mellan enheter, schemalägga repetitioner och visa dina framsteg. Den rättsliga grunden är att det behövs för att fullgöra avtalet med dig (GDPR artikel 6.1 b).",
+            "Vi säljer **inte** dina uppgifter, visar inga annonser, använder inga spårningskakor och skickar inga nyhetsbrev. Om det någon gång ändras uppdaterar vi den här policyn och frågar först där lagen kräver det.",
+          ],
+          list: [],
+        },
+        {
+          id: "statistics",
+          title: "Besöksstatistik och problemrapporter",
+          body: [
+            "För att veta hur BlueMemo används och vad som går fel använder vi två saker. Båda bygger på vårt berättigade intresse av att hålla sidan fungerande och förbättra den (GDPR artikel 6.1 f):",
+          ],
+          list: [
+            "**Besöksstatistik** (Vercel Web Analytics) räknar vilka sidor som besöks, från vilken typ av enhet och ungefär vilket land. Den använder **inga kakor och sparar inget på din enhet**; besökare kan inte identifieras eller följas mellan webbplatser. Söktermer och adresserna till dina egna kortlekar tas bort innan något räknas.",
+            "**Problemrapporter.** När något går sönder skickar sidan oss felmeddelandet, sidan, din webbläsartyp och sidans version, plus ditt konto-id om du är inloggad, så att vi kan hitta orsaken. Meddelanden du skickar med \"Rapportera ett problem\" sparas på samma sätt. Problemrapporter **raderas efter 90 dagar**, och med ditt konto om du raderar det innan dess.",
+          ],
+        },
+        {
+          id: "public",
+          title: "Vad andra kan se",
+          body: [
+            "Ditt **användarnamn** är offentligt: det visas vid kortlekar du publicerar. Om du väljer \"Visa min profilbild\" när du publicerar visas även bilden. **Publicerade kortlekar** kan ses av alla som har länken, och av alla i Upptäck om du listar dem. Din e-postadress, dina övriga kortlekar och din pluggstatistik visas aldrig för andra.",
+          ],
+          list: [],
+        },
+        {
+          id: "processors",
+          title: "Vilka vi delar dem med",
+          body: ["Vi använder två leverantörer som behandlar uppgifter för vår räkning, med personuppgiftsbiträdesavtal:"],
+          list: [
+            "**Supabase** lagrar databasen och sköter inloggning och kontomejl. Uppgifterna lagras inom EU (Irland).",
+            "**Vercel** driftar webbplatsen och räknar besöksstatistiken. Som alla webbservrar hanterar den din IP-adress och teknisk information om anropen när du besöker sidan, och sparar loggar en kort tid.",
+          ],
+        },
+        {
+          id: "transfers",
+          title: "Överföringar utanför EU",
+          body: [
+            "Båda leverantörerna är amerikanska företag. Där uppgifter kan nås från länder utanför EU/EES skyddas överföringen av EU-kommissionens standardavtalsklausuler och, där företaget är certifierat, ramverket för dataskydd mellan EU och USA.",
+            "Om du mejlar oss hanteras meddelandet av vår e-postleverantör (Google).",
+          ],
+          list: [],
+        },
+        {
+          id: "storage",
+          title: "Kakor och lagring i webbläsaren",
+          body: [
+            "Vi använder bara det som är nödvändigt för att sidan ska fungera, så ingen kakbanner behövs:",
+          ],
+          list: [
+            "**Inloggningskakor**, som sätts när du loggar in, för att hålla dig inloggad.",
+            "**Lokal lagring** i webbläsaren för språk, tema och biblioteksvy, och, utan konto, dina kortlekar och framsteg.",
+          ],
+        },
+        {
+          id: "retention",
+          title: "Hur länge vi sparar dem",
+          body: [
+            "Vi sparar uppgifterna **så länge du har ett konto.** När du raderar kontot raderas allt som hör till det direkt: profil, kortlekar, pluggstatistik, inställningar och kortlekar du har publicerat. Kopior som andra redan har gjort av dina publicerade kortlekar är deras och finns kvar. Raderade uppgifter kan ligga kvar en kort tid i leverantörernas säkerhetskopior innan de skrivs över.",
+          ],
+          list: [],
+        },
+        {
+          id: "rights",
+          title: "Dina rättigheter",
+          body: ["Enligt GDPR har du rätt att:"],
+          list: [
+            "**Få tillgång till och flytta dina uppgifter:** \"Ladda ner min data\" på kontosidan ger dig allt som en fil.",
+            "**Rätta dem:** ändra användarnamn, bild, e-post och lösenord på kontosidan, och redigera dina kortlekar när du vill.",
+            "**Radera dem:** \"Ta bort konto\" på kontosidan raderar allt.",
+            "**Invända mot eller begränsa** hur vi använder uppgifterna, genom att mejla oss.",
+            "**Klaga** hos Integritetsskyddsmyndigheten (IMY, imy.se) om du tycker att vi hanterar dina uppgifter fel. Vi uppskattar om vi får chansen att rätta till det först.",
+          ],
+        },
+        {
+          id: "children",
+          title: "Ålder",
+          body: ["Du behöver vara minst **13 år** för att skapa ett konto."],
+          list: [],
+        },
+        {
+          id: "changes",
+          title: "Ändringar",
+          body: [
+            "Om vi ändrar policyn uppdaterar vi datumet högst upp, och berättar för kontoinnehavare via mejl eller på sidan om ändringen är betydande.",
+          ],
+          list: [],
+        },
+      ],
+    },
+    terms: {
+      title: "Användarvillkor",
+      lead: "Reglerna för att använda BlueMemo, skrivna för att läsas. Kort sagt: använd det för att lära dig, dela bara det du har rätt att dela, och var schysst mot andra.",
+      sections: [
+        {
+          id: "agreement",
+          title: "Avtalet",
+          body: [
+            "De här villkoren är ett avtal mellan dig och dem som driver BlueMemo (se [Vem driver BlueMemo](/legal)). Genom att använda sidan godkänner du dem; när du skapar ett konto godkänner du dem uttryckligen. Hur vi hanterar personuppgifter står i [integritetspolicyn](/privacy).",
+          ],
+          list: [],
+        },
+        {
+          id: "service",
+          title: "Tjänsten",
+          body: [
+            "BlueMemo är en gratis webbplats för att lära sig med minnestekniker och repetition med mellanrum. Vi är ett litet team som utvecklar den löpande, så funktioner kan ändras och tjänsten kan ibland ligga nere. Vi kan inte lova att den alltid är tillgänglig eller felfri.",
+          ],
+          list: [],
+        },
+        {
+          id: "account",
+          title: "Ditt konto",
+          body: ["För att skapa ett konto måste du vara minst **13 år**. Du ansvarar för:"],
+          list: [
+            "att ange en fungerande e-postadress och hålla ditt lösenord för dig själv,",
+            "det som händer på ditt konto,",
+            "att välja ett användarnamn som inte utger sig för att vara någon annan eller är stötande.",
+          ],
+        },
+        {
+          id: "your-content",
+          title: "Ditt innehåll och delning",
+          body: [
+            "**Kortlekar du skapar är dina.** Du behåller alla rättigheter du har till dem. För att kunna driva tjänsten ger du oss tillåtelse att lagra, behandla och visa ditt innehåll, i den mån det behövs för att leverera BlueMemo till dig och, för kortlekar du publicerar, till andra.",
+            "**När du publicerar en kortlek** ger du dessutom alla BlueMemo-användare tillåtelse, utan kostnad, att:",
+          ],
+          list: [
+            "se och plugga på den,",
+            "lägga till en kopia i sitt eget bibliotek och ändra kopian för eget bruk,",
+            "behålla sin kopia, även om du senare publicerar en ny version, avpublicerar kortleken eller raderar ditt konto.",
+          ],
+        },
+        {
+          id: "others-content",
+          title: "Använda andras kortlekar",
+          body: [
+            "Publicerade kortlekar, och kopior av dem, är till för **eget, icke-kommersiellt pluggande**. Publicera inte någon annans kortlek som din egen, sälj den inte och kopiera inte kortlekar i stor mängd ut från BlueMemo. En publicerad version ändras aldrig, så att publicera din egen ändrade kopia kräver tillstånd från den som skapade originalet.",
+          ],
+          list: [],
+        },
+        {
+          id: "rules",
+          title: "Vad du inte får publicera eller göra",
+          body: ["Publicera inte innehåll, och använd inte BlueMemo på ett sätt, som:"],
+          list: [
+            "du inte har rättigheterna till, som stora delar av läroböcker, andras kortlekar eller bilder du har hittat på nätet,",
+            "är olagligt, hatiskt, trakasserande, sexuellt, eller innehåller någons personuppgifter utan deras samtycke,",
+            "är spam eller reklam,",
+            "angriper, överbelastar eller försöker ta sig runt tjänstens säkerhet, eller kommer åt andras konton.",
+          ],
+        },
+        {
+          id: "removal",
+          title: "Anmälan och borttagning",
+          body: [
+            "Om du tycker att en publicerad kortlek bryter mot villkoren eller gör intrång i dina rättigheter, mejla {email} med en länk till den. Vi kan ta bort innehåll, dölja det från Upptäck, eller stänga av eller avsluta konton som bryter mot villkoren, och berättar varför där vi kan.",
+          ],
+          list: [],
+        },
+        {
+          id: "ours",
+          title: "Vårt innehåll",
+          body: [
+            "BlueMemos namn, logotyp, design och kod, och våra officiella kortlekar, tillhör oss. Du får plugga på de officiella kortlekarna och ha kopior i ditt bibliotek, men inte publicera dem på nytt eller sälja dem.",
+          ],
+          list: [],
+        },
+        {
+          id: "liability",
+          title: "Ansvar",
+          body: [
+            "BlueMemo tillhandahålls i befintligt skick och utan kostnad. Vi gör vårt bästa för att den ska fungera och för att dina uppgifter ska vara säkra, men vi ansvarar inte för indirekta förluster, förlorad pluggdata eller hur det går på ett prov. Kortlekar som andra användare publicerar är deras ansvar, inte vårt, och vi granskar dem inte i förväg. Spara en egen kopia av det som är viktigt (export finns i varje kortleks inställningar). Inget i villkoren begränsar rättigheter du har enligt tvingande konsumentlagstiftning.",
+          ],
+          list: [],
+        },
+        {
+          id: "ending",
+          title: "Avsluta",
+          body: [
+            "Du kan sluta använda BlueMemo och radera ditt konto när du vill, från kontosidan.",
+          ],
+          list: [],
+        },
+        {
+          id: "changes",
+          title: "Ändringar och lag",
+          body: [
+            "Vi kan uppdatera villkoren. Om en ändring har betydelse berättar vi det för kontoinnehavare innan den gäller; om du fortsätter använda BlueMemo efter det gäller de nya villkoren. Svensk lag gäller, och tvister avgörs av svensk domstol, om inte dina rättigheter som konsument säger något annat.",
+          ],
+          list: [],
+        },
+      ],
+    },
+    operator: {
+      title: "Vem driver BlueMemo",
+      lead: "BlueMemo drivs av två privatpersoner i Sverige.",
+      sections: [
+        {
+          id: "operator",
+          title: "Drivs av",
+          body: [
+            "**David Munkhammar** och **Erik Nyabako**, Sverige. BlueMemo är ännu inte ett registrerat företag; vi två ansvarar för tjänsten och för personuppgifterna.",
+            "E-post: {email}",
+          ],
+          list: [],
+        },
+        {
+          id: "providers",
+          title: "Drift",
+          body: [
+            "Webbplatsen driftas av Vercel Inc. (USA), som också räknar besöksstatistik utan kakor. Konton och data lagras hos Supabase, inom EU (Irland).",
+          ],
+          list: [],
+        },
+        {
+          id: "documents",
+          title: "Våra policyer",
+          body: ["[Integritetspolicy](/privacy) · [Användarvillkor](/terms)"],
+          list: [],
+        },
+        {
+          id: "report",
+          title: "Anmäla innehåll",
+          body: [
+            "För att anmäla en publicerad kortlek eller be oss ta bort innehåll, mejla {email} med en länk till kortleken och vad som är fel. Tillsynsmyndighet för personuppgifter: Integritetsskyddsmyndigheten (IMY).",
+          ],
+          list: [],
+        },
+      ],
+    },
   },
 };

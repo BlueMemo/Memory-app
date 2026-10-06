@@ -43,7 +43,7 @@ export function SiteHeader() {
 
   const tabs = [
     { href: "/discover", label: t.header.discover, active: pathname === "/discover" || (!!deckId && !onUserDeck) },
-    { href: "/library", label: t.header.library, active: pathname.startsWith("/library") || (!!deckId && onUserDeck) },
+    { href: "/library", label: t.header.library, active: pathname.startsWith("/library") || (!!deckId && onUserDeck), highlight: true },
     { href: "/skills", label: t.header.skills, active: pathname === "/skills" },
     { href: "/about", label: t.header.about, active: pathname === "/about" },
   ];
@@ -59,7 +59,7 @@ export function SiteHeader() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={tab.active ? "active" : undefined}
+            className={tab.active ? "active" : tab.highlight ? "tab-highlight" : undefined}
             aria-current={tab.active ? "page" : undefined}
           >
             {tab.label}
