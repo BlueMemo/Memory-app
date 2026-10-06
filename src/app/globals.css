@@ -3718,3 +3718,33 @@ main [id] {
 .site-footer .footer-report:hover {
   color: var(--ink);
 }
+
+.problem-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.problem-filters label:not(.check-field) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-card.handled {
+  opacity: 0.6;
+}
+
+.report-detail {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  max-height: 240px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

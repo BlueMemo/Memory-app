@@ -134,12 +134,74 @@ export async function loadModeration(): Promise<{ reports: Report[]; hidden: Hid
   return { reports, hidden };
 }
 
-/** Number of reports waiting for a decision (moderators; null if it can't be read). */
+/** Number of things waiting for a moderator: deck reports plus problems users reported (null if neither can be read). */
 export async function countOpenReports(): Promise<number | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return null;
-  const { count, error } = await supabase.from("deck_reports").select("id", { count: "exact", head: true }).eq("status", "open");
-  return error ? null : (count ?? 0);
+  const [decks, problems] = await Promise.all([
+    supabase.from("deck_reports").select("id", { count: "exact", head: true }).eq("status", "open"),
+    supabase.from("problem_reports").select("id", { count: "exact", head: true }).eq("kind", "feedback").is("handled_at", null),
+  ]);
+  if (decks.error && problems.error) return null;
+  return (decks.error ? 0 : (decks.count ?? 0)) + (problems.error ? 0 : (problems.count ?? 0));
+}
+
+/** A message a learner sent with "Report a problem", or an error the site caught in someone's browser. */
+export interface ProblemReport {
+  id: string;
+  kind: "error" | "server-error" | "feedback";
+  message: string;
+  detail: string | null;
+  path: string | null;
+  userAgent: string | null;
+  version: string | null;
+  user: string | null;
+  createdAt: string;
+  handled: boolean;
+}
+
+/** Problem reports, newest first. `only` narrows to messages from people ("feedback") or to caught errors. */
+export async function loadProblemReports(options: { showHandled: boolean; only: "all" | "feedback" | "errors" }): Promise<ProblemReport[] | null> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return null;
+  let request = supabase
+    .from("problem_reports")
+    .select("id, kind, message, detail, path, user_agent, version, user_id, created_at, handled_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (!options.showHandled) request = request.is("handled_at", null);
+  if (options.only === "feedback") request = request.eq("kind", "feedback");
+  if (options.only === "errors") request = request.in("kind", ["error", "server-error"]);
+  const { data, error } = await request;
+  if (error) return null;
+  const people = await usernames(data.map((r) => (r.user_id as string | null) ?? null));
+  return data.map((r) => ({
+    id: r.id as string,
+    kind: r.kind as ProblemReport["kind"],
+    message: r.message as string,
+    detail: (r.detail as string | null) ?? null,
+    path: (r.path as string | null) ?? null,
+    userAgent: (r.user_agent as string | null) ?? null,
+    version: (r.version as string | null) ?? null,
+    user: r.user_id ? (people[r.user_id as string] ?? null) : null,
+    createdAt: r.created_at as string,
+    handled: !!r.handled_at,
+  }));
+}
+
+/** Marks a problem report handled (or open again). */
+export async function setProblemHandled(id: string, handled: boolean): Promise<boolean> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return false;
+  const { error } = await supabase.from("problem_reports").update({ handled_at: handled ? new Date().toISOString() : null }).eq("id", id);
+  return !error;
+}
+
+export async function deleteProblemReport(id: string): Promise<boolean> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return false;
+  const { error } = await supabase.from("problem_reports").delete().eq("id", id);
+  return !error;
 }
 
 /** Hides every version of the reported deck, tells its author why, and closes the open reports about it. */

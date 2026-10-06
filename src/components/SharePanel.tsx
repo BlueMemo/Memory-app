@@ -6,6 +6,7 @@ import { useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
 import { publishDeck, unpublishDeck, usePublication, type PublishedDeckSettings, type PublishOptions } from "@/lib/publishedDecks";
 import { CONTACT_EMAIL } from "./AboutView";
+import { useIsAdmin } from "@/lib/moderation";
 import { useUser } from "@/lib/supabase/useUser";
 import type { Deck } from "@/lib/types";
 import { renderLegal } from "./LegalView";
@@ -19,12 +20,14 @@ export function SharePanel({ deck, settings }: { deck: Deck; settings: Published
   const t = dict.share;
   const { user, loading: userLoading, configured, avatarUrl } = useUser();
   const { loading, latest, available, refresh } = usePublication(deck.id, user?.id ?? null);
+  const moderator = useIsAdmin(user?.id ?? null);
   // Choices for the next published version; they start from the latest version's once it has loaded.
   const [choices, setChoices] = useState<PublishOptions | null>(null);
   const options: PublishOptions = choices ?? {
     listed: latest?.listed ?? true,
     showAvatar: latest?.showAvatar ?? true,
     includeSettings: latest ? latest.deckSettings !== null : true,
+    official: latest?.official ?? false,
   };
   const choose = (patch: Partial<PublishOptions>) => setChoices({ ...options, ...patch });
   const [busy, setBusy] = useState(false);
@@ -69,12 +72,27 @@ export function SharePanel({ deck, settings }: { deck: Deck; settings: Published
           {latest && (
             <p className="share-status">
               <strong>{fill(t.published, { n: latest.version })}</strong> · {latest.listed ? t.publishedListed : t.publishedLink}
+              {latest.official && <span> · {t.publishedOfficial}</span>}
             </p>
           )}
           <fieldset className="plain-fieldset publish-options">
             <legend>{latest ? t.optionsNextVersion : t.options}</legend>
+            {moderator && (
+              <label className="check-field">
+                <input type="checkbox" checked={options.official} onChange={(e) => choose({ official: e.target.checked })} />
+                <span>
+                  <strong>{t.official}</strong>
+                  <span className="hint">{t.officialHint}</span>
+                </span>
+              </label>
+            )}
             <label className="check-field">
-              <input type="checkbox" checked={options.listed} onChange={(e) => choose({ listed: e.target.checked })} />
+              <input
+                type="checkbox"
+                checked={options.listed || options.official}
+                disabled={options.official}
+                onChange={(e) => choose({ listed: e.target.checked })}
+              />
               <span>
                 <strong>{t.listed}</strong>
                 <span className="hint">{t.listedHint}</span>

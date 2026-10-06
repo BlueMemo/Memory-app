@@ -33,6 +33,7 @@ export async function sendProblemReport(kind: ProblemKind, message: string, deta
     version: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
     user_id: data.session?.user.id ?? null,
   });
+  if (error) console.warn("Problem report not sent:", error.code, error.message);
   return !error;
 }
 

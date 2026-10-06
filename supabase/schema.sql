@@ -285,10 +285,8 @@ alter table public.published_decks enable row level security;
 -- are only visible to their author and to moderators.)
 drop policy if exists "Published decks are publicly readable" on public.published_decks;
 
+-- (The insert policy lives in "Moderation of shared decks" below, since only moderators may publish official decks.)
 drop policy if exists "Authors publish their own decks" on public.published_decks;
-create policy "Authors publish their own decks"
-  on public.published_decks for insert
-  with check (auth.uid() = author_id);
 
 drop policy if exists "Authors unpublish their own decks" on public.published_decks;
 
@@ -335,6 +333,11 @@ alter table public.published_decks add column if not exists hidden boolean not n
 alter table public.published_decks add column if not exists hidden_reason text;
 alter table public.published_decks add column if not exists hidden_at timestamptz;
 
+-- Official BlueMemo decks are published from a moderator's account with "official" switched on; Discover
+-- lists them under Official decks, as made by BlueMemo. Only moderators may set the flag (see the insert
+-- policy below). Like any deck, a new version is published to change one, and copies are independent.
+alter table public.published_decks add column if not exists official boolean not null default false;
+
 -- Who counts as a moderator. No policies on purpose: nobody can read or change this through the API; add a
 -- moderator in the SQL editor, e.g.
 --   insert into public.admins (user_id) select id from auth.users where email = 'someone@example.com';
@@ -349,13 +352,21 @@ returns boolean as $$
   select exists (select 1 from public.admins where user_id = auth.uid());
 $$ language sql security definer stable set search_path = '';
 
-revoke all on function public.is_admin() from public, anon;
-grant execute on function public.is_admin() to authenticated;
+-- Signed-out visitors need to be able to run it too: the read policy on published_decks below calls it, and
+-- a policy that calls a function its user may not run makes every read fail. It only ever answers whether
+-- the caller is a moderator, so for a visitor it just says "no".
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to anon, authenticated;
 
 drop policy if exists "Visible published decks are readable" on public.published_decks;
 create policy "Visible published decks are readable"
   on public.published_decks for select
   using (not hidden or auth.uid() = author_id or public.is_admin());
+
+drop policy if exists "Authors publish their own decks" on public.published_decks;
+create policy "Authors publish their own decks"
+  on public.published_decks for insert
+  with check (auth.uid() = author_id and (not official or public.is_admin()));
 
 -- An author can unpublish their own deck unless it was hidden (otherwise removing and republishing would
 -- undo a moderator's decision).
@@ -461,7 +472,7 @@ create view public.published_decks_latest
 
 -- Problem reports: errors the site catches in the browser or on the server, and messages learners send
 -- with "Report a problem". Anyone (guests too) may add one; nobody but the team can read them, except
--- signed-in learners their own (for "Download my data"). Read them in Supabase's table editor.
+-- signed-in learners their own (for "Download my data"), and moderators all of them (on /admin/reports).
 -- Kept for 90 days: every insert also clears out older rows.
 create table if not exists public.problem_reports (
   id uuid primary key default gen_random_uuid(),
@@ -492,6 +503,31 @@ create policy "Users read their own problem reports"
   using (user_id = auth.uid());
 
 create index if not exists problem_reports_created_idx on public.problem_reports (created_at desc);
+
+-- Moderators read the reports on /admin/reports, mark them handled, and can delete them.
+alter table public.problem_reports add column if not exists handled_at timestamptz;
+
+drop policy if exists "Moderators read problem reports" on public.problem_reports;
+create policy "Moderators read problem reports"
+  on public.problem_reports
+  for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "Moderators handle problem reports" on public.problem_reports;
+create policy "Moderators handle problem reports"
+  on public.problem_reports
+  for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Moderators delete problem reports" on public.problem_reports;
+create policy "Moderators delete problem reports"
+  on public.problem_reports
+  for delete
+  to authenticated
+  using (public.is_admin());
 
 create or replace function public.delete_old_problem_reports()
 returns trigger as $$
