@@ -31,6 +31,7 @@ export const EXPORT_TABLES: { table: string; owner: string; order: string[] }[] 
   { table: "practice_results", owner: "user_id", order: ["id"] },
   { table: "published_decks", owner: "author_id", order: ["id"] },
   { table: "published_deck_copies", owner: "user_id", order: ["published_id"] },
+  { table: "problem_reports", owner: "user_id", order: ["id"] },
 ];
 
 export interface AccountExport {

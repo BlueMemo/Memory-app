@@ -848,6 +848,24 @@ export const en = {
     deleteError: "We couldn't delete your account. Please try again, or contact us if it keeps failing.",
     deleteNotReady: "Account deletion isn't set up on the server yet (supabase/schema.sql needs re-running).",
   },
+  problems: {
+    button: "Report a problem",
+    title: "Report a problem",
+    lead: "Something not working, confusing, or missing? Tell us what you were doing and what happened.",
+    label: "What happened?",
+    placeholder: "I clicked … and expected … but …",
+    included: "We also get the page you're on and your browser type.",
+    reply: "Want a reply? Write your email in the message, or email us:",
+    send: "Send",
+    sending: "Sending…",
+    cancel: "Cancel",
+    close: "Close",
+    thanks: "Thanks! We've got your report.",
+    error: "It couldn't be sent. Please try again, or email us.",
+    crashTitle: "Something went wrong",
+    crashLead: "This page ran into an error. We've been told about it automatically. Try again, and if it keeps happening, tell us what you were doing.",
+    retry: "Try again",
+  },
   legal: {
     footerPrivacy: "Privacy",
     footerTerms: "Terms",
@@ -859,7 +877,7 @@ export const en = {
     shareTerms: "Publishing lets others copy and use this deck as described in the [terms of use](/terms#your-content). Only publish what you have the right to share.",
     privacy: {
       title: "Privacy policy",
-      lead: "What we collect, why, and what you can do about it. Short version: we only keep what's needed to run your account, we don't track you, and you can download or delete everything yourself.",
+      lead: "What we collect, why, and what you can do about it. Short version: we only keep what's needed to run the site and your account, we don't track you, and you can download or delete everything yourself.",
       sections: [
         {
           id: "who",
@@ -888,6 +906,7 @@ export const en = {
             "**Your decks and library:** decks you create or import, decks you save, your own edits of saved decks.",
             "**Your studying:** when you review each card and how you answered, test results and your settings. This is what spaced repetition and your statistics are calculated from.",
             "**Decks you publish**, and which published decks you copy (to count how popular a deck is).",
+            "**Problem reports** connected to your account (see below).",
           ],
         },
         {
@@ -895,9 +914,20 @@ export const en = {
           title: "Why we use it",
           body: [
             "We use this data **only to provide the service you signed up for**: signing in, keeping your decks in sync across devices, scheduling reviews and showing your progress. The legal basis is that it's needed to fulfil our agreement with you (GDPR article 6.1 b).",
-            "We **don't** sell your data, show ads, use analytics or tracking tools, or send newsletters. If that ever changes, we'll update this policy and ask first where the law requires it.",
+            "We **don't** sell your data, show ads, use tracking cookies or send newsletters. If that ever changes, we'll update this policy and ask first where the law requires it.",
           ],
           list: [],
+        },
+        {
+          id: "statistics",
+          title: "Visitor statistics and problem reports",
+          body: [
+            "To know how BlueMemo is used and what goes wrong, we use two things. Both rest on our legitimate interest in keeping the site working and improving it (GDPR article 6.1 f):",
+          ],
+          list: [
+            "**Visitor statistics** (Vercel Web Analytics) count which pages are visited, from what kind of device and roughly which country. They use **no cookies and store nothing on your device**; visitors can't be identified or followed across sites. Search terms and the addresses of your own decks are removed before anything is counted.",
+            "**Problem reports.** When something breaks, the site sends us the error message, the page, your browser type and the site version, plus your account id if you're signed in, so we can find the cause. Messages you send with \"Report a problem\" are stored the same way. Problem reports are **deleted after 90 days**, and with your account if you delete it before then.",
+          ],
         },
         {
           id: "public",
@@ -913,7 +943,7 @@ export const en = {
           body: ["We use two service providers that process data on our behalf, under data processing agreements:"],
           list: [
             "**Supabase** stores the database and handles sign-in and account emails. The data is stored in the EU (Ireland).",
-            "**Vercel** hosts the website. Like every web server, it handles your IP address and technical request data when you visit, and briefly keeps logs.",
+            "**Vercel** hosts the website and counts visitor statistics. Like every web server, it handles your IP address and technical request data when you visit, and briefly keeps logs.",
           ],
         },
         {
@@ -1093,7 +1123,7 @@ export const en = {
           id: "providers",
           title: "Hosting",
           body: [
-            "The website is hosted by Vercel Inc. (USA). Accounts and data are stored with Supabase, in the EU (Ireland).",
+            "The website is hosted by Vercel Inc. (USA), which also counts visitor statistics without cookies. Accounts and data are stored with Supabase, in the EU (Ireland).",
           ],
           list: [],
         },

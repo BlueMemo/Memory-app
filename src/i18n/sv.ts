@@ -848,6 +848,24 @@ export const sv: Dict = {
     deleteError: "Vi kunde inte ta bort ditt konto. Försök igen, eller kontakta oss om det fortsätter att misslyckas.",
     deleteNotReady: "Borttagning av konto är inte konfigurerad på servern ännu (supabase/schema.sql behöver köras igen).",
   },
+  problems: {
+    button: "Rapportera ett problem",
+    title: "Rapportera ett problem",
+    lead: "Något som inte fungerar, är förvirrande eller saknas? Berätta vad du gjorde och vad som hände.",
+    label: "Vad hände?",
+    placeholder: "Jag klickade på … och väntade mig … men …",
+    included: "Vi får också veta vilken sida du är på och vilken webbläsare du använder.",
+    reply: "Vill du ha svar? Skriv din e-post i meddelandet, eller mejla oss:",
+    send: "Skicka",
+    sending: "Skickar…",
+    cancel: "Avbryt",
+    close: "Stäng",
+    thanks: "Tack! Vi har fått din rapport.",
+    error: "Det gick inte att skicka. Försök igen, eller mejla oss.",
+    crashTitle: "Något gick fel",
+    crashLead: "Den här sidan stötte på ett fel. Vi har fått veta det automatiskt. Försök igen, och om det fortsätter, berätta vad du gjorde.",
+    retry: "Försök igen",
+  },
   legal: {
     footerPrivacy: "Integritet",
     footerTerms: "Villkor",
@@ -859,7 +877,7 @@ export const sv: Dict = {
     shareTerms: "När du publicerar får andra kopiera och använda kortleken enligt [användarvillkoren](/terms#your-content). Publicera bara sådant du har rätt att dela.",
     privacy: {
       title: "Integritetspolicy",
-      lead: "Vad vi samlar in, varför, och vad du kan göra åt det. Kort sagt: vi sparar bara det som behövs för ditt konto, vi spårar dig inte, och du kan själv ladda ner eller radera allt.",
+      lead: "Vad vi samlar in, varför, och vad du kan göra åt det. Kort sagt: vi sparar bara det som behövs för sidan och ditt konto, vi spårar dig inte, och du kan själv ladda ner eller radera allt.",
       sections: [
         {
           id: "who",
@@ -888,6 +906,7 @@ export const sv: Dict = {
             "**Dina kortlekar och ditt bibliotek:** kortlekar du skapar eller importerar, kortlekar du sparar, dina egna ändringar av sparade kortlekar.",
             "**Ditt pluggande:** när du repeterar varje kort och hur du svarade, testresultat och dina inställningar. Det är vad repetitionsschemat och din statistik räknas fram från.",
             "**Kortlekar du publicerar**, och vilka publicerade kortlekar du kopierar (för att räkna hur populär en kortlek är).",
+            "**Problemrapporter** kopplade till ditt konto (se nedan).",
           ],
         },
         {
@@ -895,9 +914,20 @@ export const sv: Dict = {
           title: "Varför vi använder dem",
           body: [
             "Vi använder uppgifterna **bara för att leverera tjänsten du har skapat konto för**: inloggning, att hålla dina kortlekar synkade mellan enheter, schemalägga repetitioner och visa dina framsteg. Den rättsliga grunden är att det behövs för att fullgöra avtalet med dig (GDPR artikel 6.1 b).",
-            "Vi säljer **inte** dina uppgifter, visar inga annonser, använder inga analys- eller spårningsverktyg och skickar inga nyhetsbrev. Om det någon gång ändras uppdaterar vi den här policyn och frågar först där lagen kräver det.",
+            "Vi säljer **inte** dina uppgifter, visar inga annonser, använder inga spårningskakor och skickar inga nyhetsbrev. Om det någon gång ändras uppdaterar vi den här policyn och frågar först där lagen kräver det.",
           ],
           list: [],
+        },
+        {
+          id: "statistics",
+          title: "Besöksstatistik och problemrapporter",
+          body: [
+            "För att veta hur BlueMemo används och vad som går fel använder vi två saker. Båda bygger på vårt berättigade intresse av att hålla sidan fungerande och förbättra den (GDPR artikel 6.1 f):",
+          ],
+          list: [
+            "**Besöksstatistik** (Vercel Web Analytics) räknar vilka sidor som besöks, från vilken typ av enhet och ungefär vilket land. Den använder **inga kakor och sparar inget på din enhet**; besökare kan inte identifieras eller följas mellan webbplatser. Söktermer och adresserna till dina egna kortlekar tas bort innan något räknas.",
+            "**Problemrapporter.** När något går sönder skickar sidan oss felmeddelandet, sidan, din webbläsartyp och sidans version, plus ditt konto-id om du är inloggad, så att vi kan hitta orsaken. Meddelanden du skickar med \"Rapportera ett problem\" sparas på samma sätt. Problemrapporter **raderas efter 90 dagar**, och med ditt konto om du raderar det innan dess.",
+          ],
         },
         {
           id: "public",
@@ -913,7 +943,7 @@ export const sv: Dict = {
           body: ["Vi använder två leverantörer som behandlar uppgifter för vår räkning, med personuppgiftsbiträdesavtal:"],
           list: [
             "**Supabase** lagrar databasen och sköter inloggning och kontomejl. Uppgifterna lagras inom EU (Irland).",
-            "**Vercel** driftar webbplatsen. Som alla webbservrar hanterar den din IP-adress och teknisk information om anropen när du besöker sidan, och sparar loggar en kort tid.",
+            "**Vercel** driftar webbplatsen och räknar besöksstatistiken. Som alla webbservrar hanterar den din IP-adress och teknisk information om anropen när du besöker sidan, och sparar loggar en kort tid.",
           ],
         },
         {
@@ -1093,7 +1123,7 @@ export const sv: Dict = {
           id: "providers",
           title: "Drift",
           body: [
-            "Webbplatsen driftas av Vercel Inc. (USA). Konton och data lagras hos Supabase, inom EU (Irland).",
+            "Webbplatsen driftas av Vercel Inc. (USA), som också räknar besöksstatistik utan kakor. Konton och data lagras hos Supabase, inom EU (Irland).",
           ],
           list: [],
         },

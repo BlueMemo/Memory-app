@@ -3630,3 +3630,15 @@ main [id] {
   font-size: 0.85rem;
   color: var(--muted);
 }
+
+.site-footer .footer-report {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.site-footer .footer-report:hover {
+  color: var(--ink);
+}
