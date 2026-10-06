@@ -44,6 +44,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   title/line in i18n `celebrations`, and a rarity badge from "uncommon" up. Only after answering cards in
   that session (opening an already finished deck shows the plain "Congratulations"). Particles stay hidden
   with reduced motion. **`/celebrations`** (not linked, noindex) previews all of them.
+  Every real celebration is counted in `SrsSettings.celebrations` (id → times seen; `recordCelebration` in
+  `srs/store.ts`, synced with the settings), and **six hard achievements** read it: Party animal (100
+  celebrations), Lucky find (a rare one), Collector (10 different), Under the northern lights (the epic),
+  The Grand Memory Palace (the legendary) and Complete collection (all 15). Only counts from now on.
 - **A on the deck page (2026-10-07, branch `feature/deck-add-shortcut`)**: pressing **A** on a deck you can
   edit (your own, or a saved one) opens quick add for that deck (`/library/add?deck=<id>&back=deck`), and an
   "+ Add card [A]" button sits next to Deck settings; Done and the back link return to the deck. Unsaved

@@ -105,6 +105,8 @@ export interface SrsSettings {
   optimizedReviewCount: number;
   /** Re-optimise in the background as new reviews come in (see lib/srs/optimize.ts). */
   autoOptimize: boolean;
+  /** How often each celebration (lib/celebrations.ts) has been shown, by id, for the achievements. */
+  celebrations: Record<string, number>;
 }
 
 /** Everything that applies to one deck, flattened: its preset's options, its own settings and the FSRS model. */
@@ -132,6 +134,7 @@ export const DEFAULT_SETTINGS: SrsSettings = {
   optimizedAt: null,
   optimizedReviewCount: 0,
   autoOptimize: true,
+  celebrations: {},
 };
 
 export const PRESET_OPTION_KEYS = ["desiredRetention", "againStep", "hardStep", "relearningSteps", "maximumInterval"] as const satisfies readonly (keyof PresetOptions)[];
@@ -237,7 +240,18 @@ export function normalizeSettings(raw: unknown): SrsSettings {
     optimizedReviewCount:
       typeof s.optimizedReviewCount === "number" && s.optimizedReviewCount >= 0 ? Math.round(s.optimizedReviewCount) : 0,
     autoOptimize: typeof s.autoOptimize === "boolean" ? s.autoOptimize : DEFAULT_SETTINGS.autoOptimize,
+    celebrations: normalizeCounts(s.celebrations),
   };
+}
+
+/** Whole, non-negative counts by short id; anything else is dropped. */
+function normalizeCounts(raw: unknown): Record<string, number> {
+  const counts: Record<string, number> = {};
+  if (!raw || typeof raw !== "object") return counts;
+  for (const [id, n] of Object.entries(raw as Record<string, unknown>).slice(0, 50)) {
+    if (id.length <= 40 && typeof n === "number" && Number.isFinite(n) && n > 0) counts[id] = Math.floor(n);
+  }
+  return counts;
 }
 
 /** Parses one wait such as "5m" or "1h" (minutes or hours; a learning step stays within the day). */

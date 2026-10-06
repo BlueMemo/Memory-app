@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type CSSProperties, type ReactElement } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactElement } from "react";
 import { useI18n } from "@/i18n";
 import { PRESET_AVATARS } from "@/lib/avatars";
 import { celebrationById, pickCelebration, rarityOf, type Celebration as Variant, type Effect } from "@/lib/celebrations";
 import { fill } from "@/lib/practice";
+import { recordCelebration } from "@/lib/srs/store";
 import { AVATAR_ART } from "./AvatarArt";
 import { LogoArt } from "./LogoArt";
 
@@ -194,6 +195,13 @@ export function Celebration({ id }: { id?: string }) {
   const c = t.celebrations;
   const [variant] = useState<Variant>(() => celebrationById(id ?? null) ?? pickCelebration(Math.random()));
   const [particles] = useState(() => makeParticles(variant.effect));
+  // A real one (not the preview page's) counts towards the celebration achievements, once.
+  const recorded = useRef(false);
+  useEffect(() => {
+    if (id || recorded.current) return;
+    recorded.current = true;
+    void recordCelebration(variant.id);
+  }, [id, variant.id]);
   const rarity = rarityOf(variant.weight);
   const text = c.items[variant.id as keyof typeof c.items];
   const chance =

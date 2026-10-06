@@ -1,4 +1,5 @@
 import { bestStreak, countByDay, type TestResult } from "./activity";
+import { CELEBRATIONS, rarityOf } from "./celebrations";
 import { State, type StoredCard } from "./srs/core";
 
 // Statistics and achievements on the account page, from the learner's whole review history. Pure (no
@@ -93,7 +94,13 @@ export type AchievementId =
   | "firstDeck"
   | "deckBuilder"
   | "nightOwl"
-  | "earlyBird";
+  | "earlyBird"
+  | "celebrations100"
+  | "luckyFind"
+  | "collector10"
+  | "northernLights"
+  | "grandPalace"
+  | "fullCollection";
 
 export interface Achievement {
   id: AchievementId;
@@ -115,7 +122,15 @@ const isEarly = (iso: string) => {
   return h >= 5 && h < 7;
 };
 
-export function achievements(stats: StudyStats, reviews: ReviewEntry[], ownDecks: number): Achievement[] {
+/** Celebrations seen, by id (`SrsSettings.celebrations`). */
+export type CelebrationCounts = Record<string, number>;
+
+export function achievements(stats: StudyStats, reviews: ReviewEntry[], ownDecks: number, celebrations: CelebrationCounts = {}): Achievement[] {
+  // The celebration ones are meant to be hard: many finished decks, or luck with the rarest draws.
+  const seen = CELEBRATIONS.filter((c) => (celebrations[c.id] ?? 0) > 0);
+  const totalCelebrations = CELEBRATIONS.reduce((n, c) => n + (celebrations[c.id] ?? 0), 0);
+  const seenRare = seen.some((c) => ["rare", "epic", "legendary"].includes(rarityOf(c.weight)));
+  const seenRarity = (rarity: string) => (seen.some((c) => rarityOf(c.weight) === rarity) ? 1 : 0);
   // Retention only counts once there are enough due reviews for the share to mean something.
   const steadyRetention = stats.retention !== null && stats.retention >= 0.9 && reviews.filter((r) => r.state === State.Review).length >= 100 ? 1 : 0;
   const goals: [AchievementId, number, number][] = [
@@ -141,6 +156,12 @@ export function achievements(stats: StudyStats, reviews: ReviewEntry[], ownDecks
     ["deckBuilder", ownDecks, 5],
     ["nightOwl", reviews.filter((r) => isLate(r.review)).length, 25],
     ["earlyBird", reviews.filter((r) => isEarly(r.review)).length, 25],
+    ["celebrations100", totalCelebrations, 100],
+    ["luckyFind", seenRare ? 1 : 0, 1],
+    ["collector10", seen.length, 10],
+    ["northernLights", seenRarity("epic"), 1],
+    ["grandPalace", seenRarity("legendary"), 1],
+    ["fullCollection", seen.length, CELEBRATIONS.length],
   ];
   return goals.map(([id, value, goal]) => ({ id, progress: Math.min(value, goal), goal, done: value >= goal }));
 }
