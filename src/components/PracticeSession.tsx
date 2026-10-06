@@ -547,6 +547,12 @@ export function FlipCard(props: {
   onFlip: () => void;
   /** Whether the memory-cue hint (Tab) is showing. */
   showHint?: boolean;
+  /** A "type the answer" card: clicking the card doesn't reveal it, the typing box does. */
+  typed?: boolean;
+  /** Shown under the question before the answer is revealed (the typing box). */
+  frontExtra?: ReactNode;
+  /** Shown above the answer once revealed (the verdict on what was typed). */
+  backExtra?: ReactNode;
   t: T;
 }) {
   const { deck, card, position: n, test, flipped, onFlip, t } = props;
@@ -593,21 +599,23 @@ export function FlipCard(props: {
   return (
     <div
       className={`study-card deal${flipped ? " revealed" : ""}`}
-      role={flipped ? undefined : "button"}
-      tabIndex={flipped ? undefined : 0}
-      aria-label={flipped ? undefined : t.clickToFlip}
-      onClick={flipped ? undefined : onFlip}
+      role={flipped || props.typed ? undefined : "button"}
+      tabIndex={flipped || props.typed ? undefined : 0}
+      aria-label={flipped || props.typed ? undefined : t.clickToFlip}
+      onClick={flipped || props.typed ? undefined : onFlip}
       onKeyDown={(e) => {
-        if (!flipped && e.key === "Enter") onFlip();
+        if (!flipped && !props.typed && e.key === "Enter") onFlip();
       }}
     >
       <div className="study-question">
         <p className="study-text">{question}</p>
         {!ordered && <CardImage src={card.promptImage} />}
         {!flipped && props.showHint && <p className="reveal-hint">{memoryHint(deck, card, test, study)}</p>}
+        {!flipped && props.frontExtra}
       </div>
       {flipped && (
         <div className="study-answer" aria-live="polite">
+          {props.backExtra}
           <p className={`study-text answer${back.titleClass ? ` ${back.titleClass}` : ""}`}>{back.title}</p>
           <CardImage src={back.image} />
           {back.sub && <p className="sub">{back.sub}</p>}

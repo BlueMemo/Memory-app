@@ -14,7 +14,9 @@ import { isDeckEnabled, setDeckSrsEnabled, useSrsData } from "@/lib/srs/store";
 import { useMounted } from "@/lib/useMounted";
 import { addUserDeck, useUserDeck } from "@/lib/userDecks";
 import type { Card, Deck, Lang } from "@/lib/types";
+import { answerModeOf, majorityAnswerMode, type AnswerMode } from "@/lib/typedAnswer";
 import { DeckNotFound } from "./DeckNotFound";
+import { AnswerStyleToggle } from "./TypedAnswer";
 
 type WizardStep = "details" | "cards" | "review";
 type Kind = Deck["kind"];
@@ -55,6 +57,8 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
   const [orderLabel, setOrderLabel] = useState(initialDeck?.orderLabel ?? "");
   const [language, setLanguage] = useState<Lang>(initialDeck?.language ?? siteLang);
   const [cards, setCards] = useState<Card[]>(initialDeck?.cards ?? []);
+  // How cards you add are answered (each card keeps its own choice; this is the starting point).
+  const [answerStyle, setAnswerStyle] = useState<AnswerMode>(() => majorityAnswerMode(initialDeck?.cards ?? []));
   const [saving, setSaving] = useState(false);
   // Until the learner flips the switch, follow the saved choice: the deck's current setting when editing,
   // otherwise the "use spaced repetition for new decks" default. (Derived rather than copied into state,
@@ -122,6 +126,8 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
           setLanguage={setLanguage}
           srsOn={srsOn}
           setSrsOn={setSrsChoice}
+          answerStyle={answerStyle}
+          setAnswerStyle={setAnswerStyle}
           canNext={detailsValid}
           onNext={() => setStep("cards")}
         />
@@ -133,6 +139,8 @@ function DeckCreatorForm({ initialDeck }: { initialDeck?: Deck }) {
           kind={kind}
           cards={cards}
           setCards={setCards}
+          answerStyle={answerStyle}
+          setAnswerStyle={setAnswerStyle}
           onBack={() => setStep("details")}
           onNext={() => setStep("review")}
         />
@@ -169,11 +177,14 @@ function DetailsStep(props: {
   setLanguage: (l: Lang) => void;
   srsOn: boolean;
   setSrsOn: (on: boolean) => void;
+  answerStyle: AnswerMode;
+  setAnswerStyle: (mode: AnswerMode) => void;
   canNext: boolean;
   onNext: () => void;
 }) {
-  const { t, title, setTitle, description, setDescription, kind, setKind, orderLabel, setOrderLabel, language, setLanguage, srsOn, setSrsOn, canNext, onNext } =
+  const { t, title, setTitle, description, setDescription, kind, setKind, orderLabel, setOrderLabel, language, setLanguage, srsOn, setSrsOn, answerStyle, setAnswerStyle, canNext, onNext } =
     props;
+  const ta = useI18n().t.answerStyle;
   return (
     <section>
       <div className="field">
@@ -237,6 +248,8 @@ function DetailsStep(props: {
         </select>
       </div>
 
+      <AnswerStyleToggle value={answerStyle} onChange={setAnswerStyle} label={ta.detailsLabel} hint={ta.detailsHint} />
+
       <label className="check-field">
         <input type="checkbox" checked={srsOn} onChange={(e) => setSrsOn(e.target.checked)} />
         <span>
@@ -261,6 +274,8 @@ function CardsStep({
   kind,
   cards,
   setCards,
+  answerStyle,
+  setAnswerStyle,
   onBack,
   onNext,
 }: {
@@ -268,10 +283,15 @@ function CardsStep({
   kind: Kind;
   cards: Card[];
   setCards: (cards: Card[]) => void;
+  answerStyle: AnswerMode;
+  setAnswerStyle: (mode: AnswerMode) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
   const ordered = kind === "ordered";
+  const ta = useI18n().t.answerStyle;
+  // While editing a card the toggle shows that card's choice; the starting choice for new cards comes back afterwards.
+  const modeBeforeEdit = useRef<AnswerMode>(answerStyle);
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -289,6 +309,8 @@ function CardsStep({
   };
 
   const startEdit = (card: Card) => {
+    if (!editingId) modeBeforeEdit.current = answerStyle;
+    setAnswerStyle(answerModeOf(card));
     setEditingId(card.id);
     setForm({ prompt: card.prompt ?? "", answer: card.answer, visualization: card.visualization ?? "", note: card.note ?? "" });
     setPromptImage(card.promptImage);
@@ -298,6 +320,7 @@ function CardsStep({
   };
 
   const cancelEdit = () => {
+    if (editingId) setAnswerStyle(modeBeforeEdit.current);
     setEditingId(null);
     resetForm();
   };
@@ -325,12 +348,26 @@ function CardsStep({
     setOrClear("promptImage", promptImage);
     setOrClear("answerImage", answerImage);
     setOrClear("visualizationImage", visualizationImage);
+    if (answerStyle === "type") card.answerMode = "type";
+    else delete card.answerMode;
+    if (editingId) setAnswerStyle(modeBeforeEdit.current);
     setCards(editingId ? cards.map((c) => (c.id === editingId ? card : c)) : [...cards, card]);
     setEditingId(null);
     resetForm();
     firstFieldRef.current?.focus();
   };
 
+  const setAllModes = (mode: AnswerMode) => {
+    setCards(
+      cards.map((c) => {
+        const next = { ...c };
+        if (mode === "type") next.answerMode = "type";
+        else delete next.answerMode;
+        return next;
+      }),
+    );
+    if (!editingId) setAnswerStyle(mode);
+  };
   const removeCard = (id: string) => {
     setCards(cards.filter((c) => c.id !== id));
     if (editingId === id) cancelEdit();
@@ -389,6 +426,8 @@ function CardsStep({
           />
         </div>
 
+        <AnswerStyleToggle value={answerStyle} onChange={setAnswerStyle} hint={editingId ? undefined : ta.cardHint} />
+
         <div className="field">
           <div className="field-label-row">
             <label htmlFor="card-visualization">{t.memoryQueueLabel}</label>
@@ -422,11 +461,26 @@ function CardsStep({
 
       <h2 className="section-title">{cards.length === 0 ? t.noCardsYet : fill(t.cardsAdded, { n: cards.length })}</h2>
       {cards.length > 0 && (
+        <p className="bulk-answer-style">
+          <span className="muted">{ta.setAll}</span>{" "}
+          <button type="button" className="link-button inline" onClick={() => setAllModes("show")}>
+            {ta.show}
+          </button>{" "}
+          <span className="muted">·</span>{" "}
+          <button type="button" className="link-button inline" onClick={() => setAllModes("type")}>
+            {ta.type}
+          </button>
+        </p>
+      )}
+      {cards.length > 0 && (
         <ul className="result-list">
           {cards.map((c, i) => (
             <li key={c.id}>
               <span className="muted">{i + 1}</span>
-              <span>{ordered ? c.answer : `${c.prompt} → ${c.answer}`}</span>
+              <span>
+                {ordered ? c.answer : `${c.prompt} → ${c.answer}`}
+                {answerModeOf(c) === "type" && <span className="tag typed-tag">{ta.typedTag}</span>}
+              </span>
               <span className="row-actions">
                 <button type="button" className="icon-btn" title={t.editCard} onClick={() => startEdit(c)}>
                   ✎

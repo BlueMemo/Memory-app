@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useI18n } from "@/i18n";
 import { saveEditedDeck, useAnyDeck } from "@/lib/editableDecks";
 import type { Card, Deck } from "@/lib/types";
+import { answerModeOf, majorityAnswerMode, type AnswerMode } from "@/lib/typedAnswer";
+import { AnswerStyleToggle } from "./TypedAnswer";
 
 /**
  * Adds a card to a deck or edits one: question (associations only), answer, memory cue, note and an
@@ -34,6 +36,8 @@ export function CardForm(props: {
     note: props.card?.note ?? "",
     dueBy: props.card?.dueBy ?? "",
   });
+  // A new card starts the way most of the deck's cards are answered; an existing card keeps its own.
+  const [answerMode, setAnswerMode] = useState<AnswerMode>(() => (props.card ? answerModeOf(props.card) : majorityAnswerMode(deck?.cards ?? [])));
   const [saving, setSaving] = useState(false);
   if (!deck) return null;
   const valid = form.answer.trim() !== "" && (ordered || form.prompt.trim() !== "");
@@ -43,6 +47,8 @@ export function CardForm(props: {
     if (!valid || saving) return;
     const base: Card = props.card ?? { id: crypto.randomUUID(), answer: "", createdAt: new Date().toISOString() };
     const card: Card = { ...base, answer: form.answer.trim() };
+    if (answerMode === "type") card.answerMode = "type";
+    else delete card.answerMode;
     if (!ordered) card.prompt = form.prompt.trim();
     for (const key of ["visualization", "note", "dueBy"] as const) {
       const value = form[key].trim();
@@ -94,6 +100,7 @@ export function CardForm(props: {
         <label htmlFor="card-answer">{ordered ? tc.answerLabelOrdered : tc.answerLabel}</label>
         <input id="card-answer" type="text" autoFocus={props.autoFocus && ordered} value={form.answer} onChange={(e) => set({ answer: e.target.value })} />
       </div>
+      <AnswerStyleToggle value={answerMode} onChange={setAnswerMode} />
       <div className="field">
         <label htmlFor="card-cue">{tc.memoryQueueLabel}</label>
         <textarea id="card-cue" value={form.visualization} placeholder={tc.memoryQueuePlaceholder} onChange={(e) => set({ visualization: e.target.value })} />

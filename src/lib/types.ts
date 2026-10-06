@@ -24,6 +24,11 @@ export interface Card {
   dueBy?: string;
   /** When the card was created (ISO). Cards made before 2026-10-05 don't have it. */
   createdAt?: string;
+  /**
+   * How the learner answers in a spaced-repetition review: "show" (flip the card, the default) or "type"
+   * (type the answer, which is checked for spelling). Kept on each card, so a deck can mix both.
+   */
+  answerMode?: "show" | "type";
   /** Learner-supplied images (data URLs), shown alongside the matching text during practice. */
   promptImage?: string;
   answerImage?: string;
