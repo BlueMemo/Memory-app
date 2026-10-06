@@ -3949,4 +3949,102 @@ main [id] {
   align-items: center;
   text-align: center;
   min-height: 330px;
+/* ---------- Type-the-answer cards ---------- */
+
+.typed-input {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  margin: 20px auto 0;
+  padding: 12px 16px;
+  font: inherit;
+  font-size: 1.15rem;
+  text-align: center;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.typed-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.typed-verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+  font-size: 0.95rem;
+}
+
+.typed-verdict.correct strong {
+  color: var(--srs-good);
+}
+
+.typed-verdict.almost strong {
+  color: var(--srs-hard);
+}
+
+.typed-verdict.wrong strong,
+.typed-verdict.empty strong {
+  color: var(--srs-again);
+}
+
+.typed-text {
+  color: var(--muted);
+}
+
+.typed-value {
+  color: var(--ink);
+}
+
+.typed-wrong {
+  color: var(--srs-again);
+  text-decoration: underline wavy;
+  text-underline-offset: 3px;
+}
+
+.btn.suggested {
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.answer-style-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.answer-style-toggle button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.answer-style-toggle button.active {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.field-heading {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.bulk-answer-style {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+
+.typed-tag {
+  margin-left: 8px;
 }

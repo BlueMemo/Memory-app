@@ -50,6 +50,35 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   official decks have no button and ignore A.
 - **Performance basics (2026-10-07, branch `feature/performance-basics`, stacked on
   `feature/moderator-integrations` — merge that one first)** — prompted by a reel listing five things
+- **Type-the-answer cards (2026-10-07, branch `feature/type-answer-cards`)** — the "spelling as answer"
+  item from the launch list. A card can be answered by **typing** instead of flipping. Tested by hand in the
+  browser (guest mode): typing box, verdicts, grade suggestion, creator toggles, deck settings.
+  - **Data**: `Card.answerMode?: "show" | "type"` (missing = show). **Deliberately per card, not per deck**:
+    signed-in decks are stored in fixed columns (`deckToRow`), so a deck-level field would silently not
+    save, while `cards` is a jsonb column that keeps any card field — no schema change. Published and
+    edited-copy decks store the whole deck as jsonb, so the mode travels with them (a moderator can publish
+    an official deck with typed cards).
+  - **Checking** (`lib/typedAnswer.ts`, tested): forgiving about capitals, punctuation, spaces, apostrophes,
+    hyphens and `**bold**` markers; alternatives written `a / b`, `a; b`, `a | b` are all accepted, and a
+    `(parenthesised)` part is optional. Accents count: a missing accent is **almost**, as is a one-letter
+    slip (an adjacent swap counts as one) in words of 4+ letters, two slips in 9+; short answers and anything
+    containing a digit must be exact. Verdicts `correct | almost | wrong | empty` suggest a grade
+    (Good / Hard / Again) — the learner still grades, and Space/Enter now take the **suggested** grade on
+    typed cards (keys 1–4 still work). `diffSegments` underlines the stray letters in what was typed.
+  - **Where it applies**: the spaced-repetition review (`ReviewSession`, via `FlipCard`'s new `typed`,
+    `frontExtra`, `backExtra` props and `TypedAnswer.tsx`). The guided technique practice (the landing demo)
+    is unchanged. The typing box turns off browser autocorrect/spellcheck on purpose; a held-down Enter
+    can't also grade the card (`e.repeat` ignored).
+  - **Choosing it**: (1) deck creator/editor details step "How will you answer the cards?" sets the starting
+    choice for cards you add (when editing it follows what most existing cards use); (2) on the cards step and
+    in the add/edit-card form a "How you answer" toggle per card, **sticky** while adding many cards; the
+    card list tags typed cards and has "Set all cards to: show · type"; (3) deck settings
+    (`/library/settings?deck=`) has an "Answering cards" section that switches every card at once (also for
+    saved/official decks, via a personal copy); (4) import has a "Type the answer" checkbox that marks every
+    imported card. Texts: i18n `answerStyle` and `study.check/typeHere/verdict*/youTyped`.
+  - **Not built**: typed answers in the guided practice; per-card strictness (e.g. "accents don't matter" for
+    a deck where they shouldn't); a "my answer was right" override beyond choosing the grade; speech input.
+- **Performance basics (2026-10-07, branch `feature/performance-basics`, merged as PR #3)** — prompted by a reel listing five things
   "vibe-coded" apps miss; we audited all five and chose to do two now: (1) **database indexes** and (2)
   **Discover no longer downloads whole decks**. (Audit result for the rest, not done: uploads are already
   shrunk in the browser to 480px/160px JPEG but have no file-size/type check; there are no loading screens
@@ -68,7 +97,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
     **Re-run `schema.sql`** to create them (safe; no behaviour change). Not done on purpose: a trigram index
     for text search (`search_text ilike '%word%'` needs `pg_trgm` + a GIN index once there are thousands of
     published decks); add it then, as a separate small change, since it needs an extension.
-- **Moderator integrations (2026-10-07, branch `feature/moderator-integrations`; not tested yet)**:
+- **Moderator integrations (2026-10-07, branch `feature/moderator-integrations`, merged as PR #2 and tested)**:
   - **Official decks are now published from the site** (replaces writing them as TypeScript in `src/decks/`,
     which still holds the original two, the landing demo and the tests). In a moderator's own deck's
     settings → Share, a **"Publish as an official BlueMemo deck"** checkbox (`SharePanel.tsx`, only shown

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
 import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
-import { isSharedDeck, useSavedDecks } from "@/lib/editableDecks";
+import { isSharedDeck, saveEditedDeck, useSavedDecks } from "@/lib/editableDecks";
 import { downloadDeck } from "@/lib/exportDeck";
 import { toggleSavedDeck } from "@/lib/library";
 import { fill } from "@/lib/practice";
@@ -25,6 +25,7 @@ import {
 import { AUTO_OPTIMIZE_EVERY, countReviews, MIN_REVIEWS_TO_OPTIMIZE, optimizeParameters } from "@/lib/srs/optimize";
 import { updateSrsSettings, useSrsData, useSrsSignedIn, useSrsStatus } from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
+import { answerModeSummary, type AnswerMode } from "@/lib/typedAnswer";
 import { useUserDecks } from "@/lib/userDecks";
 import { DeleteDeckButton } from "./DeleteDeckButton";
 import { PageTabs } from "./PageTabs";
@@ -206,6 +207,8 @@ function DeckSettingsForm({ deck, settings, t }: { deck: Deck; settings: SrsSett
           {justSaved && <span className="saved-note">{fill(t.deckSaved, { deck: deck.title })}</span>}
         </div>
       </form>
+
+      <AnswerStyleSection deck={deck} />
 
       <section className="settings-form" id="share">
         <h2>{t.shareSection}</h2>
@@ -509,5 +512,53 @@ function NumberField(props: {
       />
       {props.hint && <span className="hint">{props.hint}</span>}
     </div>
+  );
+}
+
+/** How this deck's cards are answered when studying: flip, or type the answer. Switches every card at once. */
+function AnswerStyleSection({ deck }: { deck: Deck }) {
+  const t = useI18n().t.answerStyle;
+  const summary = answerModeSummary(deck.cards);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function setAll(mode: AnswerMode) {
+    setBusy(true);
+    setFailed(false);
+    try {
+      await saveEditedDeck({
+        ...deck,
+        cards: deck.cards.map((c) => {
+          const next = { ...c };
+          if (mode === "type") next.answerMode = "type";
+          else delete next.answerMode;
+          return next;
+        }),
+      });
+    } catch {
+      setFailed(true);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <section className="settings-form" id="answers">
+      <h2>{t.sectionTitle}</h2>
+      <p className="muted">{t.sectionLead}</p>
+      <p>
+        <strong>
+          {summary.state === "none" ? t.summaryNone : summary.state === "all" ? t.summaryAll : fill(t.summaryMixed, { typed: summary.typed, total: summary.total })}
+        </strong>
+      </p>
+      <div className="controls left">
+        <button type="button" className="btn nav" disabled={busy || summary.state === "none"} onClick={() => void setAll("show")}>
+          {t.setAllShow}
+        </button>
+        <button type="button" className="btn nav" disabled={busy || summary.state === "all"} onClick={() => void setAll("type")}>
+          {t.setAllType}
+        </button>
+      </div>
+      {failed && <p className="form-error">{t.saveError}</p>}
+    </section>
   );
 }

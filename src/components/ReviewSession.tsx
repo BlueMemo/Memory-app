@@ -29,9 +29,11 @@ import {
   type SrsChange,
 } from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
+import { answerModeOf, checkTypedAnswer, suggestedGrade } from "@/lib/typedAnswer";
 import { CardDialog } from "./CardForm";
 import { Celebration } from "./Celebration";
 import { FlipCard, isTyping, StudyBar } from "./PracticeSession";
+import { TypedAnswerInput, TypedVerdict } from "./TypedAnswer";
 
 const BUTTONS: { grade: Grade; key: "again" | "hard" | "good" | "easy" }[] = [
   { grade: Rating.Again, key: "again" },
@@ -55,6 +57,8 @@ export function ReviewSession({ deck }: { deck: Deck }) {
   const [dialog, setDialog] = useState<"add" | "edit" | null>(null);
   const [hintFor, setHintFor] = useState<string | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  // What the learner typed on a "type the answer" card (cleared whenever the card changes).
+  const [typed, setTyped] = useState("");
 
   const input: QueueInput = {
     deckId: deck.id,
@@ -69,6 +73,10 @@ export function ReviewSession({ deck }: { deck: Deck }) {
   const current = next.kind === "card" ? next : null;
   const card = current ? deck.cards.find((c) => c.id === current.cardId) : undefined;
   const stored = current ? data.cards[cardKey(deck.id, current.cardId)] : undefined;
+  const typedMode = !!card && answerModeOf(card) === "type";
+  // After checking, the verdict suggests a grade (Good / Hard / Again); the learner can still pick any.
+  const result = card && typedMode && flipped ? checkTypedAnswer(typed, card.answer) : null;
+  const suggested = result ? suggestedGrade(result.verdict) : null;
 
   // Button labels show the unfuzzed interval, like Anki; the actual schedule adds a little fuzz.
   let labels: Record<number, string> | null = null;
@@ -91,6 +99,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     const change = reviewCard(deck.id, current.cardId, grade, at, card?.dueBy);
     setHistory((h) => [...h, change]);
     setFlipped(false);
+    setTyped("");
     setNow(at);
   };
   const bury = () => {
@@ -99,6 +108,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     const change = buryCard(deck.id, current.cardId, at);
     setHistory((h) => [...h, change]);
     setFlipped(false);
+    setTyped("");
     setNow(at);
   };
   const undo = () => {
@@ -108,11 +118,13 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     undoSrsChange(last);
     setNow(new Date());
     setFlipped(false);
+    setTyped("");
   };
   const hintKey = current ? `${current.cardId}-${stored?.reps ?? 0}` : null;
 
   const onKey = useEffectEvent((e: KeyboardEvent) => {
-    if (e.ctrlKey || e.metaKey || e.altKey || dialog || isTyping(e)) return;
+    // A held-down key repeats; after checking a typed answer, Enter must not also grade the card.
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || dialog || isTyping(e)) return;
     const handle = (fn: () => void) => {
       e.preventDefault();
       fn();
@@ -127,11 +139,12 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     if (key === "e") return handle(() => setDialog("edit"));
     if (e.key === "Tab" && !e.shiftKey && !flipped) return handle(() => setHintFor(hintKey));
     if (!flipped) {
-      if (e.key === " " || e.key === "Enter") handle(() => setFlipped(true));
+      // On a typed card the typing box handles Enter itself.
+      if (!typedMode && (e.key === " " || e.key === "Enter")) handle(() => setFlipped(true));
       return;
     }
     // As in Anki, Space and Enter answer "Good" once the answer is showing.
-    if (e.key === " " || e.key === "Enter") handle(() => answer(Rating.Good));
+    if (e.key === " " || e.key === "Enter") handle(() => answer((suggested ?? Rating.Good) as Grade));
     else if (["1", "2", "3", "4"].includes(e.key)) handle(() => answer(Number(e.key) as Grade));
   });
 
@@ -186,6 +199,9 @@ export function ReviewSession({ deck }: { deck: Deck }) {
               flipped={flipped}
               onFlip={() => setFlipped(true)}
               showHint={hintFor === hintKey}
+              typed={typedMode}
+              frontExtra={typedMode ? <TypedAnswerInput value={typed} onChange={setTyped} onSubmit={() => setFlipped(true)} /> : undefined}
+              backExtra={result ? <TypedVerdict result={result} typed={typed} /> : undefined}
               t={dict.practice}
             />
             <StudyBar
@@ -199,7 +215,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
               shortcutsOpen={shortcutsOpen}
               onToggleShortcuts={() => setShortcutsOpen((o) => !o)}
               shortcuts={[
-                [dict.study.keySpace, dict.study.showAnswer],
+                typedMode ? ["Enter", dict.study.check] : [dict.study.keySpace, dict.study.showAnswer],
                 ["1", t.again],
                 ["2", t.hard],
                 [`3 / ${dict.study.keySpace}`, t.good],
@@ -214,7 +230,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
             >
               {flipped && labels ? (
                 BUTTONS.map((b) => (
-                  <button key={b.grade} className={`btn srs-${b.key}`} onClick={() => answer(b.grade)}>
+                  <button key={b.grade} className={`btn srs-${b.key}${suggested === b.grade ? " suggested" : ""}`} onClick={() => answer(b.grade)}>
                     <span className="srs-interval">{labels[b.grade]}</span>
                     {t[b.key]}
                   </button>
@@ -227,7 +243,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
                     </button>
                   )}
                   <button type="button" className="btn accent" onClick={() => setFlipped(true)}>
-                    {dict.study.showAnswer}
+                    {typedMode ? dict.study.check : dict.study.showAnswer}
                   </button>
                 </>
               )}
