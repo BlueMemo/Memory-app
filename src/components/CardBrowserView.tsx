@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
+import { dateLocale, formatDue } from "@/lib/dueDate";
 import { fill } from "@/lib/practice";
 import { cardKey, formatInterval, nextDayStart, State, type StoredCard } from "@/lib/srs/core";
 import { forgetCard, isDeckEnabled, useSrsData } from "@/lib/srs/store";
@@ -94,8 +95,7 @@ export function CardBrowserView() {
   const dueLabel = (r: Row) => {
     if (!r.enabled) return "—";
     if (!r.stored || r.stored.state === State.New) return t.stateNew;
-    const ms = new Date(r.stored.due).getTime() - now.getTime();
-    return ms <= 0 ? dict.srs.now : fill(dict.srs.inTime, { time: formatInterval(ms, dict.srs.units) });
+    return formatDue(new Date(r.stored.due), now, lang, dict.srs);
   };
 
   if (!mounted) return null;
@@ -170,7 +170,7 @@ export function CardBrowserView() {
                       <td>{r.card.answer}</td>
                       <td className="col-deck">{r.deck.title}</td>
                       <td className="col-due">{dueLabel(r)}</td>
-                      <td className="col-created">{r.card.createdAt ? new Date(r.card.createdAt).toLocaleDateString(lang === "sv" ? "sv-SE" : "en-GB") : "–"}</td>
+                      <td className="col-created">{r.card.createdAt ? new Date(r.card.createdAt).toLocaleDateString(dateLocale(lang)) : "–"}</td>
                     </tr>
                   ))}
                 </tbody>

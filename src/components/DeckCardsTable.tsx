@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/i18n";
 import { compareCards, type CardSort } from "@/lib/cardSort";
+import { dateLocale, formatDue } from "@/lib/dueDate";
 import { fill } from "@/lib/practice";
-import { cardKey, formatInterval, State } from "@/lib/srs/core";
+import { cardKey, State } from "@/lib/srs/core";
 import { isDeckEnabled, useSrsData } from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
 import { useNow } from "@/lib/useNow";
@@ -43,11 +44,10 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
 
   const due = (r: (typeof rows)[number]) => {
     if (!r.stored || r.stored.state === State.New) return t.stateNew;
-    const ms = new Date(r.stored.due).getTime() - now.getTime();
-    return ms <= 0 ? dict.srs.now : fill(dict.srs.inTime, { time: formatInterval(ms, dict.srs.units) });
+    return formatDue(new Date(r.stored.due), now, lang, dict.srs);
   };
 
-  const created = (iso?: string) => (iso ? new Date(iso).toLocaleDateString(lang === "sv" ? "sv-SE" : "en-GB") : "–");
+  const created = (iso?: string) => (iso ? new Date(iso).toLocaleDateString(dateLocale(lang)) : "–");
 
   return (
     <>

@@ -4,6 +4,7 @@ export const sv: Dict = {
   siteName: "BlueMemo",
   languageName: "Svenska",
   header: {
+    dueToday: "{n} kort att plugga idag",
     skills: "Minnesträdet",
     language: "Språk",
     navLabel: "Huvudmeny",
@@ -499,6 +500,7 @@ export const sv: Dict = {
     saveErrorLocal: "Webbläsarens lagring är full, så repetitioner från det här besöket kanske inte sparas.",
     inTime: "om {time}",
     now: "nu",
+    today: "idag",
     units: { m: "min", h: "h", d: "d", mo: "mån", y: "år" },
   },
   settings: {
