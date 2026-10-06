@@ -36,6 +36,14 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Celebrations (2026-10-07, branch `feature/celebrations`)**: finishing a deck's due cards in a review
+  session shows one of **15 celebrations**, drawn by odds (`lib/celebrations.ts`, weights in percent, sum
+  100, tested): common 20/15/10/10/10/8 %, uncommon 7/5/5/4/3 %, rare 1.5/1 %, epic 0.4 %, and one
+  **legendary at 0.1 %** (the Grand Memory Palace: the logo, gold rays, fireworks). Each has a picture from
+  the profile-picture drawings (`AVATAR_ART`), its own drawn particles (`Celebration.tsx`, no emoji), a
+  title/line in i18n `celebrations`, and a rarity badge from "uncommon" up. Only after answering cards in
+  that session (opening an already finished deck shows the plain "Congratulations"). Particles stay hidden
+  with reduced motion. **`/celebrations`** (not linked, noindex) previews all of them.
 - **Performance basics (2026-10-07, branch `feature/performance-basics`, stacked on
   `feature/moderator-integrations` — merge that one first)** — prompted by a reel listing five things
   "vibe-coded" apps miss; we audited all five and chose to do two now: (1) **database indexes** and (2)

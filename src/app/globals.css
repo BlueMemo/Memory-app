@@ -3748,3 +3748,205 @@ main [id] {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* ---------- Celebrations (finishing a deck's due cards, components/Celebration.tsx) ---------- */
+
+.celebration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.celebration h2 {
+  margin: 6px 0 0;
+}
+
+.celebration-text {
+  margin: 0;
+  color: var(--muted);
+}
+
+.celebration-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.celebration-hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 180px;
+  height: 180px;
+  animation: cel-pop 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.celebration-hero svg {
+  position: relative;
+  border-radius: 50%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+.rarity-rare .celebration-hero svg,
+.rarity-epic .celebration-hero svg {
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 40px rgba(111, 156, 255, 0.45);
+}
+
+.rarity-legendary .celebration-hero svg {
+  box-shadow: 0 0 0 4px #f5c84c, 0 0 60px rgba(245, 200, 76, 0.7);
+}
+
+.celebration-rays {
+  position: absolute;
+  inset: -60px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(245, 200, 76, 0.28) 0deg 8deg, transparent 8deg 22deg);
+  mask-image: radial-gradient(circle, #000 35%, transparent 70%);
+  animation: cel-spin 14s linear infinite;
+}
+
+.celebration-badge {
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.rarity-epic .celebration-badge {
+  color: #c4a7ff;
+  background: rgba(196, 167, 255, 0.15);
+}
+
+.rarity-legendary .celebration-badge {
+  color: #121417;
+  background: linear-gradient(90deg, #f5c84c, #ffe9a6, #f5c84c);
+  background-size: 200% 100%;
+  animation: cel-shine 2s linear infinite;
+}
+
+.celebration-aurora {
+  position: absolute;
+  inset: -20% -10% 40%;
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 40%, rgba(76, 193, 133, 0.45), transparent 70%),
+    radial-gradient(ellipse 50% 35% at 70% 30%, rgba(111, 156, 255, 0.4), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 50% 55%, rgba(196, 167, 255, 0.35), transparent 70%);
+  filter: blur(20px);
+  animation: cel-aurora 6s ease-in-out infinite alternate;
+}
+
+/* Particles start hidden; their animation shows them. With reduced motion (animation: none) they never appear. */
+.cel-p {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  opacity: 0;
+  animation-delay: var(--delay);
+  animation-duration: var(--dur);
+  animation-fill-mode: both;
+}
+
+.cel-fall {
+  top: -40px;
+  animation-name: cel-fall;
+  animation-timing-function: cubic-bezier(0.35, 0, 0.7, 1);
+}
+
+.cel-rise {
+  top: 100%;
+  animation-name: cel-rise;
+  animation-timing-function: ease-out;
+}
+
+.cel-float {
+  top: 100%;
+  animation-name: cel-rise;
+  animation-timing-function: cubic-bezier(0.3, 0.1, 0.6, 1);
+}
+
+.cel-burst {
+  animation-name: cel-burst;
+  animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+
+.cel-twinkle {
+  animation-name: cel-twinkle;
+  animation-iteration-count: 3;
+  animation-timing-function: ease-in-out;
+}
+
+.cel-glow {
+  filter: drop-shadow(0 0 6px rgba(245, 200, 76, 0.9));
+}
+
+@keyframes cel-fall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), 110vh) rotate(var(--rot)); }
+}
+
+@keyframes cel-rise {
+  0% { opacity: 0; transform: translate(0, 0); }
+  10% { opacity: 1; }
+  50% { transform: translate(calc(var(--dx) * -0.5), -60vh); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), -125vh); }
+}
+
+@keyframes cel-burst {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 40px)) scale(0.4); }
+}
+
+@keyframes cel-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+
+@keyframes cel-pop {
+  0% { opacity: 0; transform: scale(0.3); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes cel-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cel-shine {
+  to { background-position: -200% 0; }
+}
+
+@keyframes cel-aurora {
+  from { transform: translateX(-4%) skewX(-4deg); opacity: 0.7; }
+  to { transform: translateX(4%) skewX(4deg); opacity: 1; }
+}
+
+/* Preview page (/celebrations). */
+.celebration-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 32px;
+}
+
+.celebration-picker .btn {
+  font-size: 0.85rem;
+}
+
+.celebration-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 330px;
+}
