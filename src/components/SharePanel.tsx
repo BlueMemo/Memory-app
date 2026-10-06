@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
 import { publishDeck, unpublishDeck, usePublication, type PublishedDeckSettings, type PublishOptions } from "@/lib/publishedDecks";
+import { CONTACT_EMAIL } from "./AboutView";
 import { useUser } from "@/lib/supabase/useUser";
 import type { Deck } from "@/lib/types";
 
@@ -13,7 +14,8 @@ import type { Deck } from "@/lib/types";
  * `settings` are what can travel with a copy (the deck's preset options and new cards a day).
  */
 export function SharePanel({ deck, settings }: { deck: Deck; settings: PublishedDeckSettings }) {
-  const t = useI18n().t.share;
+  const dict = useI18n().t;
+  const t = dict.share;
   const { user, loading: userLoading, configured, avatarUrl } = useUser();
   const { loading, latest, available, refresh } = usePublication(deck.id, user?.id ?? null);
   // Choices for the next published version; they start from the latest version's once it has loaded.
@@ -56,7 +58,11 @@ export function SharePanel({ deck, settings }: { deck: Deck; settings: Published
         </p>
       ) : !available ? (
         <p className="muted">{t.unavailable}</p>
-      ) : loading ? null : (
+      ) : loading ? null : latest?.hidden ? (
+        <p className="notice error" role="status">
+          {fill(dict.moderation.removedForAuthor, { reason: (latest.hiddenReason ?? "").replace(/[.\s]+$/, ""), email: CONTACT_EMAIL })}
+        </p>
+      ) : (
         <>
           <p className="muted">{t.lead}</p>
           {latest && (

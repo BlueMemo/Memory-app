@@ -281,10 +281,9 @@ alter table public.published_decks add column if not exists copy_count int not n
 
 alter table public.published_decks enable row level security;
 
+-- (Who may read published decks is decided in "Moderation of shared decks" below, because hidden decks
+-- are only visible to their author and to moderators.)
 drop policy if exists "Published decks are publicly readable" on public.published_decks;
-create policy "Published decks are publicly readable"
-  on public.published_decks for select
-  using (true);
 
 drop policy if exists "Authors publish their own decks" on public.published_decks;
 create policy "Authors publish their own decks"
@@ -292,9 +291,6 @@ create policy "Authors publish their own decks"
   with check (auth.uid() = author_id);
 
 drop policy if exists "Authors unpublish their own decks" on public.published_decks;
-create policy "Authors unpublish their own decks"
-  on public.published_decks for delete
-  using (auth.uid() = author_id);
 
 create index if not exists published_decks_listed_created_idx on public.published_decks (listed, created_at desc);
 
@@ -329,6 +325,124 @@ drop trigger if exists on_published_deck_copied on public.published_deck_copies;
 create trigger on_published_deck_copied
   after insert on public.published_deck_copies
   for each row execute function public.count_published_copy();
+
+-- ---------- Moderation of shared decks ----------
+
+-- A moderator can hide a published deck (all its versions). Hidden decks disappear from Discover and from
+-- their link for everyone except the author, who sees why, and the moderators. People who already made a
+-- copy keep it.
+alter table public.published_decks add column if not exists hidden boolean not null default false;
+alter table public.published_decks add column if not exists hidden_reason text;
+alter table public.published_decks add column if not exists hidden_at timestamptz;
+
+-- Who counts as a moderator. No policies on purpose: nobody can read or change this through the API; add a
+-- moderator in the SQL editor, e.g.
+--   insert into public.admins (user_id) select id from auth.users where email = 'someone@example.com';
+create table if not exists public.admins (
+  user_id uuid primary key references auth.users(id) on delete cascade
+);
+
+alter table public.admins enable row level security;
+
+create or replace function public.is_admin()
+returns boolean as $$
+  select exists (select 1 from public.admins where user_id = auth.uid());
+$$ language sql security definer stable set search_path = '';
+
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+
+drop policy if exists "Visible published decks are readable" on public.published_decks;
+create policy "Visible published decks are readable"
+  on public.published_decks for select
+  using (not hidden or auth.uid() = author_id or public.is_admin());
+
+-- An author can unpublish their own deck unless it was hidden (otherwise removing and republishing would
+-- undo a moderator's decision).
+create policy "Authors unpublish their own decks"
+  on public.published_decks for delete
+  using (auth.uid() = author_id and not hidden);
+
+drop policy if exists "Moderators delete published decks" on public.published_decks;
+create policy "Moderators delete published decks"
+  on public.published_decks for delete
+  using (public.is_admin());
+
+drop policy if exists "Moderators hide and restore decks" on public.published_decks;
+create policy "Moderators hide and restore decks"
+  on public.published_decks for update
+  using (public.is_admin())
+  with check (public.is_admin());
+
+-- A deck that a moderator hid can't be published again as a new version.
+create or replace function public.block_hidden_republish()
+returns trigger as $$
+begin
+  if exists (
+    select 1 from public.published_decks
+    where author_id = new.author_id and source_deck_id = new.source_deck_id and hidden
+  ) then
+    raise exception 'This deck was removed by a moderator and cannot be published again.';
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = '';
+
+drop trigger if exists published_decks_block_hidden on public.published_decks;
+create trigger published_decks_block_hidden
+  before insert on public.published_decks
+  for each row execute function public.block_hidden_republish();
+
+-- Reports from learners about a published deck. A learner can report a version once, and sees only their
+-- own reports; moderators see and resolve all of them. The deck's title and author are copied in by a
+-- trigger so the report stays understandable if the deck is later deleted.
+create table if not exists public.deck_reports (
+  id uuid primary key default gen_random_uuid(),
+  published_id uuid references public.published_decks(id) on delete set null,
+  reporter_id uuid not null references auth.users(id) on delete cascade,
+  reason text not null check (reason in ('illegal', 'copyright', 'abusive', 'adult', 'spam', 'other')),
+  note text not null default '' check (char_length(note) <= 1000),
+  status text not null default 'open' check (status in ('open', 'actioned', 'dismissed')),
+  deck_title text not null default '',
+  author_id uuid,
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz,
+  unique (reporter_id, published_id)
+);
+
+alter table public.deck_reports enable row level security;
+
+drop policy if exists "Learners report decks" on public.deck_reports;
+create policy "Learners report decks"
+  on public.deck_reports for insert
+  with check (auth.uid() = reporter_id and status = 'open' and resolved_at is null);
+
+drop policy if exists "Learners and moderators read reports" on public.deck_reports;
+create policy "Learners and moderators read reports"
+  on public.deck_reports for select
+  using (auth.uid() = reporter_id or public.is_admin());
+
+drop policy if exists "Moderators resolve reports" on public.deck_reports;
+create policy "Moderators resolve reports"
+  on public.deck_reports for update
+  using (public.is_admin())
+  with check (public.is_admin());
+
+create index if not exists deck_reports_status_idx on public.deck_reports (status, created_at desc);
+
+create or replace function public.fill_deck_report()
+returns trigger as $$
+begin
+  select title, author_id into new.deck_title, new.author_id
+  from public.published_decks where id = new.published_id;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = '';
+
+drop trigger if exists deck_reports_fill on public.deck_reports;
+create trigger deck_reports_fill
+  before insert on public.deck_reports
+  for each row execute function public.fill_deck_report();
 
 -- The newest version of each published deck (what Discover lists and searches), with its popularity:
 -- copies of all its versions together. Dropped first because its columns changed over time.

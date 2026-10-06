@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { getDeck, officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
@@ -20,6 +20,7 @@ import { resolveDeck, useDeckOverrides } from "@/lib/deckOverrides";
 import { useEditableDecks } from "@/lib/editableDecks";
 import { exportAccountData, exportFileName } from "@/lib/exportData";
 import { readAvatarFile } from "@/lib/images";
+import { countOpenReports, useIsAdmin } from "@/lib/moderation";
 import { fill } from "@/lib/practice";
 import { deckCounts } from "@/lib/srs/core";
 import { isDeckEnabled, useSrsData, useSrsStatus } from "@/lib/srs/store";
@@ -441,8 +442,30 @@ function Details({ t, userId, username, email }: { t: T; userId: string; usernam
         <Link href="/library" className="tile-open">
           {t.goToLibrary}
         </Link>
+        <ModeratorLink userId={userId} />
       </div>
     </div>
+  );
+}
+
+/** For moderators only: a link to the reports page with the number of open reports. */
+function ModeratorLink({ userId }: { userId: string }) {
+  const t = useI18n().t.moderation;
+  const admin = useIsAdmin(userId);
+  const [open, setOpen] = useState<number | null>(null);
+  useEffect(() => {
+    if (!admin) return;
+    let live = true;
+    void countOpenReports().then((n) => live && setOpen(n));
+    return () => {
+      live = false;
+    };
+  }, [admin]);
+  if (!admin) return null;
+  return (
+    <Link href="/admin/reports" className="tile-open">
+      {open ? fill(t.adminLinkCount, { n: open }) : t.adminLink}
+    </Link>
   );
 }
 
