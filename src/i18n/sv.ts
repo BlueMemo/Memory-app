@@ -259,6 +259,7 @@ export const sv: Dict = {
     preview: "Kort",
   },
   library: {
+    colCards: "Kort",
     deckSettings: "Inställningar",
     addCard: "+ Lägg till kort",
     shortcuts: "A lägg till kort · B bläddra bland kort",
