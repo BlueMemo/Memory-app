@@ -43,7 +43,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
     noise ignored. Anyone may insert, only the team reads (Supabase table editor) — learners can read
     their own, and they're in "Download my data". Kept 90 days (an insert trigger deletes older rows).
     **Requires re-running `schema.sql`** — until then reports fail quietly, "Report a problem" says it
-    couldn't send, **and "Download my data" fails** (it fails loudly on any unreadable table).
+    couldn't send; "Download my data" leaves the table out (`optional` in `EXPORT_TABLES`).
   - **Visitor statistics**: Vercel Web Analytics (`@vercel/analytics`, `SiteAnalytics.tsx`) — cookieless,
     nothing stored on the device, so still no consent banner. Query strings dropped and own-deck ids masked
     before sending. **Must be switched on in Vercel** (project → Analytics → Enable); until then the script

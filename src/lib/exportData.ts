@@ -19,7 +19,7 @@ export async function fetchAllPages(fetchPage: (from: number, to: number) => Pro
 
 /** Every table that holds something belonging to the learner: which column says whose it is, and a unique
  *  ordering so paging never skips or repeats a row. */
-export const EXPORT_TABLES: { table: string; owner: string; order: string[] }[] = [
+export const EXPORT_TABLES: { table: string; owner: string; order: string[]; optional?: boolean }[] = [
   { table: "profiles", owner: "id", order: ["id"] },
   { table: "decks", owner: "user_id", order: ["id"] },
   { table: "saved_decks", owner: "user_id", order: ["deck_id"] },
@@ -31,7 +31,8 @@ export const EXPORT_TABLES: { table: string; owner: string; order: string[] }[] 
   { table: "practice_results", owner: "user_id", order: ["id"] },
   { table: "published_decks", owner: "author_id", order: ["id"] },
   { table: "published_deck_copies", owner: "user_id", order: ["published_id"] },
-  { table: "problem_reports", owner: "user_id", order: ["id"] },
+  // Optional while a database hasn't had the schema.sql that adds it: a missing table is left out, not an error.
+  { table: "problem_reports", owner: "user_id", order: ["id"], optional: true },
 ];
 
 export interface AccountExport {
@@ -43,11 +44,14 @@ export interface AccountExport {
   data: Record<string, Record<string, unknown>[]>;
 }
 
+/** Supabase's error when a table doesn't exist (yet). */
+export const isMissingTable = (e: unknown) => e instanceof Error && /schema cache|does not exist/i.test(e.message);
+
 /** Downloads everything the signed-in learner owns. Throws if any table can't be read, because an export
  *  that silently leaves something out is worse than none. */
 export async function exportAccountData(supabase: SupabaseClient, user: User): Promise<AccountExport> {
   const data: AccountExport["data"] = {};
-  for (const { table, owner, order } of EXPORT_TABLES) {
+  for (const { table, owner, order, optional } of EXPORT_TABLES) {
     try {
       data[table] = await fetchAllPages((from, to) => {
         let q = supabase.from(table).select("*").eq(owner, user.id);
@@ -55,6 +59,7 @@ export async function exportAccountData(supabase: SupabaseClient, user: User): P
         return q.range(from, to);
       });
     } catch (e) {
+      if (optional && isMissingTable(e)) continue;
       throw new Error(`${table}: ${e instanceof Error ? e.message : "failed"}`);
     }
   }

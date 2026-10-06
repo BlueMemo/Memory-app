@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exportFileName, fetchAllPages } from "./exportData";
+import { exportFileName, fetchAllPages, isMissingTable } from "./exportData";
 
 const rows = (n: number) => Array.from({ length: n }, (_, i) => ({ i }));
 const pager = (all: Record<string, unknown>[]) => async (from: number, to: number) => ({ data: all.slice(from, to + 1), error: null });
@@ -28,5 +28,13 @@ describe("fetchAllPages", () => {
 describe("exportFileName", () => {
   it("includes the date", () => {
     expect(exportFileName(new Date("2026-10-05T12:00:00Z"))).toBe("bluememo-data-2026-10-05.json");
+  });
+});
+
+describe("isMissingTable", () => {
+  it("recognises a table that doesn't exist yet, and nothing else", () => {
+    expect(isMissingTable(new Error("Could not find the table 'public.problem_reports' in the schema cache"))).toBe(true);
+    expect(isMissingTable(new Error('relation "public.problem_reports" does not exist'))).toBe(true);
+    expect(isMissingTable(new Error("permission denied"))).toBe(false);
   });
 });
