@@ -55,7 +55,8 @@ export function AccountView() {
 }
 
 function SignedOut({ t }: { t: T }) {
-  const legal = useI18n().t.legal;
+  const { lang, t: dict } = useI18n();
+  const legal = dict.legal;
   const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -95,7 +96,8 @@ function SignedOut({ t }: { t: T }) {
       email,
       password,
       options: {
-        data: { username },
+        // lang picks the language of account emails (supabase/email-templates).
+        data: { username, lang },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`,
       },
     });

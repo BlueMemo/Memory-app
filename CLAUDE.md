@@ -32,6 +32,14 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Branded account emails (2026-10-06, branch `feature/email-templates`)**: `supabase/email-templates/`
+  holds confirm sign-up, reset password, change email and magic link as BlueMemo-styled HTML (logo,
+  brand blue button, light colours for email apps), each in **Swedish and English** in one template, picked by
+  the account's user metadata `lang` (Go template `{{ if .Data.lang }}{{ if eq .Data.lang "sv" }}`). The site
+  sets `lang` at sign-up and `AuthSync` updates it when a signed-in learner's site language differs.
+  **Not live until pasted into Supabase** (Authentication → Emails; subjects + steps in that folder's
+  README) — Erik's dashboard. Next step worth doing: a custom SMTP sender on bluememo.eu (Supabase's
+  default sender is generic and rate-limited).
 - **Legal pages (2026-10-06, branch `feature/legal-pages`)**: `/privacy` (privacy policy), `/terms` (terms of
   use) and `/legal` ("Who runs BlueMemo"), one data-driven `LegalView.tsx` with the texts in i18n `legal`
   (`**bold**`, `[label](/path)` links and `{email}` → `CONTACT_EMAIL`, via `renderLegal`). A `SiteFooter`
