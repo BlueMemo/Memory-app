@@ -48,6 +48,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Space starts studying on the deck page (2026-10-07, branch `feature/space-to-study`)**: Space does what
+  "Study now" does (switches spaced repetition on if needed, opens the review); the button shows the key.
+  Ignored while typing, with modifier keys, on key repeat, and when a button or link has focus (Space is
+  that control's own click there). One `useEffectEvent` handler in `DeckView` handles Space and A.
 - **Aligned counts in the Library's list view (2026-10-07, branch `feature/aligned-counts`)**: each row is a
   grid (title, then card count, learning, due and new as small number boxes in fixed-width columns, then
   the gear), so the numbers line up vertically; their labels sit once in a header row (coloured like the
