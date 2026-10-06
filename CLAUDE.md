@@ -44,6 +44,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   title/line in i18n `celebrations`, and a rarity badge from "uncommon" up. Only after answering cards in
   that session (opening an already finished deck shows the plain "Congratulations"). Particles stay hidden
   with reduced motion. **`/celebrations`** (not linked, noindex) previews all of them.
+- **A on the deck page (2026-10-07, branch `feature/deck-add-shortcut`)**: pressing **A** on a deck you can
+  edit (your own, or a saved one) opens quick add for that deck (`/library/add?deck=<id>&back=deck`), and an
+  "+ Add card [A]" button sits next to Deck settings; Done and the back link return to the deck. Unsaved
+  official decks have no button and ignore A.
 - **Performance basics (2026-10-07, branch `feature/performance-basics`, stacked on
   `feature/moderator-integrations` — merge that one first)** — prompted by a reel listing five things
   "vibe-coded" apps miss; we audited all five and chose to do two now: (1) **database indexes** and (2)
