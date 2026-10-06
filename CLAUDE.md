@@ -48,6 +48,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Aligned counts in the Library's list view (2026-10-07, branch `feature/aligned-counts`)**: each row is a
+  grid (title, then card count, learning, due and new as small number boxes in fixed-width columns, then
+  the gear), so the numbers line up vertically; their labels sit once in a header row (coloured like the
+  numbers). Decks without spaced repetition show "–". On phones the title takes its own line above the
+  numbers. Tiles and rows views are unchanged.
 - **Due dates and the Library tab (2026-10-07, branch `feature/due-dates`)**: the Due/"Next" column in
   Browse (deck page) and the card browser shows a **date** (same format as Created) instead of "in 3 days";
   cards due later today show "today 14:35", due ones "now" (`lib/dueDate.ts`, tested). The card browser's

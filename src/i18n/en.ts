@@ -259,6 +259,7 @@ export const en = {
     preview: "Cards",
   },
   library: {
+    colCards: "Cards",
     deckSettings: "Settings",
     addCard: "+ Add card",
     shortcuts: "A add card · B browse cards",

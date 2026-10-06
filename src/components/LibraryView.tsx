@@ -7,7 +7,6 @@ import { useSavedDecks } from "@/lib/editableDecks";
 import { cardKey, deckCounts } from "@/lib/srs/core";
 import { isDeckEnabled, useSrsData, type SrsData } from "@/lib/srs/store";
 import { setPreferences, usePreferences, type LibrarySort, type LibraryView as ViewMode } from "@/lib/preferences";
-import { fill } from "@/lib/practice";
 import { useNow } from "@/lib/useNow";
 import { useUser } from "@/lib/supabase/useUser";
 import { useUserDecks } from "@/lib/userDecks";
@@ -21,7 +20,6 @@ import { GearIcon } from "./GearIcon";
 import { PageTabs } from "./PageTabs";
 import { isTyping } from "./PracticeSession";
 import { ImportGuestDataPrompt } from "./ImportGuestDataPrompt";
-import { SrsCounts } from "./ReviewSession";
 
 export function LibraryView() {
   const t = useI18n().t.library;
@@ -196,6 +194,16 @@ function DeckCollection(props: {
             </Link>
           </li>
         )}
+        {props.decks.length > 0 && (
+          <li className="deck-list-head" aria-hidden="true">
+            <span />
+            <span>{dict.library.colCards}</span>
+            <span className="srs-count-learning">{dict.srs.learningCount}</span>
+            <span className="srs-count-review">{dict.srs.reviewCount}</span>
+            <span className="srs-count-new">{dict.srs.newCount}</span>
+            <span />
+          </li>
+        )}
         {props.decks.map((deck) => {
           const due = isDeckEnabled(props.srs, deck.id)
             ? deckCounts({ deckId: deck.id, cardIds: deck.cards.map((c) => c.id), cards: props.srs.cards, logs: props.srs.logs, settings: props.srs.settings, now })
@@ -205,8 +213,13 @@ function DeckCollection(props: {
               <Link href={`/decks/${deck.id}`} className="deck-list-title">
                 {deck.title}
               </Link>
-              <span className="muted">{fill(dict.decks.cardCount, { n: deck.cards.length })}</span>
-              {due && <SrsCounts counts={due} t={dict.srs} />}
+              <span className="deck-list-num">{deck.cards.length}</span>
+              {/* Learning, due, new: only the numbers, in columns under the header's labels. */}
+              {(["learning", "review", "new"] as const).map((key) => (
+                <span key={key} className={`deck-list-num deck-list-count srs-count-${key}`}>
+                  {due ? <strong>{due[key]}</strong> : "–"}
+                </span>
+              ))}
               {props.action(deck)}
             </li>
           );
