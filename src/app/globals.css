@@ -3572,3 +3572,61 @@ main [id] {
   flex-direction: column;
   gap: 6px;
 }
+
+/* Legal pages: lists inside sections, and the date line closer to the lead. */
+.legal-page .page-intro .fine-print {
+  margin-top: 8px;
+}
+
+.legal-page .about-section ul {
+  margin: 10px 0 0;
+  padding-left: 1.2em;
+  line-height: 1.6;
+}
+
+.legal-page .about-section li + li {
+  margin-top: 6px;
+}
+
+.legal-page .about-section strong {
+  color: var(--ink);
+}
+
+.legal-page .about-section p + p,
+.legal-page .about-section ul + p {
+  margin-top: 12px;
+}
+
+/* Footer with the legal links; body is a flex column, so it sits at the bottom of short pages. */
+.site-footer {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 28px 16px 32px;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+}
+
+.site-footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--ink);
+}
+
+.consent-note {
+  margin: 4px 0 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

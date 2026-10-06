@@ -32,6 +32,18 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Legal pages (2026-10-06, branch `feature/legal-pages`)**: `/privacy` (privacy policy), `/terms` (terms of
+  use) and `/legal` ("Who runs BlueMemo"), one data-driven `LegalView.tsx` with the texts in i18n `legal`
+  (`**bold**`, `[label](/path)` links and `{email}` → `CONTACT_EMAIL`, via `renderLegal`). A `SiteFooter`
+  links them on every page except the study screens. The sign-up form and the share panel link the terms.
+  What the texts commit us to: no analytics/ads/tracking, only necessary cookies (so no cookie banner),
+  minimum age 13, legal basis "contract" (GDPR 6.1 b), Supabase in the EU (Ireland) + Vercel as processors,
+  publishing grants every user the right to view, copy and keep a copy for personal non-commercial study,
+  Swedish law. **If any of that stops being true (adding analytics, a newsletter, a new provider, a new kind
+  of data), update the policy texts and their `updatedDate` in the same change.** Written by us, not a
+  lawyer — worth a review before public launch. Not included on purpose: a postal address (the Swedish
+  e-commerce law asks for one from services "normally provided for remuneration"; add it, and an
+  organisation number, once there's a company or payments).
 - **Plan: offline use + sync between devices (decided 2026-10-06: later, not before the soft launch)** —
   the goal is studying while offline and having progress sync to the account when the connection returns.
   What exists today: signed-in changes apply in memory first and save to Supabase in the background
