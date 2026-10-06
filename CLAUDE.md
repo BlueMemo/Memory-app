@@ -32,7 +32,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
-- **Moderation of shared decks, built (2026-10-06, branch `feature/deck-moderation`; not tested yet)** —
+- **Moderation of shared decks, built and tested (2026-10-06, branch `feature/deck-moderation`)** —
   roadmap phase 4's "reporting/moderation". **Reporting**: on `/shared/[id]` a "Report this deck" form
   (`ReportDeck.tsx`): reason (illegal, copyright, abusive, adult, spam, other) + optional note ≤ 1000 chars.
   Must be signed in (signed-out visitors are pointed to sign in or to `CONTACT_EMAIL`); one report per
@@ -50,7 +50,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   in the Supabase SQL editor: `insert into public.admins (user_id) select id from auth.users where email =
   '<email>';`), checked by `public.is_admin()`; all permissions are enforced by row-level security, the
   UI checks only decide what to show. `deck_reports` is in `EXPORT_TABLES` (reports a learner made).
-  **Schema changed — `schema.sql` must be re-run before this branch goes live** (it also replaces the
+  **Schema changed — `schema.sql` was re-run (Erik) and he was added as the first moderator on 2026-10-06; re-run it again in any other Supabase project** (it also replaces the
   old "publicly readable" select policy on `published_decks`; until it's run the report form errors and
   Discover keeps working through the old policy). Deliberately not built: email alerts for new reports
   (check the page, or add a Supabase webhook + Resend later), automatic hiding after N reports, banning
