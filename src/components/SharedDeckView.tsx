@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 import { dictionaries, useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
 import { copyPublishedDeck, getPublishedDeck, useSettingsForCopy, type PublishedDeck } from "@/lib/publishedDecks";
+import { useUser } from "@/lib/supabase/useUser";
 import { Avatar } from "./Avatar";
+import { CONTACT_EMAIL } from "./AboutView";
+import { ReportDeck } from "./ReportDeck";
 
 /** /shared/[id]: a published deck version, opened from Discover or a shared link. */
 export function SharedDeckView({ id }: { id: string }) {
@@ -18,6 +21,7 @@ export function SharedDeckView({ id }: { id: string }) {
   });
   const [copying, setCopying] = useState(false);
   const srsSettings = useSettingsForCopy();
+  const { user } = useUser();
 
   useEffect(() => {
     let live = true;
@@ -71,6 +75,14 @@ export function SharedDeckView({ id }: { id: string }) {
       </p>
       {deck.description && <p className="deck-description">{deck.description}</p>}
 
+      {published.hidden && (
+        <p className="notice error" role="status">
+          {user?.id === published.authorId
+            ? fill(dict.moderation.removedForAuthor, { reason: (published.hiddenReason ?? "").replace(/[.\s]+$/, ""), email: CONTACT_EMAIL })
+            : dict.moderation.hiddenForModerators}
+        </p>
+      )}
+
       {state.newerId && (
         <p className="fine-print">
           {t.newer} <Link href={`/shared/${state.newerId}`}>{t.newerLink}</Link>
@@ -78,7 +90,7 @@ export function SharedDeckView({ id }: { id: string }) {
       )}
 
       <div className="deck-actions">
-        <button type="button" className="btn accent big-btn" disabled={copying} onClick={() => void copy()}>
+        <button type="button" className="btn accent big-btn" disabled={copying || published.hidden} onClick={() => void copy()}>
           {copying ? t.copying : t.copy}
         </button>
       </div>
@@ -93,6 +105,7 @@ export function SharedDeckView({ id }: { id: string }) {
           </li>
         ))}
       </ol>
+      {!published.hidden && <ReportDeck publishedId={published.id} authorId={published.authorId} />}
     </main>
   );
 }

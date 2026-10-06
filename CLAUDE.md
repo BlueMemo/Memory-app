@@ -32,6 +32,34 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Moderation of shared decks, built and tested (2026-10-06, branch `feature/deck-moderation`)** —
+  roadmap phase 4's "reporting/moderation". **Reporting**: on `/shared/[id]` a "Report this deck" form
+  (`ReportDeck.tsx`): reason (illegal, copyright, abusive, adult, spam, other) + optional note ≤ 1000 chars.
+  Must be signed in (signed-out visitors are pointed to sign in or to `CONTACT_EMAIL`); one report per
+  learner and deck version; authors can't report their own deck; the author is never told who reported.
+  Table `deck_reports` (a trigger copies the deck's title and author in, so a report stays readable if the
+  deck is deleted). **Acting**: `/admin/reports` (`AdminReportsView.tsx`, not indexed; non-moderators just see
+  "this page doesn't exist"; moderators also get a "Moderation (n open)" link on the account page): open
+  reports with **Hide deck** (a reason is required, and the author sees it) or **Dismiss report**, plus the
+  list of hidden decks with **Restore deck**. Hiding sets `published_decks.hidden` on **all versions** of
+  the deck; hidden decks vanish from Discover and from `/shared/<id>` for everyone except the author
+  (sees "removed because …" on the shared page and in the deck's share panel, publishing is blocked) and
+  moderators. People who already copied a deck keep their copy (it's an independent user deck). The author
+  can't get around it: authors can't delete a hidden deck, and a trigger (`block_hidden_republish`) refuses
+  new versions of a hidden deck. **Who is a moderator**: table `public.admins` (no API access; add people
+  in the Supabase SQL editor: `insert into public.admins (user_id) select id from auth.users where email =
+  '<email>';`), checked by `public.is_admin()`; all permissions are enforced by row-level security, the
+  UI checks only decide what to show. `deck_reports` is in `EXPORT_TABLES` (reports a learner made).
+  **Schema changed — `schema.sql` was re-run (Erik) and he was added as the first moderator on 2026-10-06; re-run it again in any other Supabase project** (it also replaces the
+  old "publicly readable" select policy on `published_decks`; until it's run the report form errors and
+  Discover keeps working through the old policy). Deliberately not built: email alerts for new reports
+  (check the page, or add a Supabase webhook + Resend later), automatic hiding after N reports, banning
+  repeat offenders, an appeal form (appeals go to `CONTACT_EMAIL`), reports about profiles/usernames/photos.
+  Meant to satisfy the Digital Services Act basics: an easy way to notify us, and a stated reason to the
+  affected author. The terms of use (`/terms`, merged from `feature/legal-pages`) cover what users may publish and
+  that we may remove decks; its "Reporting content" section tells people to email a link, so mention the
+  in-site Report button there next time the legal text is edited.
+
 - **Start page next step (2026-10-06, branch `feature/start-page`)**: the landing hero's main button is now
   **Study now** (`NextStep` in `LandingView.tsx`): to `/library` when the learner has saved or created decks,
   otherwise to `/discover`, with a line saying which. The 10-countries demo became a small "New here?" link,
@@ -259,7 +287,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
      `published_decks`; "Show in Discover" on/off (off = link only, via `/shared/<id>`); unpublish removes
      all versions. `/shared/[id]` (`SharedDeckView.tsx`) shows a version (with a link to a newer one) and
      "Add a copy to my library" (a normal user deck, independent of later versions). Not built yet: saving
-     a published deck *by reference* (only copies), reporting/moderation, popularity sorting.
+     a published deck *by reference* (only copies); reporting/moderation was added 2026-10-06 (see top).
      Code: `lib/publishedDecks.ts`. Schema (`published_decks` table + `published_decks_latest`
      view) was re-run 2026-10-05; without it Discover says community decks aren't available and the
      share panel says sharing isn't available.

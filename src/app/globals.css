@@ -3573,6 +3573,48 @@ main [id] {
   gap: 6px;
 }
 
+.report-note {
+  margin-top: 28px;
+}
+
+.report-form {
+  margin-top: 28px;
+  max-width: 560px;
+}
+
+.report-form textarea,
+.report-card textarea {
+  width: 100%;
+}
+
+.report-list {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-card {
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.report-card p {
+  margin: 0 0 8px;
+}
+
+.report-quote {
+  margin: 0 0 12px;
+  padding: 6px 12px;
+  border-left: 3px solid var(--line);
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
 /* Legal pages: lists inside sections, and the date line closer to the lead. */
 .legal-page .page-intro .fine-print {
   margin-top: 8px;

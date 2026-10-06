@@ -32,6 +32,7 @@ export const EXPORT_TABLES: { table: string; owner: string; order: string[]; opt
   { table: "published_decks", owner: "author_id", order: ["id"] },
   { table: "published_deck_copies", owner: "user_id", order: ["published_id"] },
   // Optional while a database hasn't had the schema.sql that adds it: a missing table is left out, not an error.
+  { table: "deck_reports", owner: "reporter_id", order: ["id"], optional: true },
   { table: "problem_reports", owner: "user_id", order: ["id"], optional: true },
 ];
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
 import { publishDeck, unpublishDeck, usePublication, type PublishedDeckSettings, type PublishOptions } from "@/lib/publishedDecks";
+import { CONTACT_EMAIL } from "./AboutView";
 import { useUser } from "@/lib/supabase/useUser";
 import type { Deck } from "@/lib/types";
 import { renderLegal } from "./LegalView";
@@ -58,7 +59,11 @@ export function SharePanel({ deck, settings }: { deck: Deck; settings: Published
         </p>
       ) : !available ? (
         <p className="muted">{t.unavailable}</p>
-      ) : loading ? null : (
+      ) : loading ? null : latest?.hidden ? (
+        <p className="notice error" role="status">
+          {fill(dict.moderation.removedForAuthor, { reason: (latest.hiddenReason ?? "").replace(/[.\s]+$/, ""), email: CONTACT_EMAIL })}
+        </p>
+      ) : (
         <>
           <p className="muted">{t.lead}</p>
           {latest && (

@@ -30,6 +30,10 @@ export interface PublishedDeck {
   deckSettings: PublishedDeckSettings | null;
   /** Copies of all versions together, for "Most popular". */
   copies: number;
+  /** A moderator hid it: only its author and moderators can still open it. */
+  hidden: boolean;
+  /** Why it was hidden, as written by the moderator. */
+  hiddenReason: string | null;
   deck: Deck;
 }
 
@@ -63,10 +67,12 @@ interface Row {
   deck_settings: PublishedDeckSettings | null;
   copy_count: number | null;
   total_copies?: number | null;
+  hidden?: boolean | null;
+  hidden_reason?: string | null;
   deck: Deck;
 }
 
-const COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, show_avatar, deck_settings, copy_count, deck";
+const COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, show_avatar, deck_settings, copy_count, hidden, hidden_reason, deck";
 /** The latest-version view also has the popularity across versions. */
 const LATEST_COLUMNS = `${COLUMNS}, total_copies`;
 /**
@@ -111,6 +117,8 @@ const toPublished = (r: Row, people: Authors): PublishedDeck => ({
   createdAt: r.created_at,
   deckSettings: r.deck_settings ?? null,
   copies: r.total_copies ?? r.copy_count ?? 0,
+  hidden: r.hidden === true,
+  hiddenReason: r.hidden_reason ?? null,
   deck: r.deck,
 });
 
@@ -155,7 +163,8 @@ export async function searchPublishedDecks(filters: SearchFilters, limit = 30): 
   let { data, error } = await run(LATEST_COLUMNS, true);
   if (error) ({ data, error } = await run(LEGACY_COLUMNS, false));
   if (error) return null; // e.g. the table doesn't exist yet: schema.sql hasn't been run
-  const rows = data as unknown as Row[];
+  // Hidden decks can still be read by their author; they don't belong in anyone's Discover.
+  const rows = (data as unknown as Row[]).filter((r) => r.hidden !== true);
   const people = await authors(rows.map((r) => r.author_id));
   return rows.map((r) => toPublished(r, people));
 }
@@ -267,6 +276,7 @@ export function usePublication(sourceDeckId: string, userId: string | null) {
  * the copy also counts towards the deck's popularity. `settings` are the learner's current SRS settings.
  */
 export async function copyPublishedDeck(published: PublishedDeck, settings: SrsSettings): Promise<string> {
+  if (published.hidden) throw new Error("This deck was removed by a moderator.");
   const id = `user-${crypto.randomUUID()}`;
   await addUserDeck({ ...published.deck, id, official: false });
   const shared = published.deckSettings;
