@@ -4,8 +4,13 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { dictionaries, languages, useI18n } from "@/i18n";
+import { useEditableDecks } from "@/lib/editableDecks";
+import { fill } from "@/lib/practice";
 import { watchSystemTheme } from "@/lib/preferences";
+import { deckCounts } from "@/lib/srs/core";
+import { isDeckEnabled, useSrsData } from "@/lib/srs/store";
 import { useUser } from "@/lib/supabase/useUser";
+import { useNow } from "@/lib/useNow";
 import { AuthSync } from "./AuthSync";
 import { GearIcon } from "./GearIcon";
 import { Avatar } from "./Avatar";
@@ -27,6 +32,41 @@ function AuthStatus() {
       <Avatar url={avatarUrl} name={username ?? user.email ?? null} size={28} seed={user.id} />
       <span>{username ?? t.header.setUsername}</span>
     </Link>
+  );
+}
+
+/** A simple open book, drawn in the tab's colour, marking the Library tab as the place to go. */
+function BookIcon() {
+  return (
+    <svg className="tab-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5v13"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Cards waiting today across the learner's library decks (with spaced repetition on), like a notification count. */
+function DueBadge({ label }: { label: string }) {
+  const decks = useEditableDecks();
+  const srs = useSrsData();
+  const now = useNow();
+  let due = 0;
+  for (const deck of decks) {
+    if (!isDeckEnabled(srs, deck.id)) continue;
+    const c = deckCounts({ deckId: deck.id, cardIds: deck.cards.map((card) => card.id), cards: srs.cards, logs: srs.logs, settings: srs.settings, now });
+    due += c.learning + c.review + c.new;
+  }
+  if (due === 0) return null;
+  const text = fill(label, { n: due });
+  return (
+    <span className="tab-badge" title={text} aria-label={text}>
+      {due > 99 ? "99+" : due}
+    </span>
   );
 }
 
@@ -62,7 +102,9 @@ export function SiteHeader() {
             className={tab.active ? "active" : tab.highlight ? "tab-highlight" : undefined}
             aria-current={tab.active ? "page" : undefined}
           >
+            {tab.highlight && <BookIcon />}
             {tab.label}
+            {tab.highlight && <DueBadge label={t.header.dueToday} />}
           </Link>
         ))}
       </nav>

@@ -3697,15 +3697,39 @@ main [id] {
   color: var(--accent);
 }
 
-/* The Library tab stands out (outlined in brand blue) to invite a click, until you're there. */
+/* The Library tab stands out without a box: brand-blue text with a book icon, and a count of today's cards
+   (like a notification badge) when there are any. */
+.tabs a.tab-highlight,
+.tabs a:has(.tab-icon) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .tabs a.tab-highlight {
   color: var(--accent);
-  box-shadow: inset 0 0 0 1.5px var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .tabs a.tab-highlight:hover {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tab-icon {
+  flex-shrink: 0;
+}
+
+.tab-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--brand-on-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
 }
 .site-footer .footer-report {
   margin: 0;

@@ -36,6 +36,12 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Due dates and the Library tab (2026-10-07, branch `feature/due-dates`)**: the Due/"Next" column in
+  Browse (deck page) and the card browser shows a **date** (same format as Created) instead of "in 3 days";
+  cards due later today show "today 14:35", due ones "now" (`lib/dueDate.ts`, tested). The card browser's
+  detail panel still shows both. The **Library tab** no longer has the outlined box: it's brand-blue text
+  with a book icon and, when there are any, a badge with today's cards across the library's decks with
+  spaced repetition on (`DueBadge` in `SiteHeader.tsx`; 99+ caps it).
 - **Celebrations (2026-10-07, branch `feature/celebrations`)**: finishing a deck's due cards in a review
   session shows one of **15 celebrations**, drawn by odds (`lib/celebrations.ts`, weights in percent, sum
   100, tested): common 20/15/10/10/10/8 %, uncommon 7/5/5/4/3 %, rare 1.5/1 %, epic 0.4 %, and one
@@ -166,8 +172,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 - **Start page next step (2026-10-06, branch `feature/start-page`)**: the landing hero's main button is now
   **Study now** (`NextStep` in `LandingView.tsx`): to `/library` when the learner has saved or created decks,
   otherwise to `/discover`, with a line saying which. The 10-countries demo became a small "New here?" link,
-  shown only to people without decks. The header's **Library tab is outlined in brand blue**
-  (`.tab-highlight`) to invite a click, except while you're on it.
+  shown only to people without decks. The header's **Library tab is highlighted** (`.tab-highlight`, see
+  the due-dates entry for its current look), except while you're on it.
 - **Share previews (2026-10-06, branch `feature/share-previews`)**: pasting a link into WhatsApp, Instagram,
   iMessage, Discord, ... shows a title, description and picture (Open Graph + Twitter tags). `metadataBase`
   is `https://bluememo.eu` (`lib/og/meta.ts`, which also has `pageMetadata()` — a page's `openGraph` replaces

@@ -4,6 +4,7 @@ export const en = {
   siteName: "BlueMemo",
   languageName: "English",
   header: {
+    dueToday: "{n} cards to study today",
     skills: "Memory Tree",
     language: "Language",
     navLabel: "Main",
@@ -499,6 +500,7 @@ export const en = {
     saveErrorLocal: "Your browser storage is full, so reviews from this visit may not be kept.",
     inTime: "in {time}",
     now: "now",
+    today: "today",
     units: { m: "m", h: "h", d: "d", mo: "mo", y: "y" },
   },
   settings: {
