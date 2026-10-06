@@ -53,8 +53,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   Ignored while typing, with modifier keys, on key repeat, and when a button or link has focus (Space is
   that control's own click there). One `useEffectEvent` handler in `DeckView` handles Space and A.
 - **Aligned counts in the Library's list view (2026-10-07, branch `feature/aligned-counts`)**: each row is a
-  grid (title, then card count, learning, due and new as small number boxes in fixed-width columns, then
-  the gear), so the numbers line up vertically; their labels sit once in a header row (coloured like the
+  grid (title, then card count, learning, due and new as plain numbers in fixed-width, well-spaced
+  columns, then the gear; boxes around them were tried and dropped), so the numbers line up vertically; their labels sit once in a header row (coloured like the
   numbers). Decks without spaced repetition show "–". On phones the title takes its own line above the
   numbers. Tiles and rows views are unchanged.
 - **Due dates and the Library tab (2026-10-07, branch `feature/due-dates`)**: the Due/"Next" column in
