@@ -32,6 +32,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Automatic checks on GitHub (2026-10-07, branch `feature/fix-github`)**: `.github/workflows/checks.yml`
+  runs typecheck, lint, tests and a production build on every push to any branch and on pull requests
+  (Node from `.nvmrc`). `npm run typecheck` now runs `next typegen` first, since a fresh clone has no
+  route types (`PageProps`) until then. Results show next to each commit/PR on GitHub.
 - **Moderation of shared decks, built and tested (2026-10-06, branch `feature/deck-moderation`)** —
   roadmap phase 4's "reporting/moderation". **Reporting**: on `/shared/[id]` a "Report this deck" form
   (`ReportDeck.tsx`): reason (illegal, copyright, abusive, adult, spam, other) + optional note ≤ 1000 chars.
