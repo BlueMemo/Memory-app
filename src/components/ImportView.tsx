@@ -85,6 +85,8 @@ export function ImportView() {
   const readyIndexes = included.flatMap((ok, i) => (ok ? [i] : [])).slice(0, MAX_CARDS);
   const toCheck = rows.filter((_, i) => problems[i].length > 0).length;
   const srsOn = srsChoice ?? srs.settings.enableForNewDecks;
+  // Vocabulary lists are often learned by typing; every imported card then asks for the answer to be typed.
+  const [typeAnswers, setTypeAnswers] = useState(false);
 
   const loadFile = async (file: File) => {
     setFileError(null);
@@ -100,7 +102,10 @@ export function ImportView() {
   };
 
   const create = async () => {
-    const cards = readyIndexes.map((i) => draftToCard(drafts[i], kind, crypto.randomUUID()));
+    const cards = readyIndexes.map((i) => {
+      const card = draftToCard(drafts[i], kind, crypto.randomUUID());
+      return typeAnswers ? { ...card, answerMode: "type" as const } : card;
+    });
     const deck: Deck = {
       id: `user-${crypto.randomUUID()}`,
       title: title.trim(),
@@ -305,6 +310,13 @@ export function ImportView() {
             <span>
               <strong>{dict.creator.useSrsLabel}</strong>
               <span className="hint">{dict.creator.useSrsText}</span>
+            </span>
+          </label>
+          <label className="check-field">
+            <input type="checkbox" checked={typeAnswers} onChange={(e) => setTypeAnswers(e.target.checked)} />
+            <span>
+              <strong>{dict.answerStyle.importLabel}</strong>
+              <span className="hint">{dict.answerStyle.importHint}</span>
             </span>
           </label>
           {bigForGuest && <p className="notice">{t.guestSizeWarning}</p>}
