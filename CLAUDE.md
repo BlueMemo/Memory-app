@@ -19,9 +19,13 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   (`feature/<short-name>`) and work there; commit as you go; push the branch whenever (Vercel builds a
   preview URL per branch — but previews use the **live Supabase database**, so test destructive things with
   a throwaway account).
-- **Finishing a feature**: merge the latest `main` into the branch, run `typecheck`, `lint`, `test` and
-  `build`, then merge the branch into `main` and push (ask the user first — that's the release moment).
-  Keep branches short-lived; merge small and often.
+- **Finishing a feature** (ask the user first — that's the release moment): merge the latest `main` into
+  the branch, run `typecheck`, `lint`, `test` and `build`, push, then **open a pull request** into `main`
+  (`gh pr create`) and merge it once GitHub's **Checks** pass (`gh pr merge --merge`, or auto-merge).
+  **`main` is protected** (since 2026-10-07): no direct pushes, not even for owners; every change goes
+  through a pull request whose Checks (`.github/workflows/checks.yml`) passed on a branch that is up to date
+  with `main`. If `main` moved meanwhile, update the branch (`gh pr update-branch` or merge `main` in) and
+  let the checks run again. Keep branches short-lived; merge small and often.
 - **Shared files that collide**: `src/i18n/en.ts` + `sv.ts`, `globals.css`, `CLAUDE.md`, `AccountDashboard.tsx`.
   When resolving a conflict keep *both* sides' additions; never force-push.
 - **Database**: one shared Supabase project. A change to `supabase/schema.sql` takes effect for everyone the
@@ -32,6 +36,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Automatic checks on GitHub (2026-10-07, branch `feature/fix-github`)**: `.github/workflows/checks.yml`
+  runs typecheck, lint, tests and a production build on every push to any branch and on pull requests
+  (Node from `.nvmrc`). `npm run typecheck` now runs `next typegen` first, since a fresh clone has no
+  route types (`PageProps`) until then. Results show next to each commit/PR on GitHub. `main` is protected
+  so only pull requests with passing Checks can be merged (see "Working together").
 - **Moderation of shared decks, built and tested (2026-10-06, branch `feature/deck-moderation`)** —
   roadmap phase 4's "reporting/moderation". **Reporting**: on `/shared/[id]` a "Report this deck" form
   (`ReportDeck.tsx`): reason (illegal, copyright, abusive, adult, spam, other) + optional note ≤ 1000 chars.

@@ -1,0 +1,34 @@
+# Typecheck, lint, tests and a production build on every push to every branch and on every pull request,
+# so a broken change shows up on GitHub before it's merged into main (which Vercel deploys).
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+# A newer push to the same branch replaces a run still in progress.
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Also generates the route types (PageProps, ...) that the typecheck needs.
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Tests
+        run: npm test
+      # No Supabase keys here, so the site builds in guest-only mode, which is enough to catch build errors.
+      - name: Build
+        run: npm run build
