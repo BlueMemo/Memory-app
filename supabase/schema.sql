@@ -558,3 +558,24 @@ $$ language plpgsql security definer set search_path = '';
 
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
+
+-- ---------- Indexes for speed ----------
+
+-- Each of these answers a query the site makes all the time, or the scan Postgres does when an account is
+-- deleted (every table that points at auth.users with "on delete cascade" is searched for that user's rows).
+-- With a handful of rows nothing is slow; they matter once there is real data.
+
+-- The Library loads "my decks, newest first"; decks are otherwise only indexed by their own id.
+create index if not exists decks_user_created_idx on public.decks (user_id, created_at desc);
+
+-- The account page's test history across all decks (the existing index leads with the deck).
+create index if not exists practice_results_user_completed_idx on public.practice_results (user_id, completed_at desc);
+
+-- "Which versions did I copy": the primary key leads with the published deck, not the learner.
+create index if not exists published_deck_copies_user_idx on public.published_deck_copies (user_id);
+
+-- Hiding a deck closes its open reports, and deleting a deck clears the link from its reports.
+create index if not exists deck_reports_published_idx on public.deck_reports (published_id);
+
+-- Users' own problem reports (account export and account deletion); guests' reports have no user.
+create index if not exists problem_reports_user_idx on public.problem_reports (user_id) where user_id is not null;
