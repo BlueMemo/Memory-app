@@ -31,6 +31,7 @@ import {
 import type { Deck } from "@/lib/types";
 import { answerModeOf, checkTypedAnswer, suggestedGrade } from "@/lib/typedAnswer";
 import { CardDialog } from "./CardForm";
+import { Celebration } from "./Celebration";
 import { FlipCard, isTyping, StudyBar } from "./PracticeSession";
 import { TypedAnswerInput, TypedVerdict } from "./TypedAnswer";
 
@@ -251,7 +252,8 @@ export function ReviewSession({ deck }: { deck: Deck }) {
           </>
         ) : (
           <section className="summary">
-            <h2>{next.kind === "wait" ? t.waitingTitle : t.finishedTitle}</h2>
+            {/* Finishing the due cards in this session earns a celebration; opening an already finished deck doesn't. */}
+            {next.kind !== "wait" && history.length > 0 ? <Celebration /> : <h2>{next.kind === "wait" ? t.waitingTitle : t.finishedTitle}</h2>}
             <p>
               {next.kind === "wait"
                 ? fill(t.waitingText, { time: formatInterval(next.until.getTime() - now.getTime(), t.units) })

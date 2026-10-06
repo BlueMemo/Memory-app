@@ -36,6 +36,24 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Celebrations (2026-10-07, branch `feature/celebrations`)**: finishing a deck's due cards in a review
+  session shows one of **15 celebrations**, drawn by odds (`lib/celebrations.ts`, weights in percent, sum
+  100, tested): common 20/15/10/10/10/8 %, uncommon 7/5/5/4/3 %, rare 1.5/1 %, epic 0.4 %, and one
+  **legendary at 0.1 %** (the Grand Memory Palace: the logo, gold rays, fireworks). Each has a picture from
+  the profile-picture drawings (`AVATAR_ART`), its own drawn particles (`Celebration.tsx`, no emoji), a
+  title/line in i18n `celebrations`, and a rarity badge from "uncommon" up. Only after answering cards in
+  that session (opening an already finished deck shows the plain "Congratulations"). Particles stay hidden
+  with reduced motion. **`/celebrations`** (not linked, noindex) previews all of them.
+  Every real celebration is counted in `SrsSettings.celebrations` (id → times seen; `recordCelebration` in
+  `srs/store.ts`, synced with the settings), and **six hard achievements** read it: Party animal (100
+  celebrations), Lucky find (a rare one), Collector (10 different), Under the northern lights (the epic),
+  The Grand Memory Palace (the legendary) and Complete collection (all 15). Only counts from now on.
+- **A on the deck page (2026-10-07, branch `feature/deck-add-shortcut`)**: pressing **A** on a deck you can
+  edit (your own, or a saved one) opens quick add for that deck (`/library/add?deck=<id>&back=deck`), and an
+  "+ Add card [A]" button sits next to Deck settings; Done and the back link return to the deck. Unsaved
+  official decks have no button and ignore A.
+- **Performance basics (2026-10-07, branch `feature/performance-basics`, stacked on
+  `feature/moderator-integrations` — merge that one first)** — prompted by a reel listing five things
 - **Type-the-answer cards (2026-10-07, branch `feature/type-answer-cards`)** — the "spelling as answer"
   item from the launch list. A card can be answered by **typing** instead of flipping. Tested by hand in the
   browser (guest mode): typing box, verdicts, grade suggestion, creator toggles, deck settings.

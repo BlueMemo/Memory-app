@@ -297,6 +297,12 @@ export async function updateSrsSettings(patch: Partial<SrsSettings>) {
   }
 }
 
+/** Counts a celebration as seen (achievements read these counts); saved with the settings. */
+export function recordCelebration(id: string) {
+  const counts = current().settings.celebrations;
+  return updateSrsSettings({ celebrations: { ...counts, [id]: (counts[id] ?? 0) + 1 } });
+}
+
 export async function setDeckSrsEnabled(deckId: string, enabled: boolean) {
   const data = current();
   apply({ ...data, enabled: { ...data.enabled, [deckId]: enabled } });

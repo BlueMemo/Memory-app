@@ -39,6 +39,19 @@ describe("study statistics", () => {
     expect(list.find((a) => a.id === "nightOwl")?.progress).toBe(1);
   });
 
+  it("unlocks the celebration achievements from what has been seen", () => {
+    const get = (counts: Record<string, number>, id: string) => achievements(stats, reviews, 2, counts).find((a) => a.id === id);
+    expect(get({}, "luckyFind")?.done).toBe(false);
+    expect(get({ confetti: 60, starfall: 40 }, "celebrations100")?.done).toBe(true);
+    expect(get({ confetti: 60, starfall: 40 }, "luckyFind")?.done).toBe(false);
+    expect(get({ crystal: 1 }, "luckyFind")?.done).toBe(true);
+    expect(get({ aurora: 1 }, "northernLights")?.done).toBe(true);
+    expect(get({ aurora: 1 }, "grandPalace")?.done).toBe(false);
+    expect(get({ palace: 1 }, "grandPalace")?.done).toBe(true);
+    expect(get({ confetti: 3, starfall: 1, owl: 2 }, "collector10")).toMatchObject({ progress: 3, goal: 10, done: false });
+    expect(get({ unknown: 5 }, "collector10")?.progress).toBe(0);
+  });
+
   it("has no retention without due reviews", () => {
     expect(computeStats([], {}, [], 0, now).retention).toBeNull();
   });

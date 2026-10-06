@@ -272,3 +272,10 @@ describe("deadlines and burying", () => {
     expect(new Date(buried.due).getTime()).toBeGreaterThan(t.getTime());
   });
 });
+
+describe("celebration counts in settings", () => {
+  it("keeps whole positive counts and drops the rest", () => {
+    expect(normalizeSettings({ celebrations: { confetti: 3, owl: 1.7, bad: -1, worse: "x" } }).celebrations).toEqual({ confetti: 3, owl: 1 });
+    expect(normalizeSettings({}).celebrations).toEqual({});
+  });
+});

@@ -280,7 +280,7 @@ function StudyStatistics({ t, userId, activity, lang }: { t: T; userId: string; 
   if (history.status === "loading") return null;
   const percent = (v: number | null) => (v === null ? "–" : `${Math.round(v * 100)} %`);
   const number = (n: number) => n.toLocaleString(lang === "sv" ? "sv-SE" : "en-GB");
-  const list = achievements(stats, history.reviews, own.length);
+  const list = achievements(stats, history.reviews, own.length, srs.settings.celebrations);
   const done = list.filter((a) => a.done).length;
 
   return (
