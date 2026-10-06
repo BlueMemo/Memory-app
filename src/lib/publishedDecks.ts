@@ -15,7 +15,11 @@ import { addUserDeck } from "./userDecks";
 /** The author's settings for a deck that can travel with it: its preset's FSRS options and new cards a day. */
 export type PublishedDeckSettings = Partial<PresetOptions> & { newPerDay?: number };
 
-export interface PublishedDeck {
+/**
+ * A published deck without its cards: everything a list tile or the share panel needs. Cards can hold images
+ * (as data URLs), so lists must not download them: a search for 30 decks would otherwise fetch 30 whole decks.
+ */
+export interface PublishedSummary {
   id: string;
   authorId: string;
   author: string | null;
@@ -36,6 +40,15 @@ export interface PublishedDeck {
   hidden: boolean;
   /** Why it was hidden, as written by the moderator. */
   hiddenReason: string | null;
+  title: string;
+  description: string;
+  kind: Deck["kind"];
+  language: Lang;
+  cardCount: number;
+}
+
+/** A published deck with its cards, for the page that opens it and for making a copy. */
+export interface PublishedDeck extends PublishedSummary {
   deck: Deck;
 }
 
@@ -67,24 +80,34 @@ interface Row {
   version: number;
   listed: boolean;
   created_at: string;
-  show_avatar: boolean | null;
-  deck_settings: PublishedDeckSettings | null;
-  copy_count: number | null;
+  show_avatar?: boolean | null;
+  deck_settings?: PublishedDeckSettings | null;
+  copy_count?: number | null;
   total_copies?: number | null;
   hidden?: boolean | null;
   hidden_reason?: string | null;
   official?: boolean | null;
-  deck: Deck;
+  title: string;
+  description: string | null;
+  language: Lang;
+  kind: Deck["kind"];
+  card_count: number | null;
+  /** Not selected by list queries. */
+  deck?: Deck;
 }
 
 const COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, show_avatar, deck_settings, copy_count, hidden, hidden_reason, official, deck";
-/** The latest-version view also has the popularity across versions. */
-const LATEST_COLUMNS = `${COLUMNS}, total_copies`;
 /**
  * The columns from before publish options and popularity existed. Used as a fallback while a database
  * hasn't been updated with the latest schema.sql yet, so sharing keeps working (without those extras).
  */
 const LEGACY_COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, deck";
+
+/** The same columns without the cards (`deck`), plus the few deck fields that used to be read from it. The latest-version view also has the popularity across versions (`total_copies`). */
+const SUMMARY_COLUMNS =
+  "id, author_id, source_deck_id, version, listed, created_at, show_avatar, deck_settings, copy_count, hidden, hidden_reason, official, title, description, language, kind, card_count";
+const LATEST_SUMMARY_COLUMNS = `${SUMMARY_COLUMNS}, total_copies`;
+const LEGACY_SUMMARY_COLUMNS = "id, author_id, source_deck_id, version, listed, created_at, title, description, language, kind, card_count";
 
 /** Lower-cased deck text that search matches against: title, description and the cards' own text. */
 export function deckSearchText(deck: Deck): string {
@@ -110,7 +133,8 @@ async function authors(ids: string[]): Promise<Authors> {
   );
 }
 
-const toPublished = (r: Row, people: Authors): PublishedDeck => ({
+/** A row as a summary. Exported for tests. */
+export const toSummary = (r: Row, people: Authors): PublishedSummary => ({
   id: r.id,
   authorId: r.author_id,
   author: people[r.author_id]?.username ?? null,
@@ -125,8 +149,14 @@ const toPublished = (r: Row, people: Authors): PublishedDeck => ({
   official: r.official === true,
   hidden: r.hidden === true,
   hiddenReason: r.hidden_reason ?? null,
-  deck: r.deck,
+  title: r.title,
+  description: r.description ?? "",
+  kind: r.kind,
+  language: r.language,
+  cardCount: r.card_count ?? r.deck?.cards.length ?? 0,
 });
+
+const toPublished = (r: Row, people: Authors): PublishedDeck => ({ ...toSummary(r, people), deck: r.deck as Deck });
 
 /** Search words, minus characters that mean something in LIKE patterns or PostgREST filters. */
 const searchWords = (query: string) =>
@@ -138,7 +168,7 @@ const searchWords = (query: string) =>
     .slice(0, 5);
 
 /** Listed published decks (latest versions) matching the filters; the query also matches author names. */
-export async function searchPublishedDecks(filters: SearchFilters, limit = 30): Promise<PublishedDeck[] | null> {
+export async function searchPublishedDecks(filters: SearchFilters, limit = 30): Promise<PublishedSummary[] | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return [];
   const words = searchWords(filters.query);
@@ -168,15 +198,15 @@ export async function searchPublishedDecks(filters: SearchFilters, limit = 30): 
           : request.order("created_at", { ascending: filters.sort === "oldest" });
     return request.limit(limit);
   };
-  let { data, error } = await run(LATEST_COLUMNS, true);
+  let { data, error } = await run(LATEST_SUMMARY_COLUMNS, true);
   const fullSchema = !error;
-  if (error) ({ data, error } = await run(LEGACY_COLUMNS, false));
+  if (error) ({ data, error } = await run(LEGACY_SUMMARY_COLUMNS, false));
   if (error) return null; // e.g. the table doesn't exist yet: schema.sql hasn't been run
   if (filters.type === "official" && !fullSchema) return []; // no official decks before the column exists
   // Hidden decks can still be read by their author; they don't belong in anyone's Discover.
   const rows = (data as unknown as Row[]).filter((r) => r.hidden !== true);
   const people = await authors(rows.map((r) => r.author_id));
-  return rows.map((r) => toPublished(r, people));
+  return rows.map((r) => toSummary(r, people));
 }
 
 /** One published version by id, plus the id of a newer version of the same deck if there is one. */
@@ -259,19 +289,19 @@ export async function unpublishDeck(sourceDeckId: string): Promise<boolean> {
   return !error;
 }
 
-type Publication = { loading: boolean; latest: PublishedDeck | null; available: boolean };
+type Publication = { loading: boolean; latest: PublishedSummary | null; available: boolean };
 
 async function loadPublication(sourceDeckId: string, userId: string | null): Promise<Publication> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase || !userId) return { loading: false, latest: null, available: true };
   const query = (columns: string) =>
     supabase.from("published_decks_latest").select(columns).eq("author_id", userId).eq("source_deck_id", sourceDeckId).maybeSingle();
-  let { data, error } = await query(LATEST_COLUMNS);
-  if (error) ({ data, error } = await query(LEGACY_COLUMNS));
-  return { loading: false, latest: data ? toPublished(data as unknown as Row, {}) : null, available: !error };
+  let { data, error } = await query(LATEST_SUMMARY_COLUMNS);
+  if (error) ({ data, error } = await query(LEGACY_SUMMARY_COLUMNS));
+  return { loading: false, latest: data ? toSummary(data as unknown as Row, {}) : null, available: !error };
 }
 
-/** The latest published version of one of the signed-in learner's own decks (null if unpublished). */
+/** The latest published version (without its cards) of one of the signed-in learner's own decks (null if unpublished). */
 export function usePublication(sourceDeckId: string, userId: string | null) {
   const [state, setState] = useState<Publication>({ loading: true, latest: null, available: true });
   const [generation, setGeneration] = useState(0);

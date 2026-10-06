@@ -36,6 +36,26 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Performance basics (2026-10-07, branch `feature/performance-basics`, stacked on
+  `feature/moderator-integrations` — merge that one first)** — prompted by a reel listing five things
+  "vibe-coded" apps miss; we audited all five and chose to do two now: (1) **database indexes** and (2)
+  **Discover no longer downloads whole decks**. (Audit result for the rest, not done: uploads are already
+  shrunk in the browser to 480px/160px JPEG but have no file-size/type check; there are no loading screens
+  (~24 places render nothing while loading); the profile is fetched separately by each `useUser()` and
+  Discover/shared decks re-query every visit; the JS is already split per page, ~430 KB gzip in total, nothing
+  lazy-loaded yet.)
+  - **Discover payload**: list queries (`searchPublishedDecks`) and the share panel (`usePublication`) now
+    select `SUMMARY_COLUMNS` — no `deck` column, which holds every card including image data URLs — and
+    return a `PublishedSummary` (title, description, kind, language, `cardCount`, flags, copies…). Only
+    `getPublishedDeck` (the `/shared/<id>` page) and `publishDeck` still read the full `PublishedDeck`
+    (`extends PublishedSummary` with `deck`). Measured against the live database with 3 decks: 1.4 KB
+    instead of 40 KB per search. Fallback columns for databases without the newer columns still exist.
+  - **Indexes** (end of `schema.sql`, "Indexes for speed"): `decks (user_id, created_at desc)` (the Library
+    query), `practice_results (user_id, completed_at desc)`, `published_deck_copies (user_id)`,
+    `deck_reports (published_id)`, `problem_reports (user_id)` — also what Postgres scans on account deletion.
+    **Re-run `schema.sql`** to create them (safe; no behaviour change). Not done on purpose: a trigram index
+    for text search (`search_text ilike '%word%'` needs `pg_trgm` + a GIN index once there are thousands of
+    published decks); add it then, as a separate small change, since it needs an extension.
 - **Moderator integrations (2026-10-07, branch `feature/moderator-integrations`; not tested yet)**:
   - **Official decks are now published from the site** (replaces writing them as TypeScript in `src/decks/`,
     which still holds the original two, the landing demo and the tests). In a moderator's own deck's

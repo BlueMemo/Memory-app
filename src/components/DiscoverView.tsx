@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { officialDecks } from "@/decks";
 import { dictionaries, languages, useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
-import { deckSearchText, matchesQuery, searchPublishedDecks, type PublishedDeck, type SearchFilters } from "@/lib/publishedDecks";
+import { deckSearchText, matchesQuery, searchPublishedDecks, type PublishedSummary, type SearchFilters } from "@/lib/publishedDecks";
 import { Avatar } from "./Avatar";
 import { DeckTile } from "./DeckTile";
 import { PageTabs } from "./PageTabs";
@@ -135,7 +135,7 @@ export function DiscoverView() {
 
 /** Searches published decks as the filters change, waiting for a pause in typing. */
 function useCommunitySearch(filters: SearchFilters) {
-  const [result, setResult] = useState<{ status: "loading" | "ready" | "error"; decks: PublishedDeck[] }>({ status: "loading", decks: [] });
+  const [result, setResult] = useState<{ status: "loading" | "ready" | "error"; decks: PublishedSummary[] }>({ status: "loading", decks: [] });
   useEffect(() => {
     let live = true;
     const timer = setTimeout(() => {
@@ -151,28 +151,27 @@ function useCommunitySearch(filters: SearchFilters) {
   return result;
 }
 
-function PublishedTile({ published }: { published: PublishedDeck }) {
+function PublishedTile({ published }: { published: PublishedSummary }) {
   const { t: dict } = useI18n();
-  const { deck } = published;
   const href = `/shared/${published.id}`;
   return (
     <article className="deck-tile">
       <div className="tags">
         {published.official && <span className="tag accent">{dict.decks.official}</span>}
-        <span className="tag">{deck.kind === "ordered" ? dict.decks.ordered : dict.decks.unordered}</span>
-        <span className="tag">{dictionaries[deck.language].languageName}</span>
+        <span className="tag">{published.kind === "ordered" ? dict.decks.ordered : dict.decks.unordered}</span>
+        <span className="tag">{dictionaries[published.language].languageName}</span>
       </div>
       <h3>
-        <Link href={href}>{deck.title}</Link>
+        <Link href={href}>{published.title}</Link>
       </h3>
       <p className="muted published-author">
         {!published.official && <Avatar url={published.avatarUrl} name={published.author} size={22} seed={published.authorId} />}
         {fill(dict.discover.byAuthor, { author: published.official ? dict.siteName : (published.author ?? dict.sharedDeck.unknownAuthor) })}
         {published.copies > 0 && <span> · {fill(dict.discover.copies, { n: published.copies })}</span>}
       </p>
-      {deck.description && <p>{deck.description}</p>}
+      {published.description && <p>{published.description}</p>}
       <div className="tile-footer">
-        <span className="muted">{fill(dict.decks.cardCount, { n: deck.cards.length })}</span>
+        <span className="muted">{fill(dict.decks.cardCount, { n: published.cardCount })}</span>
       </div>
       <Link href={href} className="tile-open">
         {dict.decks.open} →
