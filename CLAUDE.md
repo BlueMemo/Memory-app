@@ -32,6 +32,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Start page next step (2026-10-06, branch `feature/start-page`)**: the landing hero's main button is now
+  **Study now** (`NextStep` in `LandingView.tsx`): to `/library` when the learner has saved or created decks,
+  otherwise to `/discover`, with a line saying which. The 10-countries demo became a small "New here?" link,
+  shown only to people without decks. The header's **Library tab is outlined in brand blue**
+  (`.tab-highlight`) to invite a click, except while you're on it.
 - **Legal pages (2026-10-06, branch `feature/legal-pages`)**: `/privacy` (privacy policy), `/terms` (terms of
   use) and `/legal` ("Who runs BlueMemo"), one data-driven `LegalView.tsx` with the texts in i18n `legal`
   (`**bold**`, `[label](/path)` links and `{email}` → `CONTACT_EMAIL`, via `renderLegal`). A `SiteFooter`

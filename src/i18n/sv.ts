@@ -26,6 +26,11 @@ export const sv: Dict = {
     edited: "Redigerad",
   },
   landing: {
+    studyNow: "Plugga nu",
+    studyNowLibrary: "Fortsätt i ditt bibliotek: {n} kortlekar.",
+    studyNowLibraryOne: "Fortsätt i ditt bibliotek: 1 kortlek.",
+    studyNowDiscover: "Börja med att hitta en kortlek att lära dig i Upptäck.",
+    orTry: "Ny här?",
     title: "Lär dig världens tio folkrikaste länder",
     titleAccent: "på en gång.",
     lead: "Gör om det du vill lära dig till levande bilder och placera dem längs en väg du redan känner. Minnestekniken som mästarna använder, gjord enkel.",

@@ -26,6 +26,11 @@ export const en = {
     edited: "Edited",
   },
   landing: {
+    studyNow: "Study now",
+    studyNowLibrary: "Continue in your library: {n} decks.",
+    studyNowLibraryOne: "Continue in your library: 1 deck.",
+    studyNowDiscover: "Start by finding a deck to learn in Discover.",
+    orTry: "New here?",
     title: "Memorize the ten most populated countries",
     titleAccent: "in one go.",
     lead: "Turn what you want to learn into vivid images and place them along a route you already know. The memory technique champions use, made simple.",

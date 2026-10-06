@@ -3630,3 +3630,38 @@ main [id] {
   font-size: 0.85rem;
   color: var(--muted);
 }
+
+/* Landing: the one obvious next step (Study now → Library, or Discover without decks). */
+.next-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn.study-now-btn {
+  padding: 16px 40px;
+  font-size: 1.15rem;
+  border-radius: 14px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.next-step-hint {
+  margin: 4px 0 0;
+  color: var(--ink);
+}
+
+.next-step .landing-note a {
+  color: var(--accent);
+}
+
+/* The Library tab stands out (outlined in brand blue) to invite a click, until you're there. */
+.tabs a.tab-highlight {
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.tabs a.tab-highlight:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}

@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
+import { fill } from "@/lib/practice";
+import { useSavedDeckIds } from "@/lib/library";
+import { useUserDecks } from "@/lib/userDecks";
 import { DeckTile } from "./DeckTile";
 
 // The demo every "try it" button starts: an ordered memory route of 10 items, so a first-time
@@ -16,6 +19,29 @@ const stepIcons = [
   <path key="route" d="M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 17h7.5a3 3 0 0 0 0-6h-7a3 3 0 0 1 0-6H16" />,
 ];
 
+/**
+ * The one obvious next step: "Study now" goes to the Library when the learner has decks there, otherwise to
+ * Discover to find a first one. Newcomers also get the demo as a
+ * quieter second choice.
+ */
+function NextStep() {
+  const t = useI18n().t.landing;
+  const decks = useSavedDeckIds().length + useUserDecks().length;
+  return (
+    <div className="next-step">
+      <Link href={decks > 0 ? "/library" : "/discover"} className="btn accent study-now-btn">
+        {t.studyNow} →
+      </Link>
+      <p className="next-step-hint">{decks > 0 ? fill(decks === 1 ? t.studyNowLibraryOne : t.studyNowLibrary, { n: decks }) : t.studyNowDiscover}</p>
+      {decks === 0 && (
+        <p className="landing-note">
+          {t.orTry} <Link href={DEMO_HREF}>{t.tryCta}</Link> · {t.tryNote}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function LandingView() {
   const { landing: t, techniques } = useI18n().t;
   return (
@@ -25,15 +51,7 @@ export function LandingView() {
           {t.title} <em>{t.titleAccent}</em>
         </h1>
         <p className="landing-lead">{t.lead}</p>
-        <div className="landing-ctas">
-          <Link href={DEMO_HREF} className="btn accent">
-            {t.tryCta}
-          </Link>
-          <a href="#how" className="btn nav">
-            {t.howCta}
-          </a>
-        </div>
-        <p className="landing-note">{t.tryNote}</p>
+        <NextStep />
       </section>
 
       <section id="how" className="landing-section">
