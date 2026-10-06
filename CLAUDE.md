@@ -37,6 +37,17 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   otherwise to `/discover`, with a line saying which. The 10-countries demo became a small "New here?" link,
   shown only to people without decks. The header's **Library tab is outlined in brand blue**
   (`.tab-highlight`) to invite a click, except while you're on it.
+- **Share previews (2026-10-06, branch `feature/share-previews`)**: pasting a link into WhatsApp, Instagram,
+  iMessage, Discord, ... shows a title, description and picture (Open Graph + Twitter tags). `metadataBase`
+  is `https://bluememo.eu` (`lib/og/meta.ts`, which also has `pageMetadata()` — a page's `openGraph` replaces
+  the layout's rather than merging, so always go through it). Pictures are 1200×630 PNGs drawn by
+  `ogCard()` (`lib/og/card.tsx`): `app/opengraph-image.tsx` for every page, official decks
+  (`decks/[deckId]/opengraph-image.tsx`, built at build time), and published decks
+  (`shared/[id]/opengraph-image.tsx`: title, card count, "shared by <username>", fetched server-side with
+  an anonymous Supabase client in `lib/og/publishedDeckSummary.ts`). Learners' own decks are private, so
+  their links get the general picture. Preview text is English (server-rendered, before the visitor's
+  language is known). Apps cache previews: to see a change, use a new link (e.g. add `?v=2`) or
+  Facebook's Sharing Debugger (which also refreshes WhatsApp/Instagram).
 - **Legal pages (2026-10-06, branch `feature/legal-pages`)**: `/privacy` (privacy policy), `/terms` (terms of
   use) and `/legal` ("Who runs BlueMemo"), one data-driven `LegalView.tsx` with the texts in i18n `legal`
   (`**bold**`, `[label](/path)` links and `{email}` → `CONTACT_EMAIL`, via `renderLegal`). A `SiteFooter`

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DeckGate } from "@/components/DeckGate";
 import { getDeck, officialDecks } from "@/decks";
+import { pageMetadata } from "@/lib/og/meta";
 
 export function generateStaticParams() {
   return officialDecks.map((d) => ({ deckId: d.id }));
@@ -8,8 +9,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/decks/[deckId]">): Promise<Metadata> {
   const { deckId } = await params;
-  const title = getDeck(deckId)?.title;
-  return title ? { title } : {};
+  const deck = getDeck(deckId);
+  return deck ? pageMetadata({ title: deck.title, description: deck.description, path: `/decks/${deckId}` }) : {};
 }
 
 // Official decks are known here; the learner may still have a personal (edited) version of one, and
