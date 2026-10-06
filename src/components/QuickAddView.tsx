@@ -20,8 +20,9 @@ const readLastDeck = () => {
 /**
  * /library/add (A in the Library): add cards one after another. Pick a deck, save, and a fresh empty card
  * appears; the page is only left when the learner chooses to (Done). Remembers the last deck used.
+ * Opened from a deck page (A there), it starts on that deck and Done goes back to it.
  */
-export function QuickAddView({ initialDeckId }: { initialDeckId: string | null }) {
+export function QuickAddView({ initialDeckId, returnToDeck = false }: { initialDeckId: string | null; returnToDeck?: boolean }) {
   const { t: dict } = useI18n();
   const t = dict.cardForm;
   const decks = useEditableDecks();
@@ -29,6 +30,7 @@ export function QuickAddView({ initialDeckId }: { initialDeckId: string | null }
   const [count, setCount] = useState(0);
   const [note, setNote] = useState<string | null>(null);
 
+  const backHref = returnToDeck && initialDeckId ? `/decks/${encodeURIComponent(initialDeckId)}` : "/library";
   const deckId = [chosen, readLastDeck()].find((id) => id && decks.some((d) => d.id === id)) ?? decks[0]?.id;
   const choose = (id: string) => {
     setChosen(id);
@@ -42,8 +44,8 @@ export function QuickAddView({ initialDeckId }: { initialDeckId: string | null }
 
   return (
     <main className="page narrow">
-      <Link href="/library" className="link-muted">
-        {dict.srsSettings.backToLibrary}
+      <Link href={backHref} className="link-muted">
+        {returnToDeck ? `← ${dict.practice.backToDeck}` : dict.srsSettings.backToLibrary}
       </Link>
       <section className="page-intro">
         <h1>{t.pageTitle}</h1>
@@ -73,7 +75,7 @@ export function QuickAddView({ initialDeckId }: { initialDeckId: string | null }
               setNote(fill(t.savedNext, { deck: deck.title }));
             }}
             actions={
-              <Link href="/library" className="btn nav">
+              <Link href={backHref} className="btn nav">
                 {t.done}
               </Link>
             }
