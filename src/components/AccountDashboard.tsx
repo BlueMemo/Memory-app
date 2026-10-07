@@ -55,7 +55,7 @@ export function AccountDashboard({ userId, email, createdAt, username, avatarUrl
     <main className="page account-page">
       <ProfileHead t={t} userId={userId} email={email} createdAt={createdAt} username={username} avatarUrl={avatarUrl} lang={lang} />
       {!username && <ChooseUsername t={t} userId={userId} />}
-      {activity.status === "error" && <p className="form-error">{t.activityError}</p>}
+      {activity.status === "error" && <p className="form-error" role="alert">{t.activityError}</p>}
 
       <PageTabs
         label={t.detailsTitle}
@@ -158,7 +158,7 @@ function ProfileHead({ t, userId, email, createdAt, username, avatarUrl, lang }:
           </div>
         )}
         {!username && <p className="hint">{t.photoNeedsUsername}</p>}
-        {photoError && <p className="form-error">{t.errorPhoto}</p>}
+        {photoError && <p className="form-error" role="alert">{t.errorPhoto}</p>}
       </div>
       <button
         className="btn nav"
@@ -215,7 +215,7 @@ function ChooseUsername({ t, userId }: { t: T; userId: string }) {
             placeholder={t.usernamePlaceholder}
           />
         </div>
-        {error && <p className="form-error">{error}</p>}
+        {error && <p className="form-error" role="alert">{error}</p>}
         <div className="controls left">
           <button type="submit" className="btn accent" disabled={submitting}>
             {t.saveUsername}
@@ -522,7 +522,7 @@ function UsernameEditor({ t, userId, username }: { t: T; userId: string; usernam
         <label htmlFor="change-username">{t.usernameLabel}</label>
         <input id="change-username" type="text" required value={value} onChange={(e) => setValue(e.target.value)} placeholder={t.usernamePlaceholder} />
       </div>
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       <div className="controls left">
         <button type="submit" className="btn accent small" disabled={submitting}>
           {t.saveUsername}
@@ -569,7 +569,7 @@ function PasswordEditor({ t }: { t: T }) {
           autoComplete="new-password"
         />
       </div>
-      {status && <p className={status.ok ? "form-success" : "form-error"}>{status.message}</p>}
+      {status && <p className={status.ok ? "form-success" : "form-error"} role={status.ok ? "status" : "alert"}>{status.message}</p>}
       <div className="controls left">
         <button type="submit" className="btn nav small" disabled={submitting}>
           {t.updatePassword}
@@ -630,7 +630,7 @@ function DeleteAccount({ t, confirmWord }: { t: T; confirmWord: string }) {
           spellCheck={false}
         />
       </div>
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       <div className="controls left">
         <button type="submit" className="btn danger small" disabled={submitting || typed.trim() !== confirmWord}>
           {t.deleteButton}
@@ -674,7 +674,7 @@ function ExportData({ t }: { t: T }) {
         <label>{t.exportTitle}</label>
         <p className="muted">{t.exportHint}</p>
       </div>
-      {status && <p className={status.ok ? "form-success" : "form-error"}>{status.message}</p>}
+      {status && <p className={status.ok ? "form-success" : "form-error"} role={status.ok ? "status" : "alert"}>{status.message}</p>}
       <div className="controls left">
         <button type="button" className="btn nav small" onClick={download} disabled={working}>
           {working ? t.exportWorking : t.exportButton}
@@ -741,7 +741,7 @@ function EmailEditor({ t, email }: { t: T; email: string }) {
             {t.changeUsername}
           </button>
         </div>
-        {status && <p className={status.ok ? "form-success" : "form-error"}>{status.message}</p>}
+        {status && <p className={status.ok ? "form-success" : "form-error"} role={status.ok ? "status" : "alert"}>{status.message}</p>}
         {sentTo && (
           <div className="email-steps" role="status">
             <strong>{t.emailSentTitle}</strong>
@@ -772,7 +772,7 @@ function EmailEditor({ t, email }: { t: T; email: string }) {
         />
       </div>
       <p className="muted">{t.emailChangeHint}</p>
-      {status && <p className={status.ok ? "form-success" : "form-error"}>{status.message}</p>}
+      {status && <p className={status.ok ? "form-success" : "form-error"} role={status.ok ? "status" : "alert"}>{status.message}</p>}
       <div className="controls left">
         <button type="submit" className="btn accent small" disabled={submitting}>
           {t.sendEmailChange}

@@ -186,7 +186,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     <div className="practice">
       {exit}
       <div className="practice-main">
-        {status === "error" && <p className="notice error">{signedIn ? t.saveErrorRemote : t.saveErrorLocal}</p>}
+        {status === "error" && <p className="notice error" role="alert">{signedIn ? t.saveErrorRemote : t.saveErrorLocal}</p>}
 
         {card && current ? (
           <>
