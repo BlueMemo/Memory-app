@@ -74,6 +74,16 @@ const drawings: Record<IllustrationName, { label: string; svg: ReactNode }> = {
   },
 };
 
+/** The cartoon on its own, without a bubble (the landing page's route preview). */
+export function Drawing({ name, className }: { name: IllustrationName; className?: string }) {
+  const drawing = drawings[name];
+  return (
+    <svg viewBox="0 0 120 90" role="img" aria-label={drawing.label} className={className}>
+      {drawing.svg}
+    </svg>
+  );
+}
+
 /** A cartoon in a thought bubble that sticks out of the top corner of a card. */
 export function ThoughtBubble({ name, side = "right" }: { name: IllustrationName; side?: "left" | "right" }) {
   const drawing = drawings[name];
