@@ -2671,11 +2671,6 @@ ul.overview-list {
   color: var(--ink);
 }
 
-.deck-grid.rows {
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-
 .deck-list {
   list-style: none;
   margin: 0;

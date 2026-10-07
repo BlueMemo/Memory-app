@@ -156,7 +156,6 @@ function ViewSwitch({ view }: { view: ViewMode }) {
   const t = useI18n().t.settings;
   const options: [ViewMode, string][] = [
     ["grid", t.viewGrid],
-    ["rows", t.viewRows],
     ["list", t.viewList],
   ];
   return (
@@ -241,7 +240,7 @@ function DeckCollection(props: {
     );
   }
   return (
-    <ul className={`deck-grid${props.view === "rows" ? " rows" : ""}`}>
+    <ul className="deck-grid">
       {props.withCreate && (
         <li>
           <CreateDeckTile />

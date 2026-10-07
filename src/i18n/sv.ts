@@ -520,7 +520,6 @@ export const sv: Dict = {
     libraryTitle: "Bibliotek",
     libraryView: "Visa kortlekar som",
     viewGrid: "Rutor",
-    viewRows: "Rader",
     viewList: "Lista",
     librarySort: "Sortera efter",
     sortRecent: "Senast tillagd",

@@ -520,7 +520,6 @@ export const en = {
     libraryTitle: "Library",
     libraryView: "Show decks as",
     viewGrid: "Tiles",
-    viewRows: "Rows",
     viewList: "List",
     librarySort: "Sort by",
     sortRecent: "Recently added",

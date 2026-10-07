@@ -54,7 +54,6 @@ export function SettingsView() {
           value={prefs.libraryView}
           options={[
             ["grid", t.viewGrid],
-            ["rows", t.viewRows],
             ["list", t.viewList],
           ]}
         />

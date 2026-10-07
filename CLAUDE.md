@@ -59,7 +59,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   repetition (look modelled on a screenshot from the team; boxes and per-row labels were tried and
   dropped). Each row starts with a **Study now** button (fixed 7.5rem column so the header still lines up),
   which switches spaced repetition on if needed and opens the review — list view only. Up to 720px wide the
-  button and title share the first line and the numbers sit below. Tiles and rows views are unchanged.
+  button and title share the first line and the numbers sit below. The tiles view is unchanged. **The
+  "rows" view was removed (2026-10-07)**: only tiles and list remain; a saved "rows" falls back to tiles.
 - **Due dates and the Library tab (2026-10-07, branch `feature/due-dates`)**: the Due/"Next" column in
   Browse (deck page) and the card browser shows **only a date** (same format as Created) instead of "in 3
   days" — also for cards due later today or already due (no time, no "now"; `lib/dueDate.ts`, tested). The card browser's
