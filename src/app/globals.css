@@ -92,6 +92,31 @@ h2:not(.section-title) {
 
 /* ---------- Site header ---------- */
 
+/* "Skip to content": off screen until a keyboard user tabs to it, the first stop on every page. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 100;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--brand-blue);
+  color: var(--brand-on-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus-visible {
+  top: 8px;
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* The page area the skip link focuses is not a control, so it gets no focus ring of its own. */
+main[tabindex="-1"]:focus {
+  outline: none;
+}
+
 .site-header {
   display: grid;
   grid-template-columns: auto 1fr auto;

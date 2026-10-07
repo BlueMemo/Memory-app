@@ -4,6 +4,7 @@ export const sv: Dict = {
   siteName: "BlueMemo",
   languageName: "Svenska",
   header: {
+    skipToContent: "Hoppa till innehållet",
     dueToday: "{n} kort att plugga idag",
     skills: "Minnesträdet",
     language: "Språk",

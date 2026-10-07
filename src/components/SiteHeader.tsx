@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, type MouseEvent } from "react";
 import { usePathname } from "next/navigation";
 import { dictionaries, languages, useI18n } from "@/i18n";
 import { useEditableDecks } from "@/lib/editableDecks";
@@ -88,8 +88,20 @@ export function SiteHeader() {
     { href: "/about", label: t.header.about, active: pathname === "/about" },
   ];
 
+  // Every page renders its own <main>, so the skip link moves focus to whichever one is on screen.
+  const skipToContent = (e: MouseEvent) => {
+    const main = document.querySelector("main");
+    if (!main) return;
+    e.preventDefault();
+    main.tabIndex = -1;
+    main.focus();
+  };
+
   return (
     <header className="site-header">
+      <a href="#main" className="skip-link" onClick={skipToContent}>
+        {t.header.skipToContent}
+      </a>
       <AuthSync />
       <Link href="/" className="brand">
         <Logo />

@@ -144,7 +144,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
   const inFlow = state.phase !== "intro";
 
   return (
-    <div className="practice">
+    <main className="practice">
       <div className="practice-top">
         <Link href={`/decks/${deck.id}`} className="exit-btn">
           {t.exit}
@@ -328,7 +328,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
           {t.instructionsButton}
         </button>
       )}
-    </div>
+    </main>
   );
 }
 

@@ -163,11 +163,11 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     </div>
   );
 
-  if (status === "loading") return <div className="practice">{exit}</div>;
+  if (status === "loading") return <main className="practice">{exit}</main>;
 
   if (!isDeckEnabled(data, deck.id)) {
     return (
-      <div className="practice">
+      <main className="practice">
         {exit}
         <section className="summary">
           <h2>{t.notEnabledTitle}</h2>
@@ -178,12 +178,12 @@ export function ReviewSession({ deck }: { deck: Deck }) {
             </button>
           </div>
         </section>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="practice">
+    <main className="practice">
       {exit}
       <div className="practice-main">
         {status === "error" && <p className="notice error" role="alert">{signedIn ? t.saveErrorRemote : t.saveErrorLocal}</p>}
@@ -272,7 +272,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
           </section>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 

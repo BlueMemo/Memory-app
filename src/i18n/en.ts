@@ -4,6 +4,7 @@ export const en = {
   siteName: "BlueMemo",
   languageName: "English",
   header: {
+    skipToContent: "Skip to content",
     dueToday: "{n} cards to study today",
     skills: "Memory Tree",
     language: "Language",
