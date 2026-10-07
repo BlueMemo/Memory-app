@@ -49,15 +49,6 @@ export function SettingsView() {
       <section className="settings-form">
         <h2>{t.libraryTitle}</h2>
         <Choice
-          label={t.libraryView}
-          name="libraryView"
-          value={prefs.libraryView}
-          options={[
-            ["grid", t.viewGrid],
-            ["list", t.viewList],
-          ]}
-        />
-        <Choice
           label={t.librarySort}
           name="librarySort"
           value={prefs.librarySort}
@@ -91,7 +82,7 @@ export function SettingsView() {
   );
 }
 
-type ChoiceKey = "theme" | "textSize" | "libraryView" | "librarySort" | "libraryGroup";
+type ChoiceKey = "theme" | "textSize" | "librarySort" | "libraryGroup";
 
 /** A row of radio buttons styled as a segmented control; `stacked` lists long options vertically. */
 export function Choice<K extends ChoiceKey>(props: {
