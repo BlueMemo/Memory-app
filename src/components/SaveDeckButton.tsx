@@ -1,5 +1,6 @@
 "use client";
 
+import { Star } from "@phosphor-icons/react/ssr";
 import { useI18n } from "@/i18n";
 import { toggleSavedDeck, useSavedDeckIds } from "@/lib/library";
 
@@ -13,6 +14,7 @@ export function SaveDeckButton({ deckId }: { deckId: string }) {
       title={saved ? t.savedTitle : undefined}
       onClick={() => toggleSavedDeck(deckId)}
     >
+      <Star size={14} weight={saved ? "fill" : "regular"} aria-hidden="true" />
       {saved ? t.saved : t.save}
     </button>
   );

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Newsreader } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/og/meta";
 import { SiteAnalytics } from "@/components/SiteAnalytics";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -12,12 +12,10 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-// Headline font (h1/h2 and the logo wordmark); Geist stays for everything read while studying.
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
+// Numbers (counts, stats, intervals) are set in the matching mono, so columns of figures line up.
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  style: ["normal", "italic"],
-  axes: ["opsz"],
 });
 
 export const metadata: Metadata = {
@@ -30,12 +28,12 @@ export const metadata: Metadata = {
 };
 
 // Matches the dark-first background, so mobile browser bars blend in.
-export const viewport: Viewport = { themeColor: "#121417" };
+export const viewport: Viewport = { themeColor: "#0d0f12" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // The theme script sets data-* attributes on <html> before React hydrates, hence suppressHydrationWarning.
-    <html lang="en" className={`${geistSans.variable} ${newsreader.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

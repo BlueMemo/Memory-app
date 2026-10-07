@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight } from "@phosphor-icons/react/ssr";
 import { useEffect, useState } from "react";
 import { officialDecks } from "@/decks";
 import { dictionaries, languages, useI18n } from "@/i18n";
@@ -174,7 +175,8 @@ function PublishedTile({ published }: { published: PublishedSummary }) {
         <span className="muted">{fill(dict.decks.cardCount, { n: published.cardCount })}</span>
       </div>
       <Link href={href} className="tile-open">
-        {dict.decks.open} →
+        {dict.decks.open}
+        <ArrowRight size={16} weight="bold" aria-hidden="true" />
       </Link>
     </article>
   );

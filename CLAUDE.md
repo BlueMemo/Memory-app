@@ -51,6 +51,28 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 - **D leaves a review for the deck (2026-10-07, branch `feature/d-to-deck`)**: pressing **D** during a
   spaced-repetition review (or on its "done" screen) goes to the deck's page, like Exit; listed under
   Keyboard shortcuts and in Exit's tooltip. Not while typing (typed-answer cards) or with modifier keys.
+- **Taste redesign, merged (2026-10-07, branch `feature/taste-redesign`)**: the
+  `design-taste-frontend` skill (Erik's computer only) given free rein, "as if used from the start", to
+  compare with the current look; the team liked it and merged it. Dials 8 / 6 / 4 (variance / motion / density). **Landing page rebuilt**
+  (`LandingView.tsx`): split hero with a working route preview on the right (`RoutePreview.tsx`: the demo
+  deck's first three stops with its drawings, via the new `Drawing` export in `Illustration.tsx`; no stock
+  photos, since BlueMemo is text-first); "How it works" as a vertical route; the techniques as a bento (one
+  large brand-blue cell); the decks in two columns; a full-width brand-blue closing band. The hero rises
+  in on load and sections rise in on scroll (CSS only, off with reduced motion). **Site-wide**: Newsreader
+  is gone (the skill bans serif headings as a default); headings and the wordmark are Geist bold with tight
+  tracking, numbers use Geist Mono (`--font-geist-mono`); section titles are sentence-case headings instead
+  of small caps; cooler neutrals (dark `#0d0f12`, light `#f5f6f8` instead of cream); shape rule: buttons,
+  tags and switches are pills, surfaces `--radius-surface` (16px), fields `--radius-field` (10px), the
+  two-line grade buttons 14px; buttons lift on hover and press on click. **Icons**: `@phosphor-icons/react`
+  (new dependency, import from `@phosphor-icons/react/ssr`) replaces the hand-drawn gear and book and the
+  ★/→ characters on deck tiles and the save button. **Copy**: the hero lead shortened to 20 words; em
+  dashes removed from en/sv (the legal text untouched). Kept on purpose: the team's hero headline (3
+  lines on desktop, the skill wants 2), the logo drawing, dark as the default theme. Not touched: the app
+  screens' layouts (the skill is for landing pages, not app UI). **Drawings**: the tikka masala and the
+  China (chopsticks in shoes) pictures in `Illustration.tsx` were redrawn flat, without outlines, after
+  a short questionnaire and a reference photo from the team (a dark bowl of rice and tikka masala on a
+  green doormat by a blue front door; sneakers on a shoe tray just inside that door, both chopsticks
+  fanned in one shoe). The Nigerian flag still has the old outlined style; redraw it to match.
 - **Design audit (2026-10-07, branch `feature/design-audit`)**: the main screens were checked against Vercel's
   Web Interface Guidelines (the `web-design-guidelines` skill, installed on Erik's computer only) and the
   clear findings fixed. **Forms**: sign-in/up fields have `autocomplete`/`name` (password managers work),

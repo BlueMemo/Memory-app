@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ArrowRight } from "@phosphor-icons/react/ssr";
 import { useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
 import type { Deck } from "@/lib/types";
@@ -31,7 +32,8 @@ export function DeckTile({ deck, action, edited, hideKind }: { deck: Deck; actio
         {action ?? <SaveDeckButton deckId={deck.id} />}
       </div>
       <Link href={href} className="tile-open">
-        {t.open} →
+        {t.open}
+        <ArrowRight size={16} weight="bold" aria-hidden="true" />
       </Link>
     </article>
   );

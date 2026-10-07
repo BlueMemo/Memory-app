@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, type MouseEvent } from "react";
 import { usePathname } from "next/navigation";
+import { BookOpen } from "@phosphor-icons/react/ssr";
 import { dictionaries, languages, useI18n } from "@/i18n";
 import { useEditableDecks } from "@/lib/editableDecks";
 import { fill } from "@/lib/practice";
@@ -35,19 +36,9 @@ function AuthStatus() {
   );
 }
 
-/** A simple open book, drawn in the tab's colour, marking the Library tab as the place to go. */
+/** An open book in the tab's colour, marking the Library tab as the place to go. */
 function BookIcon() {
-  return (
-    <svg className="tab-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5v13"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <BookOpen className="tab-icon" size={16} aria-hidden="true" />;
 }
 
 /** Cards waiting today across the learner's library decks (spaced repetition on): learning + due, not new ones. */

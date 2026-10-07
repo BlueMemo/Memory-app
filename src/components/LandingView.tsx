@@ -1,42 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
+import type { Icon } from "@phosphor-icons/react";
+import { ArrowRight, ArrowsClockwise, Brain, Footprints, Lightbulb, MapPin, MapTrifold } from "@phosphor-icons/react/ssr";
 import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
-import { fill } from "@/lib/practice";
 import { useSavedDeckIds } from "@/lib/library";
 import { useUserDecks } from "@/lib/userDecks";
 import { DeckTile } from "./DeckTile";
+import { RoutePreview } from "./RoutePreview";
 
 // The demo every "try it" button starts: an ordered memory route of 10 items, so a first-time
 // visitor gets the "I remembered all ten" moment the landing page promises.
 export const DEMO_HREF = "/decks/largest-countries/practice";
 
-// Simple line icons for the three steps (picture it, place it, walk it).
-const stepIcons = [
-  <path key="bulb" d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z" />,
-  <path key="pin" d="M12 21s-6-5.4-6-10.5a6 6 0 0 1 12 0C18 15.6 12 21 12 21zM12 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />,
-  <path key="route" d="M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 17h7.5a3 3 0 0 0 0-6h-7a3 3 0 0 1 0-6H16" />,
-];
+/** Staggers the hero's entrance: each part rises in a little after the one before. */
+const rise = (ms: number) => ({ "--rise-delay": `${ms}ms` }) as CSSProperties;
+
+// One icon per step of the technique (picture it, place it, walk it).
+const stepIcons: Icon[] = [Lightbulb, MapPin, Footprints];
+// The three techniques, in the order of `techniques.sections`; the first gets the large bento cell.
+const techniqueIcons: Record<string, Icon> = { "memory-palace": MapTrifold, "active-recall": Brain, "spaced-repetition": ArrowsClockwise };
 
 /**
- * The one obvious next step: "Study now" goes to the Library when the learner has decks there, otherwise to
- * Discover to find a first one. Newcomers also get the demo as a
- * quieter second choice.
+ * The hero's buttons: "Study now" goes to the Library when the learner has decks there, otherwise to Discover;
+ * newcomers also get the demo as the second choice.
  */
-function NextStep() {
+function HeroActions() {
   const t = useI18n().t.landing;
   const decks = useSavedDeckIds().length + useUserDecks().length;
   return (
-    <div className="next-step">
-      <Link href={decks > 0 ? "/library" : "/discover"} className="btn accent study-now-btn">
-        {t.studyNow} →
+    <div className="hero-actions">
+      <Link href={decks > 0 ? "/library" : "/discover"} className="btn accent hero-primary">
+        {t.studyNow}
+        <ArrowRight size={18} weight="bold" aria-hidden="true" />
       </Link>
-      <p className="next-step-hint">{decks > 0 ? fill(decks === 1 ? t.studyNowLibraryOne : t.studyNowLibrary, { n: decks }) : t.studyNowDiscover}</p>
       {decks === 0 && (
-        <p className="landing-note">
-          {t.orTry} <Link href={DEMO_HREF}>{t.tryCta}</Link> · {t.tryNote}
-        </p>
+        <Link href={DEMO_HREF} className="btn nav">
+          {t.tryCta}
+        </Link>
       )}
     </div>
   );
@@ -46,51 +49,74 @@ export function LandingView() {
   const { landing: t, techniques } = useI18n().t;
   return (
     <main className="page landing">
+      {/* Text on the left, a working preview of a memory route on the right (stacked on phones). */}
       <section className="landing-hero">
-        <h1>
-          {t.title} <em>{t.titleAccent}</em>
-        </h1>
-        <p className="landing-lead">{t.lead}</p>
-        <NextStep />
+        <div className="hero-copy">
+          <h1 className="rise" style={rise(0)}>
+            {t.title} <span className="hero-accent">{t.titleAccent}</span>
+          </h1>
+          <p className="landing-lead rise" style={rise(90)}>
+            {t.lead}
+          </p>
+          <div className="rise" style={rise(180)}>
+            <HeroActions />
+          </div>
+        </div>
+        <div className="hero-visual rise" style={rise(260)}>
+          <RoutePreview />
+        </div>
       </section>
 
-      <section id="how" className="landing-section">
+      {/* How it works is itself a route: three stops joined by a path. */}
+      <section id="how" className="landing-section landing-how reveal">
         <h2>{t.stepsTitle}</h2>
-        <ol className="landing-steps">
-          {t.steps.map((step, i) => (
-            <li key={step.title}>
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                {stepIcons[i]}
-              </svg>
-              <h3>
-                {i + 1}. {step.title}
-              </h3>
-              <p>{step.body}</p>
-            </li>
-          ))}
+        <ol className="how-route">
+          {t.steps.map((step, i) => {
+            const StepIcon = stepIcons[i];
+            return (
+              <li key={step.title}>
+                <span className="how-stop" aria-hidden="true">
+                  <StepIcon size={22} weight="duotone" />
+                </span>
+                <div>
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                </div>
+              </li>
+            );
+          })}
         </ol>
       </section>
 
-      <section className="landing-section">
+      {/* The techniques as a bento: one large cell and two small ones, each with its own surface. */}
+      <section className="landing-section reveal">
         <h2>{t.techniquesTitle}</h2>
-        <ul className="landing-why">
-          {techniques.sections.map((s) => (
-            <li key={s.id}>
-              <Link href={`/techniques#${s.id}`} className="technique-card">
-                <h3>{s.title}</h3>
-                <p>{s.summary}</p>
-                <span className="technique-more">{techniques.readMore} →</span>
-              </Link>
-            </li>
-          ))}
+        <ul className="technique-bento">
+          {techniques.sections.map((s) => {
+            const TechniqueIcon = techniqueIcons[s.id] ?? Brain;
+            return (
+              <li key={s.id} className={`bento-${s.id}`}>
+                <Link href={`/techniques#${s.id}`} className="bento-cell">
+                  <TechniqueIcon className="bento-icon" size={36} weight="duotone" aria-hidden="true" />
+                  <h3>{s.title}</h3>
+                  <p>{s.summary}</p>
+                  <span className="bento-more">
+                    {techniques.readMore}
+                    <ArrowRight size={16} weight="bold" aria-hidden="true" />
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </section>
 
-      <section className="landing-section">
+      <section className="landing-section reveal">
         <div className="landing-section-head">
           <h2>{t.decksTitle}</h2>
           <Link href="/discover" className="link-muted">
-            {t.allDecks} →
+            {t.allDecks}
+            <ArrowRight size={16} weight="bold" aria-hidden="true" />
           </Link>
         </div>
         <ul className="deck-grid">
@@ -102,11 +128,15 @@ export function LandingView() {
         </ul>
       </section>
 
-      <section className="landing-final">
+      {/* A full-width band in the brand blue: the last call to try the demo (same label as in the hero). */}
+      <section className="landing-final reveal">
         <h2>{t.finalTitle}</h2>
-        <p>{t.finalLead}</p>
-        <Link href={DEMO_HREF} className="btn accent">
+        <p>
+          {t.finalLead} {t.tryNote}
+        </p>
+        <Link href={DEMO_HREF} className="btn final-cta">
           {t.tryCta}
+          <ArrowRight size={18} weight="bold" aria-hidden="true" />
         </Link>
       </section>
     </main>
