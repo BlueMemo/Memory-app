@@ -5,7 +5,7 @@ import { useI18n } from "@/i18n";
 import { useDeckOverrides } from "@/lib/deckOverrides";
 import { useSavedDecks } from "@/lib/editableDecks";
 import { cardKey, deckCounts } from "@/lib/srs/core";
-import { isDeckEnabled, useSrsData, type SrsData } from "@/lib/srs/store";
+import { isDeckEnabled, setDeckSrsEnabled, useSrsData, type SrsData } from "@/lib/srs/store";
 import { setPreferences, usePreferences, type LibrarySort, type LibraryView as ViewMode } from "@/lib/preferences";
 import { useNow } from "@/lib/useNow";
 import { useUser } from "@/lib/supabase/useUser";
@@ -156,7 +156,6 @@ function ViewSwitch({ view }: { view: ViewMode }) {
   const t = useI18n().t.settings;
   const options: [ViewMode, string][] = [
     ["grid", t.viewGrid],
-    ["rows", t.viewRows],
     ["list", t.viewList],
   ];
   return (
@@ -181,6 +180,12 @@ function DeckCollection(props: {
 }) {
   const { t: dict } = useI18n();
   const now = useNow();
+  const router = useRouter();
+  // "Study now" straight from the list, as on the deck page: switch spaced repetition on if needed, then review.
+  const study = async (deck: Deck) => {
+    if (!isDeckEnabled(props.srs, deck.id)) await setDeckSrsEnabled(deck.id, true);
+    router.push(`/decks/${deck.id}/review`);
+  };
   if (props.view === "list") {
     return (
       <ul className="deck-list">
@@ -197,6 +202,7 @@ function DeckCollection(props: {
         {props.decks.length > 0 && (
           <li className="deck-list-head" aria-hidden="true">
             <span />
+            <span />
             <span>{dict.library.colCards}</span>
             <span className="srs-count-learning">{dict.srs.learningCount}</span>
             <span className="srs-count-review">{dict.srs.reviewCount}</span>
@@ -210,6 +216,12 @@ function DeckCollection(props: {
             : null;
           return (
             <li key={deck.id}>
+              <button type="button" className="btn accent deck-list-study" onClick={() => void study(deck)}>
+                <svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true">
+                  <path d="M1 1.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L1.9.7A.6.6 0 0 0 1 1.2z" fill="currentColor" />
+                </svg>
+                {dict.deck.studyNow}
+              </button>
               <Link href={`/decks/${deck.id}`} className="deck-list-title">
                 {deck.title}
               </Link>
@@ -233,7 +245,7 @@ function DeckCollection(props: {
     );
   }
   return (
-    <ul className={`deck-grid${props.view === "rows" ? " rows" : ""}`}>
+    <ul className="deck-grid">
       {props.withCreate && (
         <li>
           <CreateDeckTile />

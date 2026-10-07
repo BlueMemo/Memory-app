@@ -95,7 +95,7 @@ export function CardBrowserView() {
   const dueLabel = (r: Row) => {
     if (!r.enabled) return "—";
     if (!r.stored || r.stored.state === State.New) return t.stateNew;
-    return formatDue(new Date(r.stored.due), now, lang, dict.srs);
+    return formatDue(new Date(r.stored.due), lang);
   };
 
   if (!mounted) return null;
