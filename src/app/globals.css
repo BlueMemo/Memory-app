@@ -2689,7 +2689,7 @@ ul.overview-list {
    line up in straight vertical lines; their labels sit once in the header row. */
 .deck-list li {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) repeat(4, 64px) 48px;
+  grid-template-columns: 7.5rem minmax(0, 1fr) repeat(4, 64px) 48px;
   align-items: center;
   gap: 8px 24px;
   padding: 12px 16px;
@@ -2754,23 +2754,36 @@ ul.overview-list {
   opacity: 0.55;
 }
 
-/* Phones: the deck name gets its own line, and the numbers share the row below. */
-@media (max-width: 560px) {
+/* The Study now column has a fixed width (7.5rem in the grid), so every row and the header line up. */
+.btn.deck-list-study {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Narrow screens (phones, small windows): Study now and the deck name share the first line, the numbers
+   the line below (under the header). */
+@media (max-width: 720px) {
   .deck-list li {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) 44px;
+    grid-template-columns: 7.5rem repeat(4, minmax(0, 1fr)) 44px;
     gap: 6px 14px;
     padding: 10px 12px;
   }
 
   .deck-list-title {
-    grid-column: 1 / -1;
+    grid-column: 2 / -1;
+  }
+
+  .deck-list-cards {
+    grid-column: 2;
   }
 
   .deck-list li.deck-list-head {
     font-size: 0.7rem;
   }
 
-  .deck-list-head > span:first-child {
+  .deck-list-head > span:nth-child(2) {
     display: none;
   }
 }
