@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { useRouter } from "next/navigation";
 import { dictionaries, useI18n } from "@/i18n";
 import { removeDeckOverride, useDeckOverrides } from "@/lib/deckOverrides";
@@ -39,18 +39,22 @@ export function DeckView({ deck }: { deck: Deck }) {
     router.push(`/decks/${deck.id}/review`);
   };
 
-  // A adds a card to this deck, as in the Library (not while typing, not with modifier keys). Decks you
-  // can't edit yet (an official deck you haven't saved) have nowhere to put it.
+  // Keys on the deck page (not while typing, not with modifier keys): Space starts studying, like the
+  // Study now button; A adds a card, as in the Library. Decks you can't edit yet (an official deck you
+  // haven't saved) have nowhere to put a card, so A does nothing there.
   const addHref = `/library/add?deck=${encodeURIComponent(deck.id)}&back=deck`;
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || isTyping(e)) return;
+    // Space on a focused button or link is that control's own click; leave it alone.
+    if (e.key === " " && !(e.target instanceof Element && e.target.closest("button, a, summary, select"))) {
+      e.preventDefault(); // instead of scrolling the page
+      void study();
+    } else if (e.key.toLowerCase() === "a" && editable) router.push(addHref);
+  });
   useEffect(() => {
-    if (!editable) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e)) return;
-      if (e.key.toLowerCase() === "a") router.push(addHref);
-    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editable, addHref, router]);
+  }, []);
 
   return (
     <main className="page narrow">
@@ -76,7 +80,7 @@ export function DeckView({ deck }: { deck: Deck }) {
 
       <div className="deck-actions">
         <button type="button" className="btn accent big-btn" onClick={() => void study()}>
-          {t.deck.studyNow}
+          {t.deck.studyNow} <kbd>{t.study.keySpace}</kbd>
         </button>
         {editable && (
           <Link href={addHref} className="btn nav">
