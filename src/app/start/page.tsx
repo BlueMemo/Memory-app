@@ -8,8 +8,9 @@ export const metadata: Metadata = pageMetadata({
   path: "/start",
 });
 
-// ?step=account is the last step, reached from the tutorial's results.
+// ?step=account is the last step, reached from the tutorial's results; ?begin=1 (the home page's "Get
+// started") skips the welcome screen, which would only ask the same thing again.
 export default async function StartPage({ searchParams }: PageProps<"/start">) {
-  const { step } = await searchParams;
-  return <OnboardingView finalStep={step === "account"} />;
+  const { step, begin } = await searchParams;
+  return <OnboardingView finalStep={step === "account"} skipWelcome={begin === "1"} />;
 }

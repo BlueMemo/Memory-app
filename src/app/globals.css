@@ -4498,7 +4498,7 @@ main [id] {
 .page.onboarding {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 140px);
+  min-height: 100vh;
   padding-top: 20px;
 }
 
@@ -4700,14 +4700,139 @@ main [id] {
   margin-top: 16px;
 }
 
-.onboarding-skip {
+/* The only way out of the introduction (the site's header is hidden on /start). */
+.onboarding-close {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-  font-size: 0.9rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.onboarding-close:hover {
+  color: var(--ink);
+  background: var(--line);
+}
+
+/* Welcome screen: full height, centred, a soft blue glow behind the logo, one obvious button. */
+.onboarding-welcome {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 30%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    var(--bg);
+}
+
+.onboarding-welcome-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.welcome-card {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  width: 100%;
+  max-width: 520px;
+  text-align: center;
+}
+
+.welcome-mark {
+  display: grid;
+  place-items: center;
+  width: 148px;
+  height: 148px;
+  border-radius: 40px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 0 0 10px color-mix(in srgb, var(--accent) 10%, transparent),
+    0 24px 60px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.welcome-card h1 {
+  margin: 10px 0 0;
+  font-size: clamp(2rem, 6vw, 2.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.welcome-lead {
+  margin: 0;
+  max-width: 440px;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.5;
+}
+
+.welcome-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.welcome-steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.welcome-step-n {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+
+.btn.welcome-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  padding: 17px 24px;
+  font-size: 1.15rem;
+  border-radius: 16px;
+  box-shadow:
+    0 2px 0 color-mix(in srgb, var(--accent) 55%, #000),
+    0 10px 30px color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: transform 0.15s var(--ease-out), filter 0.15s;
+}
+
+.btn.welcome-start:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.07);
+}
+
+.welcome-signin {
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--muted);
   text-decoration: none;
 }
 
-.onboarding-skip:hover {
+.welcome-signin:hover {
   color: var(--ink);
 }

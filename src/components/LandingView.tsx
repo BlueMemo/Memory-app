@@ -44,7 +44,7 @@ function HeroActions() {
   if (decks === 0 && !onboarding.completedAt) {
     return (
       <div className="hero-actions">
-        <Link href="/start" className="btn accent hero-primary">
+        <Link href="/start?begin=1" className="btn accent hero-primary">
           {dict.onboarding.getStarted}
           <ArrowRight size={18} weight="bold" aria-hidden="true" />
         </Link>
