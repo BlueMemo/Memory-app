@@ -64,8 +64,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   Browse (deck page) and the card browser shows **only a date** (same format as Created) instead of "in 3
   days" — also for cards due later today or already due (no time, no "now"; `lib/dueDate.ts`, tested). The card browser's
   detail panel still shows both. The **Library tab** no longer has the outlined box: it's brand-blue text
-  with a book icon and, when there are any, a badge with today's cards across the library's decks with
-  spaced repetition on (`DueBadge` in `SiteHeader.tsx`; 99+ caps it).
+  with a book icon and, when there are any, a badge with today's **learning + due** cards (not new ones)
+  across the library's decks with spaced repetition on (`DueBadge` in `SiteHeader.tsx`; 99+ caps it).
 - **Celebrations (2026-10-07, branch `feature/celebrations`)**: finishing a deck's due cards in a review
   session shows one of **15 celebrations**, drawn by odds (`lib/celebrations.ts`, weights in percent, sum
   100, tested): common 20/15/10/10/10/8 %, uncommon 7/5/5/4/3 %, rare 1.5/1 %, epic 0.4 %, and one
