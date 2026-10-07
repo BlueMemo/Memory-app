@@ -727,24 +727,6 @@ export const sv: Dict = {
   },
   loading: {
     label: "Laddar…",
-    previewTitle: "Laddningsskärmar",
-    previewLead: "Tre förslag att välja mellan. Stjärnorna tindrar medan sidan laddar, så den ser aldrig ut att ha frusit.",
-    previewFull: "Visa i helskärm",
-    previewClose: "Klicka för att gå tillbaka",
-    variants: {
-      night: {
-        name: "Magisk natt",
-        description: "Palatsets dörröppning i ett månbelyst kullandskap under en himmel full av tindrande stjärnor.",
-      },
-      doorway: {
-        name: "Stilla dörröppning",
-        description: "Bara logotypen mot sidans egen bakgrund: de tre stjärnorna tindrar i tur och ordning och ett mjukt sken pulserar i dörren.",
-      },
-      constellation: {
-        name: "Stjärnbild",
-        description: "En stjärnbild ritar sig själv runt dörröppningen, och varje stjärna tänds när linjen når fram.",
-      },
-    },
   },
   account: {
     choosePicture: "Välj en bild",

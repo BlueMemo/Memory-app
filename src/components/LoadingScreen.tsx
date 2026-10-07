@@ -1,50 +1,72 @@
 "use client";
 
 import { useI18n } from "@/i18n";
-import { CASTLE, LogoArt, SKY, STAR, STAR_PATH } from "./LogoArt";
+import { LogoArt, STAR, STAR_PATH } from "./LogoArt";
 
-// A loading screen built on the BlueMemo symbol: the doorway into the memory palace, whose three stars
-// twinkle so the page visibly is working rather than frozen. Three designs are being tried out on
-// /loading-preview; the team picks one, and the others go.
+// The loading screen: the BlueMemo doorway inside a ring of stars. A glowing line runs round the ring like a
+// loading circle and each star lights up as it passes, while the logo's stars and a scatter of tiny stars in
+// the sky behind the castle twinkle, so the page visibly keeps working rather than looking frozen.
 
-export type LoadingVariant = "night" | "doorway" | "constellation";
+/** Centre and radius of the ring, in the drawing's 400×260 units; the doorway is centred on it. */
+const CX = 200;
+const CY = 167;
+const R = 76;
+const RING_STARS = 12;
+/** One lap of the glowing line, in seconds (keep in step with .loading-ring-head/.loading-ring-tail in CSS). */
+const LAP = 2;
+/** Length of the line's bright head, as a share of the ring (keep in step with its dasharray in CSS). */
+const HEAD = 0.22;
 
-/** Small background stars for the night sky: fixed positions (no randomness, so server and client agree). */
-const SKY_STARS = [
-  [22, 30, 1.1], [60, 70, 0.8], [95, 24, 1.3], [130, 58, 0.7], [168, 18, 1], [300, 26, 1.2], [334, 96, 0.8],
-  [366, 20, 1], [382, 92, 0.7], [48, 120, 0.9], [352, 128, 1], [250, 52, 0.8], [210, 36, 0.6], [16, 84, 0.7],
-  [276, 96, 0.6], [118, 104, 0.6], [150, 140, 0.7], [262, 136, 0.7],
+/**
+ * Tiny stars in the doorway's sky, in the logo's own 64×64 units: between the castle's towers and the three
+ * big stars, so the whole sky behind the castle twinkles.
+ */
+const DOOR_STARS = [
+  [22.5, 23.5, 0.55], [26.5, 17.8, 0.45], [37.5, 17.2, 0.5], [42, 22.2, 0.55], [20.6, 33, 0.5], [43.6, 32.6, 0.5],
+  [27.4, 33.4, 0.4], [37.2, 32.2, 0.42], [28.6, 26, 0.38], [35.8, 26.4, 0.4], [24.8, 30.4, 0.35], [39.8, 29.4, 0.38],
+  [31.9, 16.4, 0.35], [19.8, 28.4, 0.35], [44.2, 27.6, 0.35],
 ] as const;
 
-/** The constellation around the doorway (variant C): points on a loose arc, joined in order. */
-const CONSTELLATION = [
-  [96, 196], [84, 140], [112, 88], [164, 60], [236, 60], [288, 88], [316, 140], [304, 196],
-] as const;
-
-/** Where the symbol sits in the 400×260 drawing, and the part of the drawing each design shows around it. */
-const LOGO_TRANSFORM = "translate(136 88) scale(2)";
-const VIEW: Record<LoadingVariant, string> = {
-  night: "130 76 140 148",
-  doorway: "130 76 140 148",
-  constellation: "60 36 280 196",
-};
-
-export function LoadingScreen({ variant = "night", fullScreen = true }: { variant?: LoadingVariant; fullScreen?: boolean }) {
+export function LoadingScreen({ delayed = false }: { delayed?: boolean }) {
   const t = useI18n().t.loading;
+  const ring = Array.from({ length: RING_STARS }, (_, i) => {
+    // Starting at the top and going clockwise, like the line; each star lights up when the line's head reaches it.
+    const angle = (i / RING_STARS) * 2 * Math.PI;
+    const share = i / RING_STARS;
+    return {
+      x: CX + R * Math.sin(angle),
+      y: CY - R * Math.cos(angle),
+      delay: (((share - HEAD) % 1) + 1) % 1 * LAP,
+    };
+  });
+
   return (
-    <div className={`loading-screen loading-${variant}${fullScreen ? " full" : ""}`} role="status" aria-live="polite">
-      {/* The night sky covers the whole screen behind the symbol, cropped to fit (it has no edges to show). */}
-      {variant === "night" && (
-        <svg className="loading-backdrop" viewBox="0 0 400 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-          <NightSky />
-        </svg>
-      )}
-      <svg className="loading-art" viewBox={VIEW[variant]} overflow="visible" aria-hidden="true">
-        {variant === "constellation" && <Constellation />}
-        {variant === "night" && <ellipse cx={200} cy={160} rx={78} ry={74} fill="url(#loading-night-mist)" />}
-        {variant === "doorway" && <ellipse className="door-glow" cx={200} cy={160} rx={56} ry={64} fill={CASTLE} />}
-        <g transform={LOGO_TRANSFORM}>
-          <LogoArt frame={variant === "doorway" ? "var(--ink)" : "#e8ecf7"} starClass="twinkle" />
+    <div className={`loading-screen${delayed ? " delayed" : ""}`} role="status" aria-live="polite">
+      <svg className="loading-art" viewBox="114 81 172 172" overflow="visible" aria-hidden="true">
+        <defs>
+          <filter id="loading-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3.2" />
+          </filter>
+        </defs>
+        {/* The ring: a faint track, then the moving line as a soft glow under a crisp core and a fading tail.
+            Rotated so it starts at the top. */}
+        <g transform={`rotate(-90 ${CX} ${CY})`} fill="none" strokeLinecap="round">
+          <circle cx={CX} cy={CY} r={R} stroke="#9db8ff" strokeOpacity={0.14} strokeWidth={1.2} />
+          <circle className="loading-ring-tail" cx={CX} cy={CY} r={R} stroke="#9db8ff" strokeOpacity={0.35} strokeWidth={2} pathLength={100} />
+          <circle className="loading-ring-head" cx={CX} cy={CY} r={R} stroke="#b9ccff" strokeWidth={7} filter="url(#loading-glow)" pathLength={100} />
+          <circle className="loading-ring-head" cx={CX} cy={CY} r={R} stroke="#eef3ff" strokeWidth={2.2} pathLength={100} />
+        </g>
+        {ring.map((s, i) => (
+          <g key={i} transform={`translate(${s.x} ${s.y}) scale(0.42)`}>
+            <path className="ring-star" d={STAR_PATH} fill={STAR} style={{ animationDelay: `${s.delay}s` }} />
+          </g>
+        ))}
+        {/* The doorway, centred on the ring, with tiny twinkling stars drawn into its sky. */}
+        <g transform="translate(136 98) scale(2)">
+          <LogoArt frame="#e8ecf7" starClass="twinkle" />
+          {DOOR_STARS.map(([x, y, r], i) => (
+            <circle key={i} className="door-star" cx={x} cy={y} r={r} fill="#fdf3cf" style={{ animationDelay: `${(i * 0.29) % 2.2}s` }} />
+          ))}
         </g>
       </svg>
       <p className="loading-word" aria-hidden="true">
@@ -52,47 +74,5 @@ export function LoadingScreen({ variant = "night", fullScreen = true }: { varian
       </p>
       <p className="loading-text">{t.label}</p>
     </div>
-  );
-}
-
-/** Variant A's backdrop: night sky with twinkling stars, a crescent moon and two layers of hills. */
-function NightSky() {
-  return (
-    <>
-      <defs>
-        <linearGradient id="loading-night-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#0b1640" />
-          <stop offset="1" stopColor={SKY} />
-        </linearGradient>
-        <radialGradient id="loading-night-mist" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor={CASTLE} stopOpacity="0.45" />
-          <stop offset="1" stopColor={CASTLE} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width={400} height={260} fill="url(#loading-night-sky)" />
-      {SKY_STARS.map(([x, y, r], i) => (
-        <circle key={i} className="sky-star" cx={x} cy={y} r={r} fill="#fdf3cf" style={{ animationDelay: `${(i * 0.37) % 2.4}s` }} />
-      ))}
-      {/* Crescent moon: a pale disc with a sky-coloured disc over one side. */}
-      <circle cx={330} cy={50} r={16} fill="#fdf3cf" />
-      <circle cx={337} cy={45} r={14} fill="#0e1b4d" />
-      <path d="M0 214 Q70 178 140 202 T280 194 T400 206 V260 H0 Z" fill="#152a6b" />
-      <path d="M0 236 Q90 212 200 222 T400 230 V260 H0 Z" fill="#0d1d52" />
-    </>
-  );
-}
-
-/** Variant C: a constellation drawing itself around the doorway; each point lights up as the line arrives. */
-function Constellation() {
-  const d = CONSTELLATION.map(([x, y], i) => `${i ? "L" : "M"}${x} ${y}`).join(" ");
-  return (
-    <>
-      <path className="constellation-line" d={d} fill="none" stroke="#9db8ff" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" pathLength={100} />
-      {CONSTELLATION.map(([x, y], i) => (
-        <g key={i} transform={`translate(${x} ${y}) scale(0.45)`}>
-          <path className="constellation-star" d={STAR_PATH} fill={STAR} style={{ animationDelay: `${(i / CONSTELLATION.length) * 3.2}s` }} />
-        </g>
-      ))}
-    </>
   );
 }

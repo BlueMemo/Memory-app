@@ -48,6 +48,17 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Loading screen (2026-10-07, branch `feature/loading-screen`)**: chosen from three trial designs (the
+  "constellation" one, reworked to the user's wishes). The BlueMemo doorway inside a full ring of 12 stars; a
+  smooth glowing line runs round the ring like a loading circle (bright head + fading tail, one lap per 2 s)
+  and each star lights up as it passes; the logo's three stars twinkle in turn and 15 tiny stars twinkle in
+  the doorway's sky. Night colours in both themes. `components/LoadingScreen.tsx`; shown by `app/loading.tsx`
+  (Next's route loading fallback) and by `DeckGate` while decks load, both with `delayed` (fades in after
+  ~0.35 s so quick page changes don't flash). `/loading-preview` (unlinked, noindex) shows it on its own.
+  `LogoArt` takes an optional `starClass` for the twinkle; without it the logo is unchanged. The ring's lap
+  time and head length live in both `LoadingScreen.tsx` (`LAP`, `HEAD`) and `globals.css` — keep them in step.
+  Also fixed in this branch: `.celebration-stage` in `globals.css` was missing its closing brace, so the
+  type-the-answer styles after it only applied inside it.
 - **Landing example deck (2026-10-07, branch `feature/list-only`)**: the hero's `RoutePreview` no longer
   steps through stops: it shows the deck's name and card count, the **first stop only** (drawing, scene,
   "stands for"), and a **Practise this deck** button that saves the deck to the library (if it isn't

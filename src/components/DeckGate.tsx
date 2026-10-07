@@ -6,6 +6,7 @@ import { useMounted } from "@/lib/useMounted";
 import { useUserDeck } from "@/lib/userDecks";
 import { DeckNotFound } from "./DeckNotFound";
 import { DeckView } from "./DeckView";
+import { LoadingScreen } from "./LoadingScreen";
 import { PracticeSession } from "./PracticeSession";
 import { ReviewSession } from "./ReviewSession";
 
@@ -29,8 +30,8 @@ export function DeckGate({
   const overridesStatus = useDeckOverridesStatus();
   const mounted = useMounted();
 
-  if (!mounted) return null;
-  if (officialDeck && overridesStatus === "loading") return null;
+  if (!mounted) return <LoadingScreen delayed />;
+  if (officialDeck && overridesStatus === "loading") return <LoadingScreen delayed />;
   const deck = officialDeck ? resolveDeck(officialDeck, overrides) : userDeck;
   if (!deck) return <DeckNotFound />;
 

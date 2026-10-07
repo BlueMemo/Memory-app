@@ -4493,9 +4493,13 @@ main [id] {
   margin-left: 8px;
 }
 
-/* ---------- Loading screen (components/LoadingScreen.tsx, designs compared on /loading-preview) ---------- */
+/* ---------- Loading screen (components/LoadingScreen.tsx; app/loading.tsx; preview on /loading-preview) ---------- */
 
+/* Full window, in the logo's night colours in both themes. */
 .loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -4503,86 +4507,59 @@ main [id] {
   gap: 6px;
   overflow: hidden;
   text-align: center;
-}
-
-.loading-screen.full {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-}
-
-/* Inside a preview frame instead of the whole window. */
-.loading-screen:not(.full) {
-  position: absolute;
-  inset: 0;
-}
-
-/* The dark designs keep their own night colours in light and dark theme; the quiet one follows the theme. */
-.loading-night,
-.loading-constellation {
-  background: #0b1640;
+  background: radial-gradient(ellipse at 50% 45%, #13245e 0%, #0b1640 60%, #070f2e 100%);
   color: #e8ecf7;
 }
 
-.loading-doorway {
-  background: var(--bg);
-  color: var(--ink);
-}
-
-.loading-backdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+/* Fades in only if loading takes a moment, so quick page changes don't flash. With reduced motion there's
+   no fade at all (the animation is switched off and the screen simply shows). */
+.loading-screen.delayed {
+  animation: loading-appear 0.3s ease-out 0.35s backwards;
 }
 
 .loading-art {
-  position: relative;
-  width: min(220px, 52vw);
+  width: min(300px, 70vw);
   height: auto;
 }
 
-.loading-constellation .loading-art {
-  width: min(420px, 84vw);
-}
-
-.loading-screen:not(.full) .loading-art {
-  width: 34%;
-}
-
-.loading-screen:not(.full).loading-constellation .loading-art {
-  width: 62%;
-}
-
 .loading-word {
-  position: relative;
-  margin: 4px 0 0;
+  margin: 10px 0 0;
   font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.loading-night .logo-blue,
-.loading-constellation .logo-blue {
+.loading-screen .logo-blue {
   color: #6f9cff;
 }
 
 .loading-text {
-  position: relative;
   margin: 0;
   font-size: 0.9rem;
   opacity: 0.75;
 }
 
-.loading-screen:not(.full) .loading-word {
-  font-size: 1rem;
+/* The glowing line going round: a bright head and a longer, fainter tail that share its front edge
+   (the tail starts 18 further back so both ends meet at the head). One lap = LAP in LoadingScreen.tsx. */
+.loading-ring-head {
+  stroke-dasharray: 22 78;
+  animation: loading-ring-head 2s linear infinite;
 }
 
-.loading-screen:not(.full) .loading-text {
-  font-size: 0.75rem;
+.loading-ring-tail {
+  stroke-dasharray: 40 60;
+  animation: loading-ring-tail 2s linear infinite;
 }
 
-/* The logo's three stars twinkle one after another, so the screen visibly keeps working. */
+/* Each ring star lights up as the line's head passes it, then dims again. */
+.ring-star {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0.3;
+  animation: loading-light-up 2s ease-out infinite;
+}
+
+/* The logo's three stars twinkle one after another, and the tiny stars in the doorway's sky shimmer. */
 .loading-screen .twinkle {
   transform-box: fill-box;
   transform-origin: center;
@@ -4597,26 +4574,28 @@ main [id] {
   animation-delay: 1.2s;
 }
 
-.sky-star {
-  animation: loading-sky-star 2.6s ease-in-out infinite;
+.door-star {
+  animation: loading-door-star 2.2s ease-in-out infinite;
 }
 
-.door-glow {
-  opacity: 0.18;
-  filter: blur(14px);
-  animation: loading-glow 2.4s ease-in-out infinite;
+@keyframes loading-appear {
+  from { opacity: 0; }
 }
 
-.constellation-line {
-  stroke-dasharray: 100;
-  animation: loading-draw 3.2s ease-in-out infinite;
+@keyframes loading-ring-head {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -100; }
 }
 
-.constellation-star {
-  transform-box: fill-box;
-  transform-origin: center;
-  opacity: 0.25;
-  animation: loading-light-up 3.2s ease-out infinite;
+@keyframes loading-ring-tail {
+  from { stroke-dashoffset: 18; }
+  to { stroke-dashoffset: -82; }
+}
+
+@keyframes loading-light-up {
+  0% { opacity: 1; transform: scale(1.45); filter: drop-shadow(0 0 3px rgba(245, 200, 76, 0.95)); }
+  35% { opacity: 0.55; transform: scale(1); filter: drop-shadow(0 0 0 rgba(245, 200, 76, 0)); }
+  100% { opacity: 0.3; transform: scale(0.85); }
 }
 
 @keyframes loading-twinkle {
@@ -4624,56 +4603,7 @@ main [id] {
   50% { opacity: 0.55; transform: scale(1.35); filter: drop-shadow(0 0 2px rgba(245, 200, 76, 0.9)); }
 }
 
-@keyframes loading-sky-star {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 0.2; }
-}
-
-@keyframes loading-glow {
-  0%, 100% { opacity: 0.12; }
-  50% { opacity: 0.32; }
-}
-
-/* The line draws itself, holds for a moment, then fades so the next round can start. */
-@keyframes loading-draw {
-  0% { stroke-dashoffset: 100; opacity: 0.8; }
-  70% { stroke-dashoffset: 0; opacity: 0.8; }
-  90% { stroke-dashoffset: 0; opacity: 0.8; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
-}
-
-@keyframes loading-light-up {
-  0% { opacity: 0.25; transform: scale(0.7); }
-  10% { opacity: 1; transform: scale(1.3); }
-  25% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0.25; transform: scale(0.7); }
-}
-
-/* Preview page: the designs side by side. */
-.loading-gallery {
-  list-style: none;
-  margin: 24px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 28px;
-}
-
-.loading-gallery h2 {
-  margin: 14px 0 4px;
-  font-size: 1.1rem;
-}
-
-.loading-gallery p {
-  margin: 0 0 12px;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.loading-frame {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-surface);
-  overflow: hidden;
+@keyframes loading-door-star {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 0.15; }
 }
