@@ -725,6 +725,27 @@ export const en = {
     create: "Create deck with {n} cards",
     creating: "Creating…",
   },
+  loading: {
+    label: "Loading…",
+    previewTitle: "Loading screens",
+    previewLead: "Three designs to choose from. The stars twinkle while the site loads, so it never looks frozen.",
+    previewFull: "View full screen",
+    previewClose: "Click to go back",
+    variants: {
+      night: {
+        name: "Magic night",
+        description: "The palace doorway in a moonlit hillside under a sky full of twinkling stars.",
+      },
+      doorway: {
+        name: "Quiet doorway",
+        description: "Just the logo on the page's own background: its three stars twinkle in turn and a soft glow pulses inside the door.",
+      },
+      constellation: {
+        name: "Constellation",
+        description: "A constellation draws itself around the doorway, each star lighting up as the line reaches it.",
+      },
+    },
+  },
   account: {
     choosePicture: "Choose a picture",
     statsTitle: "Statistics",
