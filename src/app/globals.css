@@ -4699,3 +4699,15 @@ main [id] {
   max-width: none;
   margin-top: 16px;
 }
+
+.onboarding-skip {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.onboarding-skip:hover {
+  color: var(--ink);
+}

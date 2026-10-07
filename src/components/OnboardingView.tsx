@@ -152,9 +152,8 @@ export function OnboardingView({ finalStep }: { finalStep: boolean }) {
             <ArrowLeft size={20} weight="bold" aria-hidden="true" />
           </button>
         ) : (
-          <Link href="/" className="onboarding-back" aria-label={t.back}>
-            <ArrowLeft size={20} weight="bold" aria-hidden="true" />
-          </Link>
+          // Nothing to go back to on the first question (new visitors are sent here from the home page).
+          <span className="onboarding-back" aria-hidden="true" />
         )}
         <div
           className="onboarding-progress"
@@ -166,6 +165,9 @@ export function OnboardingView({ finalStep }: { finalStep: boolean }) {
         >
           <span style={{ width: `${((index + 1) / (steps.length + 1)) * 100}%` }} />
         </div>
+        <Link href="/" className="onboarding-skip" onClick={() => setOnboarding({ completedAt: new Date().toISOString(), tutorialPending: false })}>
+          {t.skip}
+        </Link>
       </div>
 
       {/* Keyed by step, so each question plays its entrance. */}
@@ -231,8 +233,9 @@ function AccountStep() {
               {t.accountCreate}
             </Link>
           )}
-          <Link href="/library" className={`btn ${signedIn || !configured ? "accent" : "nav"} onboarding-continue`} onClick={finish}>
-            {signedIn || !configured ? t.toLibrary : t.accountLater}
+          {/* The introduction ends on the home page. */}
+          <Link href="/" className={`btn ${signedIn || !configured ? "accent" : "nav"} onboarding-continue`} onClick={finish}>
+            {signedIn || !configured ? t.toHome : t.accountLater}
           </Link>
         </div>
       </section>

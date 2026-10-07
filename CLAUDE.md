@@ -49,14 +49,17 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 ## Current status
 
 - **Introduction / onboarding (2026-10-07, branch `feature/onboarding`)** — Duolingo-style, decided with the
-  team via questionnaires. The home page's main button for new visitors (no decks, introduction not done)
-  is **Get started** → `/start` (plus "I already have an account"). One question per screen with a
+  team via questionnaires. **Order: questions → tutorial → account offer → home page.** A first visit to
+  `/` (not signed in, no decks, introduction not done) is sent straight to `/start` (client-side, so link
+  previews still see the home page); the home page's button for such visitors is **Get started** (plus
+  "I already have an account"). Every question screen has **Skip** (marks it done, goes home); the first
+  has no back arrow. One question per screen with a
   progress bar (`OnboardingView.tsx`): what you mainly study (languages / school subjects / exams like
   Högskoleprovet / general knowledge & fun) → which language, or where you study (high school /
   university / other) → where you heard about BlueMemo (TikTok, Instagram, YouTube, friend/family,
   school/teacher, search, other) → the **10 countries tutorial** (the full guided practice; its results
   show "Continue" when started from here) → **account step** (create a free account → `/account?signup=1`,
-  or "Maybe later" → Library). Not done: a daily-goal question (not wanted).
+  or "Maybe later" → the home page). Not done: a daily-goal question (not wanted).
   - Answers ("goals") live in `lib/onboarding.ts`: browser (`onboarding.v1`) and, signed in,
     `user_settings.goals` (the account's copy wins; `setActiveUserForOnboarding` in AuthSync); editable
     under Settings → "Your goals". "Where did you hear about us" is **anonymous**: one row in

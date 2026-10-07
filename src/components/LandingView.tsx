@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import type { Icon } from "@phosphor-icons/react";
 import { ArrowRight, ArrowsClockwise, Brain, Footprints, Lightbulb, MapPin, MapTrifold } from "@phosphor-icons/react/ssr";
 import { officialDecks } from "@/decks";
@@ -9,6 +10,7 @@ import { useI18n } from "@/i18n";
 import { useSavedDeckIds } from "@/lib/library";
 import { useOnboarding } from "@/lib/onboarding";
 import { useUser } from "@/lib/supabase/useUser";
+import { useMounted } from "@/lib/useMounted";
 import { useUserDecks } from "@/lib/userDecks";
 import { DeckTile } from "./DeckTile";
 import { RoutePreview } from "./RoutePreview";
@@ -69,8 +71,28 @@ function HeroActions() {
   );
 }
 
+/**
+ * First visit: someone who isn't signed in, has no decks and hasn't been through the introduction is sent
+ * straight to it (/start): questions, the 10 countries tutorial, an account offer, then back here.
+ * Client-side, so link previews and search engines still see the home page.
+ */
+function useFirstVisitIntroduction() {
+  const router = useRouter();
+  const mounted = useMounted();
+  const { user, loading } = useUser();
+  const onboarding = useOnboarding();
+  const decks = useSavedDeckIds().length + useUserDecks().length;
+  const firstVisit = mounted && !loading && !user && decks === 0 && !onboarding.completedAt;
+  useEffect(() => {
+    if (firstVisit) router.replace("/start");
+  }, [firstVisit, router]);
+  return firstVisit;
+}
+
 export function LandingView() {
   const { landing: t, techniques } = useI18n().t;
+  // While being sent to the introduction, show nothing rather than a flash of the home page.
+  if (useFirstVisitIntroduction()) return <main className="page landing" />;
   return (
     <main className="page landing">
       {/* Text on the left, a working preview of a memory route on the right (stacked on phones). */}
