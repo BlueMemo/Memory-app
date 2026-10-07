@@ -215,6 +215,7 @@ export const en = {
     youTyped: "You typed",
     showAnswer: "Show answer",
     shortcuts: "Keyboard shortcuts",
+    toDeck: "Back to the deck",
     firstLetter: "Starts with “{letter}”",
   },
   share: {
