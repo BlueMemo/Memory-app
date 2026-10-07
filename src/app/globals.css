@@ -1319,32 +1319,6 @@ ul.overview-list {
   color: var(--again);
 }
 
-.create-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 160px;
-  height: 100%;
-  border: 2px dashed var(--line);
-  border-radius: 16px;
-  color: var(--muted);
-  text-decoration: none;
-  text-align: center;
-}
-
-.create-tile:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.create-plus {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
 .tile-actions {
   display: flex;
   gap: 6px;
@@ -1712,32 +1686,6 @@ ul.overview-list {
 }
 
 /* ---------- Import ---------- */
-
-.create-tile-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  height: 100%;
-}
-
-.create-tile-wrap .create-tile {
-  flex: 1;
-}
-
-.import-link {
-  text-align: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-
-.import-link:hover {
-  border-color: var(--accent);
-}
 
 .step-title {
   margin: 32px 0 12px;
@@ -3060,15 +3008,7 @@ ul.overview-list {
   color: var(--ink);
 }
 
-/* ---------- Library layout (tiles / rows / list) ---------- */
-
-.library-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 28px;
-}
+/* ---------- Library list ---------- */
 
 .segmented.small button {
   border: none;
