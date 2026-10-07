@@ -52,8 +52,12 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   team via questionnaires. **Order: questions → tutorial → account offer → home page.** A first visit to
   `/` (not signed in, no decks, introduction not done) is sent straight to `/start` (client-side, so link
   previews still see the home page); the home page's button for such visitors is **Get started** (plus
-  "I already have an account", → `/start?begin=1`). `/start` opens on a **welcome screen** (logo, what's
-  coming in three steps, one big **Get started**, "I already have an account"). During the introduction the
+  "I already have an account", → `/start?begin=1`). `/start` opens on a **welcome screen** in "paper and ink"
+  (picked by the team from four sketches: night sky, paper and ink, bold blue, doorway): a light paper page
+  in both themes, only the serif title "Step into your memory palace." / "Kliv in i ditt minnespalats." and a
+  black **Get started** button (blue on hover), plus a quiet "Sign in" and the ✕ in the corner; the title
+  rises in and the button follows. The serif is Newsreader as `--font-serif`, loaded without preloading
+  (`layout.tsx`) so other pages don't download it. During the introduction the
   **site header is hidden** (`SiteHeader` renders only `AuthSync` on `/start`); a small **✕** in the corner
   is the only way out (marks it done, goes home). The first question has no back arrow. One question per screen with a
   progress bar (`OnboardingView.tsx`): what you mainly study (languages / school subjects / exams like

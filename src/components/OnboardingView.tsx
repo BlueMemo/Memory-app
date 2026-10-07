@@ -40,7 +40,6 @@ import {
 } from "@/lib/onboarding";
 import { fill } from "@/lib/practice";
 import { useUser } from "@/lib/supabase/useUser";
-import { LogoMark } from "./Logo";
 
 type Step = "goal" | "language" | "level" | "source" | "tutorial";
 
@@ -230,44 +229,28 @@ function CloseButton() {
 }
 
 /**
- * The first screen of the introduction: what's about to happen, one big obvious "Get started", and a quiet
- * way in for people who already have an account.
+ * The first screen of the introduction, in "paper and ink" (chosen by the team): a light paper page with
+ * one big serif line and one black button, nothing else apart from a quiet sign-in link and the close ✕.
  */
 function WelcomeStep({ onStart }: { onStart: () => void }) {
   const t = useI18n().t.onboarding;
   const { user } = useUser();
   return (
     <main className="onboarding-welcome">
-      <div className="onboarding-welcome-close">
+      <div className="welcome-corner">
+        {!user && (
+          <Link href="/account" className="welcome-signin">
+            {t.signIn}
+          </Link>
+        )}
         <CloseButton />
       </div>
       <div className="welcome-card">
-        <div className="welcome-mark rise">
-          <LogoMark size={96} />
-        </div>
-        <h1 className="rise" style={{ animationDelay: "80ms" }}>
-          {t.welcomeTitle}
-        </h1>
-        <p className="welcome-lead rise" style={{ animationDelay: "160ms" }}>
-          {t.welcomeLead}
-        </p>
-        <ol className="welcome-steps rise" style={{ animationDelay: "240ms" }}>
-          {t.welcomeSteps.map((step, i) => (
-            <li key={step}>
-              <span className="welcome-step-n">{i + 1}</span>
-              {step}
-            </li>
-          ))}
-        </ol>
-        <button type="button" className="btn accent welcome-start rise" style={{ animationDelay: "320ms" }} onClick={onStart} autoFocus>
+        <h1 className="welcome-title">{t.welcomeTitle}</h1>
+        <button type="button" className="welcome-start" onClick={onStart} autoFocus>
           {t.getStarted}
           <ArrowRight size={20} weight="bold" aria-hidden="true" />
         </button>
-        {!user && (
-          <Link href="/account" className="welcome-signin rise" style={{ animationDelay: "380ms" }}>
-            {t.haveAccount}
-          </Link>
-        )}
       </div>
     </main>
   );
