@@ -50,9 +50,10 @@ export const en = {
     allDecks: "See all decks",
     finalTitle: "Ready to see it work?",
     finalLead: "It takes a few minutes. You might be surprised how much you remember.",
-    previewLabel: "The first stops of the 10 countries route",
-    previewNext: "Next stop",
-    previewAgain: "Back to the start",
+    previewLabel: "The first stop of the 10 countries route",
+    practiseDeck: "Practise this deck",
+    practiseAdds: "Adds it to your library. Free, no account needed.",
+    practiseInLibrary: "It is already in your library.",
     previewImagine: "No drawing here. Picture it yourself.",
   },
   skills: {

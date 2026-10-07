@@ -50,9 +50,10 @@ export const sv: Dict = {
     allDecks: "Se alla kortlekar",
     finalTitle: "Redo att se det funka?",
     finalLead: "Det tar några minuter. Du blir nog förvånad över hur mycket du minns.",
-    previewLabel: "De första stoppen på vägen med 10 länder",
-    previewNext: "Nästa stopp",
-    previewAgain: "Tillbaka till början",
+    previewLabel: "Första stoppet på vägen med 10 länder",
+    practiseDeck: "Öva på kortleken",
+    practiseAdds: "Läggs till i ditt bibliotek. Gratis, inget konto behövs.",
+    practiseInLibrary: "Den finns redan i ditt bibliotek.",
     previewImagine: "Ingen teckning här. Föreställ dig den själv.",
   },
   skills: {

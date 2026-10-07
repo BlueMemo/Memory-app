@@ -2407,7 +2407,7 @@ ul.overview-list {
   padding: 14px 24px;
 }
 
-/* The route preview: stop list on top, the current stop's scene, then "Next stop". */
+/* The route preview: the deck's name, its first stop's scene, then "Practise this deck". */
 .route-preview {
   margin: 0;
   padding: 20px;
@@ -2417,69 +2417,20 @@ ul.overview-list {
   box-shadow: var(--shadow);
 }
 
-.route-stops {
-  list-style: none;
-  margin: 0 0 18px;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.route-stops button {
-  width: 100%;
+.route-deck {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    border-color 0.2s,
-    color 0.2s,
-    background-color 0.2s;
-}
-
-.route-stops button:hover {
-  color: var(--ink);
-  border-color: var(--muted);
-}
-
-.route-stops button[aria-current="step"] {
-  color: var(--ink);
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.route-stop-n {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  background: var(--line);
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0 0 14px;
   font-weight: 600;
 }
 
-.route-stops button[aria-current="step"] .route-stop-n {
-  background: var(--accent);
-  color: var(--brand-on-blue);
-}
-
-.route-stop-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.route-deck-count {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .route-scene {
@@ -2542,9 +2493,20 @@ ul.overview-list {
   font-weight: 600;
 }
 
-.btn.route-next {
-  margin-top: 18px;
+.btn.route-practise {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
+  margin-top: 18px;
+}
+
+.route-practise-note {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 /* How it works: a vertical route, the stops joined by a dashed path. */
@@ -2825,15 +2787,6 @@ ul.overview-list {
   }
   .landing-final {
     padding: 40px 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .route-stop-name {
-    display: none;
-  }
-  .route-stops button {
-    justify-content: center;
   }
 }
 

@@ -48,6 +48,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Landing example deck (2026-10-07, branch `feature/list-only`)**: the hero's `RoutePreview` no longer
+  steps through stops: it shows the deck's name and card count, the **first stop only** (drawing, scene,
+  "stands for"), and a **Practise this deck** button that saves the deck to the library (if it isn't
+  already) and opens the guided practice (`/decks/largest-countries/practice`); a line under it says so.
 - **D leaves a review for the deck (2026-10-07, branch `feature/d-to-deck`)**: pressing **D** during a
   spaced-repetition review (or on its "done" screen) goes to the deck's page, like Exit; listed under
   Keyboard shortcuts and in Exit's tooltip. Not while typing (typed-answer cards) or with modifier keys.
