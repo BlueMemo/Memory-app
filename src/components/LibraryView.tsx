@@ -218,6 +218,9 @@ function DeckCollection(props: {
           return (
             <li key={deck.id}>
               <button type="button" className="btn accent deck-list-study" onClick={() => void study(deck)}>
+                <svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true">
+                  <path d="M1 1.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L1.9.7A.6.6 0 0 0 1 1.2z" fill="currentColor" />
+                </svg>
                 {dict.deck.studyNow}
               </button>
               <Link href={`/decks/${deck.id}`} className="deck-list-title">

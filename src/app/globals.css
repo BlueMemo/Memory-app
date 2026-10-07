@@ -2756,10 +2756,36 @@ ul.overview-list {
 
 /* The Study now column has a fixed width (7.5rem in the grid), so every row and the header line up. */
 .btn.deck-list-study {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   width: 100%;
-  padding: 7px 10px;
-  font-size: 0.85rem;
+  padding: 9px 10px;
+  font-size: 0.88rem;
   white-space: nowrap;
+  /* A raised look (shadow + a lighter top edge) so it reads as a button, lifting a little on hover. */
+  box-shadow:
+    0 2px 0 color-mix(in srgb, var(--accent) 55%, #000),
+    0 4px 14px color-mix(in srgb, var(--accent) 30%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.btn.deck-list-study:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow:
+    0 3px 0 color-mix(in srgb, var(--accent) 55%, #000),
+    0 6px 18px color-mix(in srgb, var(--accent) 40%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn.deck-list-study:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--accent) 55%, #000),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 /* Narrow screens (phones, small windows): Study now and the deck name share the first line, the numbers
