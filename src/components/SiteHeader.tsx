@@ -50,7 +50,7 @@ function BookIcon() {
   );
 }
 
-/** Cards waiting today across the learner's library decks (with spaced repetition on), like a notification count. */
+/** Cards waiting today across the learner's library decks (spaced repetition on): learning + due, not new ones. */
 function DueBadge({ label }: { label: string }) {
   const decks = useEditableDecks();
   const srs = useSrsData();
@@ -59,7 +59,7 @@ function DueBadge({ label }: { label: string }) {
   for (const deck of decks) {
     if (!isDeckEnabled(srs, deck.id)) continue;
     const c = deckCounts({ deckId: deck.id, cardIds: deck.cards.map((card) => card.id), cards: srs.cards, logs: srs.logs, settings: srs.settings, now });
-    due += c.learning + c.review + c.new;
+    due += c.learning + c.review;
   }
   if (due === 0) return null;
   const text = fill(label, { n: due });

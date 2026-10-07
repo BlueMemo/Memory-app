@@ -57,13 +57,16 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   their labels sit once in a header row (coloured like the numbers). Only the numbers in the rows: the card
   count in ink (white), non-zero counts in their colour, zeros a quiet grey, "–" for decks without spaced
   repetition (look modelled on a screenshot from the team; boxes and per-row labels were tried and
-  dropped). On phones the title takes its own line above the numbers. Tiles and rows views are unchanged.
+  dropped). Each row starts with a **Study now** button (fixed 7.5rem column so the header still lines up),
+  which switches spaced repetition on if needed and opens the review — list view only. Up to 720px wide the
+  button and title share the first line and the numbers sit below. The tiles view is unchanged. **The
+  "rows" view was removed (2026-10-07)**: only tiles and list remain; a saved "rows" falls back to tiles.
 - **Due dates and the Library tab (2026-10-07, branch `feature/due-dates`)**: the Due/"Next" column in
-  Browse (deck page) and the card browser shows a **date** (same format as Created) instead of "in 3 days";
-  cards due later today show "today 14:35", due ones "now" (`lib/dueDate.ts`, tested). The card browser's
+  Browse (deck page) and the card browser shows **only a date** (same format as Created) instead of "in 3
+  days" — also for cards due later today or already due (no time, no "now"; `lib/dueDate.ts`, tested). The card browser's
   detail panel still shows both. The **Library tab** no longer has the outlined box: it's brand-blue text
-  with a book icon and, when there are any, a badge with today's cards across the library's decks with
-  spaced repetition on (`DueBadge` in `SiteHeader.tsx`; 99+ caps it).
+  with a book icon and, when there are any, a badge with today's **learning + due** cards (not new ones)
+  across the library's decks with spaced repetition on (`DueBadge` in `SiteHeader.tsx`; 99+ caps it).
 - **Celebrations (2026-10-07, branch `feature/celebrations`)**: finishing a deck's due cards in a review
   session shows one of **15 celebrations**, drawn by odds (`lib/celebrations.ts`, weights in percent, sum
   100, tested): common 20/15/10/10/10/8 %, uncommon 7/5/5/4/3 %, rare 1.5/1 %, epic 0.4 %, and one

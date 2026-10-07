@@ -4,7 +4,7 @@ export const en = {
   siteName: "BlueMemo",
   languageName: "English",
   header: {
-    dueToday: "{n} cards to study today",
+    dueToday: "{n} cards learning or due today",
     skills: "Memory Tree",
     language: "Language",
     navLabel: "Main",
@@ -501,7 +501,6 @@ export const en = {
     saveErrorLocal: "Your browser storage is full, so reviews from this visit may not be kept.",
     inTime: "in {time}",
     now: "now",
-    today: "today",
     units: { m: "m", h: "h", d: "d", mo: "mo", y: "y" },
   },
   settings: {
@@ -521,7 +520,6 @@ export const en = {
     libraryTitle: "Library",
     libraryView: "Show decks as",
     viewGrid: "Tiles",
-    viewRows: "Rows",
     viewList: "List",
     librarySort: "Sort by",
     sortRecent: "Recently added",
