@@ -9,7 +9,6 @@ import { fill } from "@/lib/practice";
 import { cardKey, State } from "@/lib/srs/core";
 import { isDeckEnabled, useSrsData } from "@/lib/srs/store";
 import type { Deck } from "@/lib/types";
-import { useNow } from "@/lib/useNow";
 import { CardSortSelect } from "./CardSortSelect";
 
 /** "Browse" on a deck's page: its cards in the card browser's table format, searchable and sortable. */
@@ -17,7 +16,6 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
   const { t: dict, lang } = useI18n();
   const t = dict.browser;
   const srs = useSrsData();
-  const now = useNow();
   const [sort, setSort] = useState<CardSort>("created-asc");
   const [query, setQuery] = useState("");
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -44,7 +42,7 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
 
   const due = (r: (typeof rows)[number]) => {
     if (!r.stored || r.stored.state === State.New) return t.stateNew;
-    return formatDue(new Date(r.stored.due), now, lang, dict.srs);
+    return formatDue(new Date(r.stored.due), lang);
   };
 
   const created = (iso?: string) => (iso ? new Date(iso).toLocaleDateString(dateLocale(lang)) : "–");

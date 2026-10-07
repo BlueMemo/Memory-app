@@ -501,7 +501,6 @@ export const en = {
     saveErrorLocal: "Your browser storage is full, so reviews from this visit may not be kept.",
     inTime: "in {time}",
     now: "now",
-    today: "today",
     units: { m: "m", h: "h", d: "d", mo: "mo", y: "y" },
   },
   settings: {

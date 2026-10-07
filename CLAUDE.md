@@ -54,8 +54,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   numbers). Decks without spaced repetition show "–". On phones the title takes its own line above the
   numbers. Tiles and rows views are unchanged.
 - **Due dates and the Library tab (2026-10-07, branch `feature/due-dates`)**: the Due/"Next" column in
-  Browse (deck page) and the card browser shows a **date** (same format as Created) instead of "in 3 days";
-  cards due later today show "today 14:35", due ones "now" (`lib/dueDate.ts`, tested). The card browser's
+  Browse (deck page) and the card browser shows **only a date** (same format as Created) instead of "in 3
+  days" — also for cards due later today or already due (no time, no "now"; `lib/dueDate.ts`, tested). The card browser's
   detail panel still shows both. The **Library tab** no longer has the outlined box: it's brand-blue text
   with a book icon and, when there are any, a badge with today's cards across the library's decks with
   spaced repetition on (`DueBadge` in `SiteHeader.tsx`; 99+ caps it).
