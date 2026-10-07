@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useEffectEvent, useMemo, useRef, useReducer, useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useReducer, useState, type MouseEvent, type ReactNode } from "react";
 import { useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
 import {
@@ -47,6 +47,27 @@ export function memoryHint(deck: Deck, card: Card, test: boolean, t: StudyT): Re
 /** Keys typed into a form field (e.g. the card dialog) must not trigger study shortcuts. */
 export const isTyping = (e: KeyboardEvent) =>
   e.target instanceof HTMLElement && (e.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName));
+
+const focusedIn = (e: KeyboardEvent, selector: string) => e.target instanceof Element && !!e.target.closest(selector);
+
+/**
+ * Space or Enter on a focused button or link is that control's own click, so study shortcuts leave it alone.
+ * Only keyboard users end up there: the study screen's buttons don't take focus when clicked (`noMouseFocus`).
+ */
+export const onFocusedControl = (e: KeyboardEvent) => focusedIn(e, "a, button, summary, select");
+
+/**
+ * Tab shows the hint only while no control has focus: once a keyboard user is moving between buttons, Tab
+ * moves on as usual (otherwise the bar's buttons could never be reached).
+ */
+export const tabForHint = (e: KeyboardEvent) =>
+  e.key === "Tab" && !e.shiftKey && !focusedIn(e, "a, button, summary, select, [tabindex]:not([tabindex='-1'])");
+
+/**
+ * On a container of study buttons: a mouse click doesn't move focus onto the button, so the next Space still
+ * shows the answer instead of pressing that button again (the click itself works as usual).
+ */
+const noMouseFocus = (e: MouseEvent) => e.preventDefault();
 
 /** The guided technique practice for one deck (the landing page's demo): walkthrough → revision → test. */
 export function PracticeSession({ deck }: { deck: Deck }) {
@@ -96,6 +117,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (e.ctrlKey || e.metaKey || e.altKey || dialog || isTyping(e)) return;
     const go = e.key === " " || e.key === "Enter";
+    if (go && onFocusedControl(e)) return;
     // Handle the keys ourselves so a focused button isn't activated a second time.
     const handle = (fn: () => void) => {
       e.preventDefault();
@@ -112,7 +134,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
       const key = e.key.toLowerCase();
       if (key === "a") return handle(() => setDialog("add"));
       if (key === "e") return handle(() => setDialog("edit"));
-      if (e.key === "Tab" && !e.shiftKey && !state.flipped) return handle(() => setHintFor(cardKey));
+      if (tabForHint(e) && !state.flipped && hintFor !== cardKey) return handle(() => setHintFor(cardKey));
     }
     switch (state.phase) {
       case "intro":
@@ -207,7 +229,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
         {state.phase === "walkthrough" && (
           <>
             <WalkStep key={state.step} deck={deck} step={steps[state.step]} t={t} />
-            <div className="controls">
+            <div className="controls" onMouseDown={noMouseFocus}>
               <button className="btn nav" onClick={() => dispatch({ type: "prev" })} disabled={state.step === 0}>
                 {t.previous}
               </button>
@@ -324,7 +346,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
       </div>
 
       {inFlow && !showInstructions && (
-        <button className="help-btn" onClick={() => setShowInstructions(true)}>
+        <button className="help-btn" onMouseDown={noMouseFocus} onClick={() => setShowInstructions(true)}>
           {t.instructionsButton}
         </button>
       )}
@@ -646,8 +668,17 @@ export function StudyBar(props: {
   onToggleShortcuts: () => void;
 }) {
   const { t } = props;
+  // The focused button often disappears (Show answer turns into the grade buttons, grading moves on to the
+  // next card). Keep keyboard focus in the bar then, instead of letting it fall back to the top of the page;
+  // Tab goes on to the new buttons from there, and the study shortcuts keep working.
+  const mainRef = useRef<HTMLDivElement>(null);
+  const focusWasHere = useRef(false);
+  useEffect(() => {
+    const active = document.activeElement;
+    if (focusWasHere.current && (!active || active === document.body)) mainRef.current?.focus();
+  });
   return (
-    <div className="study-bar">
+    <div className="study-bar" onMouseDown={noMouseFocus}>
       {props.shortcutsOpen && (
         <div className="shortcuts-panel" role="dialog" aria-label={t.shortcuts}>
           <dl>
@@ -664,7 +695,16 @@ export function StudyBar(props: {
       )}
       <div className="study-bar-inner">
         <div className="study-bar-left">{props.left}</div>
-        <div className="study-bar-main">{props.children}</div>
+        <div
+          className="study-bar-main"
+          ref={mainRef}
+          tabIndex={-1}
+          onFocus={() => (focusWasHere.current = true)}
+          // Leaving for another element ends it; a removed button blurs with nowhere to go (relatedTarget null).
+          onBlur={(e) => (focusWasHere.current = e.relatedTarget === null || e.currentTarget.contains(e.relatedTarget))}
+        >
+          {props.children}
+        </div>
         <div className="study-bar-tools">
           <button type="button" disabled={!props.canUndo} onClick={props.onUndo}>
             {t.undo}

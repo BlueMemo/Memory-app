@@ -32,7 +32,7 @@ import type { Deck } from "@/lib/types";
 import { answerModeOf, checkTypedAnswer, suggestedGrade } from "@/lib/typedAnswer";
 import { CardDialog } from "./CardForm";
 import { Celebration } from "./Celebration";
-import { FlipCard, isTyping, StudyBar } from "./PracticeSession";
+import { FlipCard, isTyping, onFocusedControl, StudyBar, tabForHint } from "./PracticeSession";
 import { TypedAnswerInput, TypedVerdict } from "./TypedAnswer";
 
 const BUTTONS: { grade: Grade; key: "again" | "hard" | "good" | "easy" }[] = [
@@ -137,7 +137,8 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     if (e.key === "-" || e.key === "−") return handle(bury);
     if (key === "a") return handle(() => setDialog("add"));
     if (key === "e") return handle(() => setDialog("edit"));
-    if (e.key === "Tab" && !e.shiftKey && !flipped) return handle(() => setHintFor(hintKey));
+    if (tabForHint(e) && !flipped && hintFor !== hintKey) return handle(() => setHintFor(hintKey));
+    if ((e.key === " " || e.key === "Enter") && onFocusedControl(e)) return;
     if (!flipped) {
       // On a typed card the typing box handles Enter itself.
       if (!typedMode && (e.key === " " || e.key === "Enter")) handle(() => setFlipped(true));
