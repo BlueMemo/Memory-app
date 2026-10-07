@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useI18n } from "@/i18n";
 import { useSavedDecks } from "@/lib/editableDecks";
+import { useOnboarding } from "@/lib/onboarding";
+import { fill } from "@/lib/practice";
 import { cardKey, deckCounts } from "@/lib/srs/core";
 import { isDeckEnabled, setDeckSrsEnabled, useSrsData, type SrsData } from "@/lib/srs/store";
 import { usePreferences, type LibrarySort } from "@/lib/preferences";
@@ -18,8 +20,20 @@ import { PageTabs } from "./PageTabs";
 import { isTyping } from "./PracticeSession";
 import { ImportGuestDataPrompt } from "./ImportGuestDataPrompt";
 
+/** The Library's welcome line, tied to what the learner said they'll study (the introduction), if anything. */
+function useWelcome(fallback: string): string {
+  const intro = useI18n().t.onboarding;
+  const { goal, language } = useOnboarding();
+  if (goal === "languages") {
+    const word = language ? intro.languageWords[language] : "";
+    return word ? fill(intro.welcome.languages, { language: word }) : intro.welcome.languagesAny;
+  }
+  return goal ? intro.welcome[goal] : fallback;
+}
+
 export function LibraryView() {
   const t = useI18n().t.library;
+  const welcome = useWelcome(t.lead);
   const { user } = useUser();
   const savedDecks = useSavedDecks();
   const userDecks = useUserDecks();
@@ -69,7 +83,7 @@ export function LibraryView() {
       <section className="page-intro library-head">
         <div>
           <h1>{t.title}</h1>
-          <p>{t.lead}</p>
+          <p>{welcome}</p>
         </div>
         {userDecks.length + savedDecks.length > 0 && (
           <div className="library-quick">

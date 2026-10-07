@@ -3,6 +3,8 @@ import { AccountView } from "@/components/AccountView";
 
 export const metadata: Metadata = { title: "Account" };
 
-export default function AccountPage() {
-  return <AccountView />;
+// ?signup=1 (from the introduction) opens on "Create account".
+export default async function AccountPage({ searchParams }: PageProps<"/account">) {
+  const { signup } = await searchParams;
+  return <AccountView startWithSignUp={signup === "1"} />;
 }

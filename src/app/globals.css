@@ -4391,6 +4391,8 @@ main [id] {
   align-items: center;
   text-align: center;
   min-height: 330px;
+}
+
 /* ---------- Type-the-answer cards ---------- */
 
 .typed-input {
@@ -4489,4 +4491,211 @@ main [id] {
 
 .typed-tag {
   margin-left: 8px;
+}
+
+/* ---------- Introduction (/start, components/OnboardingView.tsx) ---------- */
+
+.page.onboarding {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 140px);
+  padding-top: 20px;
+}
+
+.onboarding-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.onboarding-back {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.onboarding-back:hover {
+  color: var(--ink);
+  background: var(--line);
+}
+
+.onboarding-progress {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.onboarding-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.4s var(--ease-out);
+}
+
+.onboarding-step {
+  flex: 1;
+  animation: rise 0.45s var(--ease-out) both;
+}
+
+.onboarding-question h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  line-height: 1.15;
+}
+
+.onboarding-lead {
+  margin: 0 0 24px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.onboarding-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.onboarding-options.compact {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* Big tappable answer cards; the chosen one is outlined in brand blue. */
+.onboarding-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-surface);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    transform 0.15s var(--ease-out);
+}
+
+.onboarding-option:hover {
+  border-color: var(--muted);
+}
+
+.onboarding-option:active {
+  transform: scale(0.99);
+}
+
+.onboarding-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.onboarding-option svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.onboarding-badge {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--line);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.onboarding-option.selected .onboarding-badge {
+  background: var(--accent);
+  color: var(--brand-on-blue);
+}
+
+.onboarding-option-text {
+  display: grid;
+  gap: 2px;
+}
+
+.onboarding-option-text strong {
+  font-size: 1.02rem;
+}
+
+.onboarding-option-text span {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.btn.onboarding-continue {
+  display: block;
+  width: 100%;
+  margin-top: 28px;
+  padding: 15px 18px;
+  font-size: 1.02rem;
+}
+
+.btn.onboarding-continue:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.onboarding-tutorial {
+  text-align: center;
+}
+
+.onboarding-account-actions {
+  display: grid;
+  gap: 4px;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.onboarding-account-actions .btn.onboarding-continue {
+  margin-top: 10px;
+}
+
+/* After the tutorial's results, when it was started from the introduction. */
+.onboarding-next {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 8px 0 20px;
+  padding: 18px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-surface);
+  background: var(--accent-soft);
+}
+
+.onboarding-next p {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Discover's "Recommended for you" and the deck page's exam date prompt. */
+.recommended {
+  margin-bottom: 32px;
+}
+
+.recommended-lead {
+  margin: -4px 0 14px;
+  font-size: 0.9rem;
+}
+
+.notice.exam-prompt {
+  max-width: none;
+  margin-top: 16px;
 }

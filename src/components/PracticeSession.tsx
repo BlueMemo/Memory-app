@@ -16,6 +16,7 @@ import {
   type SessionState,
   type Step,
 } from "@/lib/practice";
+import { TUTORIAL_DECK_ID, useOnboarding } from "@/lib/onboarding";
 import { recordPracticeResult } from "@/lib/practiceResults";
 import { renderBold, renderCapsHighlight } from "@/lib/rich-text";
 import type { Card, Deck } from "@/lib/types";
@@ -743,6 +744,10 @@ function Results(props: {
   const known = knownCount(state);
   const pct = known / state.queue.length;
   const title = pct === 1 ? t.perfect : pct >= 0.7 ? t.great : pct >= 0.4 ? t.good : t.keepGoing;
+  // Started from the introduction (/start): the results lead on to its last step, the account offer.
+  const onboarding = useOnboarding();
+  const inIntroduction = onboarding.tutorialPending && deck.id === TUTORIAL_DECK_ID;
+  const intro = useI18n().t.onboarding;
 
   return (
     <section className="summary">
@@ -751,6 +756,14 @@ function Results(props: {
       </p>
       <h2>{title}</h2>
       <p>{pct === 1 ? t.perfectText : t.missedText}</p>
+      {inIntroduction && (
+        <div className="onboarding-next">
+          <p>{intro.afterTutorial}</p>
+          <Link href="/start?step=account" className="btn accent">
+            {intro.afterTutorialButton}
+          </Link>
+        </div>
+      )}
       <ul className="result-list">
         {state.queue.map((id) => {
           const card = cardById(id);

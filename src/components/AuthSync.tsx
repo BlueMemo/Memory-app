@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useI18n } from "@/i18n";
 import { setActiveUserForLibrary } from "@/lib/library";
+import { setActiveUserForOnboarding } from "@/lib/onboarding";
 import { setActiveUserForDeckOverrides } from "@/lib/deckOverrides";
 import { setActiveUserForPracticeResults } from "@/lib/practiceResults";
 import { maybeAutoOptimize } from "@/lib/srs/optimize";
@@ -23,6 +24,7 @@ export function AuthSync() {
     setActiveUserForPracticeResults(id);
     setActiveUserForSrs(id);
     setActiveUserForDeckOverrides(id);
+    void setActiveUserForOnboarding(id);
   }, [user, loading]);
 
   // Background FSRS re-optimisation once the signed-in user's SRS data has loaded (it rate-limits itself).

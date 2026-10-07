@@ -7,6 +7,8 @@ import { ArrowRight, ArrowsClockwise, Brain, Footprints, Lightbulb, MapPin, MapT
 import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
 import { useSavedDeckIds } from "@/lib/library";
+import { useOnboarding } from "@/lib/onboarding";
+import { useUser } from "@/lib/supabase/useUser";
 import { useUserDecks } from "@/lib/userDecks";
 import { DeckTile } from "./DeckTile";
 import { RoutePreview } from "./RoutePreview";
@@ -27,9 +29,31 @@ const techniqueIcons: Record<string, Icon> = { "memory-palace": MapTrifold, "act
  * The hero's buttons: "Study now" goes to the Library when the learner has decks there, otherwise to Discover;
  * newcomers also get the demo as the second choice.
  */
+/**
+ * The hero's buttons. New visitors (no decks, introduction not done) get "Get started", which opens the
+ * introduction (/start), plus "I already have an account"; everyone else gets "Study now".
+ */
 function HeroActions() {
-  const t = useI18n().t.landing;
+  const { t: dict } = useI18n();
+  const t = dict.landing;
   const decks = useSavedDeckIds().length + useUserDecks().length;
+  const onboarding = useOnboarding();
+  const { user } = useUser();
+  if (decks === 0 && !onboarding.completedAt) {
+    return (
+      <div className="hero-actions">
+        <Link href="/start" className="btn accent hero-primary">
+          {dict.onboarding.getStarted}
+          <ArrowRight size={18} weight="bold" aria-hidden="true" />
+        </Link>
+        {!user && (
+          <Link href="/account" className="btn nav">
+            {dict.onboarding.haveAccount}
+          </Link>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="hero-actions">
       <Link href={decks > 0 ? "/library" : "/discover"} className="btn accent hero-primary">

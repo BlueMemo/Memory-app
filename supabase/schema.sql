@@ -159,6 +159,10 @@ create table if not exists public.user_settings (
   updated_at timestamptz not null default now()
 );
 
+-- The introduction's answers (what the learner mainly studies, which language, where they study), used to
+-- recommend decks and tailor the site; see src/lib/onboarding.ts. Null until answered.
+alter table public.user_settings add column if not exists goals jsonb;
+
 alter table public.user_settings enable row level security;
 
 drop policy if exists "Users manage their own settings" on public.user_settings;
@@ -541,6 +545,25 @@ drop trigger if exists problem_reports_cleanup on public.problem_reports;
 create trigger problem_reports_cleanup
   after insert on public.problem_reports
   for each statement execute function public.delete_old_problem_reports();
+
+-- "Where did you hear about BlueMemo?" from the introduction, counted anonymously for the team: one row per
+-- answer, with the channel and the learner's main goal but nothing that identifies them (no user id). Anyone
+-- may add a row; nobody can read them through the site (read them in Supabase's table editor).
+create table if not exists public.signup_sources (
+  id uuid primary key default gen_random_uuid(),
+  source text not null check (source in ('tiktok', 'instagram', 'youtube', 'friend', 'school', 'search', 'other')),
+  goal text check (goal in ('languages', 'school', 'exams', 'general')),
+  created_at timestamptz not null default now()
+);
+
+alter table public.signup_sources enable row level security;
+
+drop policy if exists "Anyone can count where they heard about us" on public.signup_sources;
+create policy "Anyone can count where they heard about us"
+  on public.signup_sources
+  for insert
+  to anon, authenticated
+  with check (true);
 
 -- Lets a signed-in learner delete their own account. Deleting the auth user removes everything they own,
 -- because every table above references auth.users with "on delete cascade" (decks, saves, review history,
