@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import type { Icon } from "@phosphor-icons/react";
 import { ArrowRight, ArrowsClockwise, Brain, Footprints, Lightbulb, MapPin, MapTrifold } from "@phosphor-icons/react/ssr";
 import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
 import { useSavedDeckIds } from "@/lib/library";
+import { useOnboarding } from "@/lib/onboarding";
+import { useUser } from "@/lib/supabase/useUser";
+import { useMounted } from "@/lib/useMounted";
 import { useUserDecks } from "@/lib/userDecks";
 import { DeckTile } from "./DeckTile";
 import { RoutePreview } from "./RoutePreview";
@@ -27,9 +31,31 @@ const techniqueIcons: Record<string, Icon> = { "memory-palace": MapTrifold, "act
  * The hero's buttons: "Study now" goes to the Library when the learner has decks there, otherwise to Discover;
  * newcomers also get the demo as the second choice.
  */
+/**
+ * The hero's buttons. New visitors (no decks, introduction not done) get "Get started", which opens the
+ * introduction (/start), plus "I already have an account"; everyone else gets "Study now".
+ */
 function HeroActions() {
-  const t = useI18n().t.landing;
+  const { t: dict } = useI18n();
+  const t = dict.landing;
   const decks = useSavedDeckIds().length + useUserDecks().length;
+  const onboarding = useOnboarding();
+  const { user } = useUser();
+  if (decks === 0 && !onboarding.completedAt) {
+    return (
+      <div className="hero-actions">
+        <Link href="/start" className="btn accent hero-primary">
+          {dict.onboarding.getStarted}
+          <ArrowRight size={18} weight="bold" aria-hidden="true" />
+        </Link>
+        {!user && (
+          <Link href="/account" className="btn nav">
+            {dict.onboarding.haveAccount}
+          </Link>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="hero-actions">
       <Link href={decks > 0 ? "/library" : "/discover"} className="btn accent hero-primary">
@@ -45,8 +71,28 @@ function HeroActions() {
   );
 }
 
+/**
+ * First visit: someone who isn't signed in, has no decks and hasn't been through the introduction is sent
+ * straight to it (/start): questions, the 10 countries tutorial, an account offer, then back here.
+ * Client-side, so link previews and search engines still see the home page.
+ */
+function useFirstVisitIntroduction() {
+  const router = useRouter();
+  const mounted = useMounted();
+  const { user, loading } = useUser();
+  const onboarding = useOnboarding();
+  const decks = useSavedDeckIds().length + useUserDecks().length;
+  const firstVisit = mounted && !loading && !user && decks === 0 && !onboarding.completedAt;
+  useEffect(() => {
+    if (firstVisit) router.replace("/start");
+  }, [firstVisit, router]);
+  return firstVisit;
+}
+
 export function LandingView() {
   const { landing: t, techniques } = useI18n().t;
+  // While being sent to the introduction, show nothing rather than a flash of the home page.
+  if (useFirstVisitIntroduction()) return <main className="page landing" />;
   return (
     <main className="page landing">
       {/* Text on the left, a working preview of a memory route on the right (stacked on phones). */}

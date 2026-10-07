@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useEffectEvent } from "react";
 import { useRouter } from "next/navigation";
 import { dictionaries, useI18n } from "@/i18n";
+import { useOnboarding, wantsExamDate } from "@/lib/onboarding";
 import { removeDeckOverride, useDeckOverrides } from "@/lib/deckOverrides";
 import { isSharedDeck } from "@/lib/editableDecks";
 import { useSavedDeckIds } from "@/lib/library";
@@ -32,6 +33,7 @@ export function DeckView({ deck }: { deck: Deck }) {
   const backHref = shared && !saved ? "/discover" : "/library";
   const backLabel = shared && !saved ? t.deck.back : t.deck.backToLibrary;
   const srs = useSrsData();
+  const { goal } = useOnboarding();
 
   const study = async () => {
     // Studying a deck is spaced repetition; switch it on the first time.
@@ -77,6 +79,13 @@ export function DeckView({ deck }: { deck: Deck }) {
       {deck.description && <p className="deck-description">{deck.description}</p>}
 
       <DeckOverview deck={deck} />
+      {/* School and exam learners (from the introduction) are asked for an exam date until the deck has one. */}
+      {editable && wantsExamDate(goal) && !srs.settings.deckOverrides[deck.id]?.examDate && (
+        <p className="notice exam-prompt">
+          {t.onboarding.examPrompt}{" "}
+          <Link href={`/library/settings?deck=${encodeURIComponent(deck.id)}`}>{t.onboarding.examPromptLink}</Link>
+        </p>
+      )}
 
       <div className="deck-actions">
         <button type="button" className="btn accent big-btn" onClick={() => void study()}>

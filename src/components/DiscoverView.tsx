@@ -5,6 +5,7 @@ import { ArrowRight } from "@phosphor-icons/react/ssr";
 import { useEffect, useState } from "react";
 import { officialDecks } from "@/decks";
 import { dictionaries, languages, useI18n } from "@/i18n";
+import { officialDeckFor, recommendationKeywords, useOnboarding, type Goals } from "@/lib/onboarding";
 import { fill } from "@/lib/practice";
 import { deckSearchText, matchesQuery, searchPublishedDecks, type PublishedSummary, type SearchFilters } from "@/lib/publishedDecks";
 import { Avatar } from "./Avatar";
@@ -38,6 +39,8 @@ export function DiscoverView() {
         <h1>{t.title}</h1>
         <p>{t.lead}</p>
       </section>
+
+      <Recommended />
 
       <div className="discover-search">
         <input
@@ -132,6 +135,60 @@ export function DiscoverView() {
       )}
     </main>
   );
+}
+
+/**
+ * "Recommended for you", from the introduction's answers (lib/onboarding.ts): the official deck that fits the
+ * goal, then the most copied community decks that mention the language being learned (or the exam). Nothing
+ * until the learner has answered.
+ */
+function Recommended() {
+  const { t: dict } = useI18n();
+  const t = dict.onboarding;
+  const goals = useOnboarding();
+  const community = useRecommendedCommunity(goals);
+  if (!goals.goal) return null;
+  const official = officialDecks.find((d) => d.id === officialDeckFor(goals.goal));
+  return (
+    <section className="recommended" aria-labelledby="recommended-title">
+      <h2 className="section-title" id="recommended-title">
+        {t.recommendedTitle}
+      </h2>
+      <p className="muted recommended-lead">{t.recommendedLead}</p>
+      <ul className="deck-grid">
+        {official && (
+          <li>
+            <DeckTile deck={official} />
+          </li>
+        )}
+        {community.map((p) => (
+          <li key={p.id}>
+            <PublishedTile published={p} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** Up to five popular community decks matching the goal's keywords (each keyword searched, results merged). */
+function useRecommendedCommunity(goals: Goals) {
+  const [decks, setDecks] = useState<PublishedSummary[]>([]);
+  const keywords = recommendationKeywords(goals).join(",");
+  useEffect(() => {
+    let live = true;
+    const words = keywords ? keywords.split(",") : [];
+    void Promise.all(words.map((query) => searchPublishedDecks({ query, language: "all", type: "community", sort: "popular" }, 5))).then((results) => {
+      if (!live) return;
+      const seen = new Set<string>();
+      const merged = results.flatMap((r) => r ?? []).filter((p) => !p.official && !seen.has(p.id) && seen.add(p.id));
+      setDecks(merged.sort((a, b) => b.copies - a.copies).slice(0, 5));
+    });
+    return () => {
+      live = false;
+    };
+  }, [keywords]);
+  return keywords ? decks : [];
 }
 
 /** Searches published decks as the filters change, waiting for a pause in typing. */

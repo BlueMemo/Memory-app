@@ -9,7 +9,7 @@ import { ReportProblemButton } from "./ReportProblem";
 export function SiteFooter() {
   const t = useI18n().t.legal;
   const path = usePathname();
-  if (/^\/decks\/[^/]+\/(review|practice)/.test(path)) return null;
+  if (/^\/decks\/[^/]+\/(review|practice)/.test(path) || path === "/start") return null;
   return (
     <footer className="site-footer">
       <nav>

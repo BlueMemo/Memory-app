@@ -22,7 +22,7 @@ function mapAuthError(message: string, t: T): string {
   return t.errorGeneric;
 }
 
-export function AccountView() {
+export function AccountView({ startWithSignUp = false }: { startWithSignUp?: boolean }) {
   const t = useI18n().t.account;
   const { user, username, avatarUrl, loading, configured } = useUser();
 
@@ -49,15 +49,15 @@ export function AccountView() {
         <h1>{t.title}</h1>
         <p>{t.lead}</p>
       </section>
-      <SignedOut t={t} />
+      <SignedOut t={t} startWithSignUp={startWithSignUp} />
     </main>
   );
 }
 
-function SignedOut({ t }: { t: T }) {
+function SignedOut({ t, startWithSignUp }: { t: T; startWithSignUp: boolean }) {
   const { lang, t: dict } = useI18n();
   const legal = dict.legal;
-  const [mode, setMode] = useState<Mode>("signIn");
+  const [mode, setMode] = useState<Mode>(startWithSignUp ? "signUp" : "signIn");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

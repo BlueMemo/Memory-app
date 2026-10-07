@@ -48,6 +48,30 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Introduction / onboarding (2026-10-07, branch `feature/onboarding`)** — Duolingo-style, decided with the
+  team via questionnaires. **Order: questions → tutorial → account offer → home page.** A first visit to
+  `/` (not signed in, no decks, introduction not done) is sent straight to `/start` (client-side, so link
+  previews still see the home page); the home page's button for such visitors is **Get started** (plus
+  "I already have an account"). Every question screen has **Skip** (marks it done, goes home); the first
+  has no back arrow. One question per screen with a
+  progress bar (`OnboardingView.tsx`): what you mainly study (languages / school subjects / exams like
+  Högskoleprovet / general knowledge & fun) → which language, or where you study (high school /
+  university / other) → where you heard about BlueMemo (TikTok, Instagram, YouTube, friend/family,
+  school/teacher, search, other) → the **10 countries tutorial** (the full guided practice; its results
+  show "Continue" when started from here) → **account step** (create a free account → `/account?signup=1`,
+  or "Maybe later" → the home page). Not done: a daily-goal question (not wanted).
+  - Answers ("goals") live in `lib/onboarding.ts`: browser (`onboarding.v1`) and, signed in,
+    `user_settings.goals` (the account's copy wins; `setActiveUserForOnboarding` in AuthSync); editable
+    under Settings → "Your goals". "Where did you hear about us" is **anonymous**: one row in
+    `signup_sources` (channel + goal, no user id), once per browser — read it in Supabase.
+  - Effects: **Recommended for you** at the top of Discover (the fitting official deck + up to 5 popular
+    community decks whose text mentions the language, in English or Swedish, or "högskoleprov"); an
+    **exam date prompt** on decks for school/exam learners until the deck has one; the Library's
+    **welcome line** follows the goal ("Ready for today's Spanish words?").
+  - **Needs `schema.sql` re-run** (adds `user_settings.goals` and `signup_sources`); until then the goals
+    stay in the browser only and the source isn't counted — nothing breaks. Privacy policy updated.
+  - Also fixed: a `}` lost in the celebrations/typed-answer merge had nested all type-the-answer CSS
+    inside `.celebration-stage`, so typed-answer cards were unstyled on the live site.
 - **Landing example deck (2026-10-07, branch `feature/list-only`)**: the hero's `RoutePreview` no longer
   steps through stops: it shows the deck's name and card count, the **first stop only** (drawing, scene,
   "stands for"), and a **Practise this deck** button that saves the deck to the library (if it isn't
