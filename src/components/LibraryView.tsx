@@ -213,11 +213,11 @@ function DeckCollection(props: {
               <Link href={`/decks/${deck.id}`} className="deck-list-title">
                 {deck.title}
               </Link>
-              <span className="deck-list-num">{deck.cards.length}</span>
-              {/* Learning, due, new: only the numbers, in columns under the header's labels. */}
+              <span className="deck-list-num deck-list-cards">{deck.cards.length}</span>
+              {/* Learning, due, new: only the numbers, right-aligned under the header's labels; zeros stay grey. */}
               {(["learning", "review", "new"] as const).map((key) => (
-                <span key={key} className={`deck-list-num deck-list-count srs-count-${key}`}>
-                  {due ? <strong>{due[key]}</strong> : "–"}
+                <span key={key} className={`deck-list-num deck-list-count srs-count-${key}${!due || due[key] === 0 ? " zero" : ""}`}>
+                  {due ? due[key] : "–"}
                 </span>
               ))}
               {props.action(deck)}

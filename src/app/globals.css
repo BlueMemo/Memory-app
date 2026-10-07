@@ -2685,13 +2685,13 @@ ul.overview-list {
   overflow: hidden;
 }
 
-/* Title, card count, then learning / due / new as number boxes in fixed columns, so they line up in
-   straight vertical lines; their labels sit once in the header row. */
+/* Title, card count, then learning / due / new as plain numbers in fixed, well-spaced columns, so they
+   line up in straight vertical lines; their labels sit once in the header row. */
 .deck-list li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) repeat(4, 64px) 48px;
   align-items: center;
-  gap: 8px 10px;
+  gap: 8px 24px;
   padding: 12px 16px;
   background: var(--card);
 }
@@ -2710,7 +2710,7 @@ ul.overview-list {
   font-weight: 600;
   line-height: 1.2;
   color: var(--muted);
-  text-align: center;
+  text-align: right;
 }
 
 .deck-list-head .srs-count-learning {
@@ -2726,35 +2726,39 @@ ul.overview-list {
 }
 
 .deck-list-num {
-  padding: 5px 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  text-align: center;
+  text-align: right;
+  font-size: 1.05rem;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 
-.deck-list-count strong {
-  font-size: 1.05rem;
+.deck-list-cards {
+  color: var(--ink);
 }
 
-.deck-list-count.srs-count-learning strong {
+.deck-list-count.srs-count-learning {
   color: var(--srs-again);
 }
 
-.deck-list-count.srs-count-review strong {
+.deck-list-count.srs-count-review {
   color: var(--srs-good);
 }
 
-.deck-list-count.srs-count-new strong {
+.deck-list-count.srs-count-new {
   color: var(--srs-easy);
+}
+
+/* Nothing waiting: a quiet grey zero, so the numbers that matter stand out. */
+.deck-list-count.zero {
+  color: var(--muted);
+  opacity: 0.55;
 }
 
 /* Phones: the deck name gets its own line, and the numbers share the row below. */
 @media (max-width: 560px) {
   .deck-list li {
     grid-template-columns: repeat(4, minmax(0, 1fr)) 44px;
-    gap: 8px;
+    gap: 6px 14px;
     padding: 10px 12px;
   }
 

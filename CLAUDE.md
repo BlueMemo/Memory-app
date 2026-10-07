@@ -48,11 +48,16 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
-- **Aligned counts in the Library's list view (2026-10-07, branch `feature/aligned-counts`)**: each row is a
-  grid (title, then card count, learning, due and new as small number boxes in fixed-width columns, then
-  the gear), so the numbers line up vertically; their labels sit once in a header row (coloured like the
-  numbers). Decks without spaced repetition show "–". On phones the title takes its own line above the
-  numbers. Tiles and rows views are unchanged.
+- **Space starts studying on the deck page (2026-10-07, branch `feature/space-to-study`)**: Space does what
+  "Study now" does (switches spaced repetition on if needed, opens the review); the button shows the key.
+  Ignored while typing, with modifier keys, on key repeat, and when a button or link has focus (Space is
+  that control's own click there). One `useEffectEvent` handler in `DeckView` handles Space and A.
+- **Aligned counts in the Library's list view (2026-10-07)**: each row is a grid (title, card count,
+  learning, due, new, gear) with fixed-width columns, so the numbers line up vertically and right-aligned;
+  their labels sit once in a header row (coloured like the numbers). Only the numbers in the rows: the card
+  count in ink (white), non-zero counts in their colour, zeros a quiet grey, "–" for decks without spaced
+  repetition (look modelled on a screenshot from the team; boxes and per-row labels were tried and
+  dropped). On phones the title takes its own line above the numbers. Tiles and rows views are unchanged.
 - **Due dates and the Library tab (2026-10-07, branch `feature/due-dates`)**: the Due/"Next" column in
   Browse (deck page) and the card browser shows **only a date** (same format as Created) instead of "in 3
   days" — also for cards due later today or already due (no time, no "now"; `lib/dueDate.ts`, tested). The card browser's
