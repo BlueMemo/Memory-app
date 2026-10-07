@@ -9,7 +9,6 @@ import { PREFERENCES_KEY as KEY, PREFERENCES_KEY_V1 } from "./themeScript";
 
 export type Theme = "dark" | "light" | "system";
 export type TextSize = "normal" | "large" | "larger";
-export type LibraryView = "grid" | "list";
 export type LibrarySort = "recent" | "practised" | "due" | "name";
 export type LibraryGroup = "split" | "all" | "kind";
 
@@ -17,7 +16,6 @@ export interface Preferences {
   theme: Theme;
   textSize: TextSize;
   reduceMotion: boolean;
-  libraryView: LibraryView;
   librarySort: LibrarySort;
   libraryGroup: LibraryGroup;
 }
@@ -26,7 +24,6 @@ export const DEFAULT_PREFERENCES: Preferences = {
   theme: "dark",
   textSize: "normal",
   reduceMotion: false,
-  libraryView: "grid",
   librarySort: "recent",
   // One continuous list of saved and created decks, unless the learner chooses to group them.
   libraryGroup: "all",
@@ -47,8 +44,6 @@ export function parsePreferences(raw: string | null): Preferences {
     theme: pick(v.theme, ["dark", "light", "system"], d.theme),
     textSize: pick(v.textSize, ["normal", "large", "larger"], d.textSize),
     reduceMotion: typeof v.reduceMotion === "boolean" ? v.reduceMotion : d.reduceMotion,
-    // "rows" was a third view until 2026-10-07; anyone who had it gets the default (tiles).
-    libraryView: pick(v.libraryView, ["grid", "list"], d.libraryView),
     librarySort: pick(v.librarySort, ["recent", "practised", "due", "name"], d.librarySort),
     libraryGroup: pick(v.libraryGroup, ["split", "all", "kind"], d.libraryGroup),
   };

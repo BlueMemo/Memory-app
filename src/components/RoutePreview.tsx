@@ -1,64 +1,65 @@
 "use client";
 
-import { ArrowRight } from "@phosphor-icons/react/ssr";
+import { ArrowRight, Play } from "@phosphor-icons/react/ssr";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { officialDecks } from "@/decks";
 import { useI18n } from "@/i18n";
+import { toggleSavedDeck, useSavedDeckIds } from "@/lib/library";
 import { fill } from "@/lib/practice";
 import { renderCapsHighlight } from "@/lib/rich-text";
 import { Drawing } from "./Illustration";
 
-// The landing demo's own route: its first three stops, straight from the deck (deck text is never translated).
+// The landing demo's own route, straight from the deck (deck text is never translated).
 const deck = officialDecks.find((d) => d.id === "largest-countries")!;
-const STOPS = deck.cards.slice(0, 3);
+const FIRST = deck.cards[0];
 
 /**
- * The landing hero's visual: a real, clickable preview of a memory route rather than a stock photo or a
- * mock screenshot. Each stop shows the deck's drawing (or, where the deck has none, asks you to picture it),
- * the scene and what it stands for.
+ * The landing hero's visual: the first stop of a real memory route (its drawing, the scene and what it
+ * stands for), and below it a button to practise the whole deck, which also saves it to the library.
  */
 export function RoutePreview() {
   const { t } = useI18n();
-  const [index, setIndex] = useState(0);
-  const card = STOPS[index];
-  const last = index === STOPS.length - 1;
+  const router = useRouter();
+  const saved = useSavedDeckIds().includes(deck.id);
+  const [busy, setBusy] = useState(false);
+
+  const practise = async () => {
+    setBusy(true);
+    if (!saved) await toggleSavedDeck(deck.id);
+    router.push(`/decks/${deck.id}/practice`);
+  };
 
   return (
     <figure className="route-preview" aria-label={t.landing.previewLabel}>
-      <ol className="route-stops">
-        {STOPS.map((stop, i) => (
-          <li key={stop.id}>
-            <button type="button" aria-current={i === index ? "step" : undefined} onClick={() => setIndex(i)}>
-              <span className="route-stop-n">{i + 1}</span>
-              <span className="route-stop-name">{stop.object ?? stop.answer}</span>
-            </button>
-          </li>
-        ))}
-      </ol>
-
-      {/* Keyed by stop, so each one plays its entrance; announced politely to screen readers. */}
-      <div className="route-scene" key={card.id} aria-live="polite">
-        <p className="route-scene-stop">{fill(t.practice.stop, { n: index + 1 })}</p>
+      <p className="route-deck">
+        <span>{deck.title}</span>
+        <span className="route-deck-count">{fill(t.decks.cardCount, { n: deck.cards.length })}</span>
+      </p>
+      <div className="route-scene">
+        <p className="route-scene-stop">{fill(t.practice.stop, { n: 1 })}</p>
         <div className="route-plate">
-          {card.illustration ? (
-            <Drawing name={card.illustration.name} className="route-drawing" />
+          {FIRST.illustration ? (
+            <Drawing name={FIRST.illustration.name} className="route-drawing" />
           ) : (
             <p className="route-imagine">
-              <strong>{card.object}</strong>
+              <strong>{FIRST.object}</strong>
               <span>{t.landing.previewImagine}</span>
             </p>
           )}
         </div>
-        {card.visualization && <p className="route-visual">{renderCapsHighlight(card.visualization)}</p>}
+        {FIRST.visualization && <p className="route-visual">{renderCapsHighlight(FIRST.visualization)}</p>}
         <p className="route-answer">
           <ArrowRight size={18} weight="bold" aria-hidden="true" />
-          {fill(t.practice.standsFor, { answer: card.answer })}
+          {fill(t.practice.standsFor, { answer: FIRST.answer })}
         </p>
       </div>
 
-      <button type="button" className="btn nav route-next" onClick={() => setIndex(last ? 0 : index + 1)}>
-        {last ? t.landing.previewAgain : t.landing.previewNext}
+      <button type="button" className="btn accent route-practise" disabled={busy} onClick={() => void practise()}>
+        <Play size={16} weight="fill" aria-hidden="true" />
+        {t.landing.practiseDeck}
       </button>
+      <p className="route-practise-note">{saved ? t.landing.practiseInLibrary : t.landing.practiseAdds}</p>
     </figure>
   );
 }

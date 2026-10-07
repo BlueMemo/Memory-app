@@ -48,6 +48,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Landing example deck (2026-10-07, branch `feature/list-only`)**: the hero's `RoutePreview` no longer
+  steps through stops: it shows the deck's name and card count, the **first stop only** (drawing, scene,
+  "stands for"), and a **Practise this deck** button that saves the deck to the library (if it isn't
+  already) and opens the guided practice (`/decks/largest-countries/practice`); a line under it says so.
 - **D leaves a review for the deck (2026-10-07, branch `feature/d-to-deck`)**: pressing **D** during a
   spaced-repetition review (or on its "done" screen) goes to the deck's page, like Exit; listed under
   Keyboard shortcuts and in Exit's tooltip. Not while typing (typed-answer cards) or with modifier keys.
@@ -101,8 +105,10 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   repetition (look modelled on a screenshot from the team; boxes and per-row labels were tried and
   dropped). Each row starts with a **Study now** button (fixed 7.5rem column so the header still lines up),
   which switches spaced repetition on if needed and opens the review — list view only. Up to 720px wide the
-  button and title share the first line and the numbers sit below. The tiles view is unchanged. **The
-  "rows" view was removed (2026-10-07)**: only tiles and list remain; a saved "rows" falls back to tiles.
+  button and title share the first line and the numbers sit below. **The Library is a list only
+  (2026-10-07)**: the "rows" and then the "tiles" views were removed, along with the view switch, the
+  `libraryView` preference, `CreateDeckTile` and the library's "Edited" tag (the deck page still shows it).
+  `DeckTile` is still used by Discover.
 - **Due dates and the Library tab (2026-10-07, branch `feature/due-dates`)**: the Due/"Next" column in
   Browse (deck page) and the card browser shows **only a date** (same format as Created) instead of "in 3
   days" — also for cards due later today or already due (no time, no "now"; `lib/dueDate.ts`, tested). The card browser's
