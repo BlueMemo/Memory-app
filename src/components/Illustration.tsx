@@ -4,23 +4,31 @@ import type { IllustrationName } from "@/lib/types";
 const INK = "#2b2118";
 const line = { stroke: INK, strokeWidth: 2.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
-function Shoe({ x = 0 }: { x?: number }) {
+/** A flat sneaker in side view, heel left, toe right, standing on y = 0 of its own group. */
+function Shoe({ x, y }: { x: number; y: number }) {
   return (
-    <g transform={`translate(${x} 0)`}>
-      <path d="M8 80 L8 62 Q8 56 14 56 L28 56 Q32 64 42 65 L52 68 Q58 70 58 76 L58 80 Z" fill="#3b6ea5" {...line} />
-      <path d="M34 62 l4 4 M40 64 l3 3.5" stroke="#f2efe8" strokeWidth={1.8} strokeLinecap="round" />
-      <rect x={6} y={77} width={54} height={6} rx={3} fill="#f2efe8" stroke={INK} strokeWidth={2.2} />
-      <ellipse cx={18} cy={57} rx={8} ry={2.6} fill="#1c3552" stroke={INK} strokeWidth={1.5} />
+    <g transform={`translate(${x} ${y})`}>
+      <path d="M2 -4 L2 -13 Q2 -17 7 -17 L13 -17 Q16 -12 22 -11 L31 -9.5 Q38 -8 38.5 -4 Z" fill="#464c57" />
+      <path d="M29 -9.8 Q38 -8.2 38.5 -4 L29 -4 Z" fill="#5a616d" />
+      <path d="M2 -9 L2 -13 Q2 -17 6 -17 L6 -9 Z" fill="#5a616d" />
+      <path d="M16 -12.5 l2.3 -1.5 M19.5 -11.6 l2.3 -1.5 M23 -10.8 l2.3 -1.5" stroke="#e5e7eb" strokeWidth={1.2} strokeLinecap="round" />
+      <ellipse cx={9.5} cy={-16.6} rx={5} ry={1.5} fill="#23272e" />
+      <rect x={0} y={-5} width={39} height={5} rx={2} fill="#f2f3f5" />
     </g>
   );
 }
 
-/** `tilt` fans a chopstick out (degrees, around its lower end) so a pair reads as a pair. */
-function Chopstick({ x = 0, tilt = 0 }: { x?: number; tilt?: number }) {
+/**
+ * A flat chopstick standing in a shoe's opening at (`x`, `y`), fanned out by `tilt` degrees: pale wood,
+ * a red top and a gold band, like Chinese chopsticks.
+ */
+function Chopstick({ x, y, tilt }: { x: number; y: number; tilt: number }) {
   return (
-    <g transform={`translate(${x} 0) rotate(${tilt} 18 57)`} stroke={INK} strokeWidth={1.8} strokeLinejoin="round">
-      <polygon points="16.5,57 19.5,57 33,11 27,10" fill="#f0cf8f" />
-      <polygon points="25.3,19 31,19.5 33,11 27,10" fill="#d23c2f" />
+    <g transform={`rotate(${tilt} ${x} ${y})`}>
+      <polygon points={`${x - 1},${y} ${x + 1},${y} ${x + 2},${y - 48} ${x - 2},${y - 48}`} fill="#e8c48a" />
+      <polygon points={`${x},${y} ${x + 1},${y} ${x + 2},${y - 48} ${x},${y - 48}`} fill="#d1a76a" />
+      <rect x={x - 2.1} y={y - 48} width={4.2} height={11} rx={0.8} fill="#d23c2f" />
+      <rect x={x - 2} y={y - 37.5} width={4} height={1.6} fill="#e9b949" />
     </g>
   );
 }
@@ -82,16 +90,29 @@ const drawings: Record<IllustrationName, { label: string; svg: ReactNode }> = {
       </>
     ),
   },
+  // Flat, no outlines (2026-10-07), like the tikka masala: through the blue front door, a pair of sneakers on
+  // the shoe tray, with both chopsticks standing fanned in the same shoe (the team's choice).
   "shoes-chopsticks": {
-    label: "A pair of shoes, with a pair of chopsticks standing in one of them",
+    label: "Inside the front door: a pair of shoes on a shoe tray, with a pair of chopsticks standing in one of them",
     svg: (
       <>
-        <line x1={2} y1={84} x2={118} y2={84} {...line} />
-        <Shoe />
-        <Shoe x={58} />
-        <Chopstick x={-2} tilt={-4} />
-        <Chopstick x={4} tilt={9} />
-        <path d="M44 26 l5 -4 M48 36 h7 M44 46 l5 4" stroke="#e4572e" strokeWidth={2.5} strokeLinecap="round" />
+        {/* Floor, and the open blue front door at the left edge. */}
+        <rect x={4} y={79} width={112} height={9} rx={2} fill="#dde1e7" />
+        <rect x={4} y={6} width={13} height={74} rx={1.5} fill="#c9ced6" />
+        <rect x={4} y={8} width={9} height={72} fill="#2f5fbf" />
+        <rect x={5.5} y={13} width={6} height={24} rx={1} fill="#3b6dd1" />
+        <rect x={5.5} y={42} width={6} height={33} rx={1} fill="#3b6dd1" />
+        {/* Shoe tray. */}
+        <rect x={24} y={75} width={88} height={5} rx={2} fill="#9aa2ad" />
+        <rect x={24} y={79} width={88} height={2} rx={1} fill="#7d8591" />
+        {/* The chopsticks go into the left shoe's opening, so they are drawn between the shoe and its front lip. */}
+        <Shoe x={28} y={75} />
+        <Chopstick x={37.5} y={58.6} tilt={-9} />
+        <Chopstick x={37.5} y={58.6} tilt={8} />
+        <path d="M32.5 58.4 Q37.5 60.1 42.5 58.4 L42.5 59.8 Q37.5 61.5 32.5 59.8 Z" fill="#464c57" />
+        <Shoe x={70} y={75} />
+        {/* A little "look at that" spark beside them. */}
+        <path d="M52 14 l4 -3 M54 22 h5 M52 30 l4 3" stroke="#e9b949" strokeWidth={2} strokeLinecap="round" />
       </>
     ),
   },
