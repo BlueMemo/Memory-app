@@ -48,6 +48,9 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **D leaves a review for the deck (2026-10-07, branch `feature/d-to-deck`)**: pressing **D** during a
+  spaced-repetition review (or on its "done" screen) goes to the deck's page, like Exit; listed under
+  Keyboard shortcuts and in Exit's tooltip. Not while typing (typed-answer cards) or with modifier keys.
 - **Design audit (2026-10-07, branch `feature/design-audit`)**: the main screens were checked against Vercel's
   Web Interface Guidelines (the `web-design-guidelines` skill, installed on Erik's computer only) and the
   clear findings fixed. **Forms**: sign-in/up fields have `autocomplete`/`name` (password managers work),

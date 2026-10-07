@@ -215,6 +215,7 @@ export const sv: Dict = {
     youTyped: "Du skrev",
     showAnswer: "Visa svaret",
     shortcuts: "Kortkommandon",
+    toDeck: "Tillbaka till kortleken",
     firstLetter: "Börjar på ”{letter}”",
   },
   share: {

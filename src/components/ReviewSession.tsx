@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useState } from "react";
 import { useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
@@ -121,6 +122,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     setTyped("");
   };
   const hintKey = current ? `${current.cardId}-${stored?.reps ?? 0}` : null;
+  const router = useRouter();
 
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     // A held-down key repeats; after checking a typed answer, Enter must not also grade the card.
@@ -131,6 +133,8 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     };
     const key = e.key.toLowerCase();
     if (key === "u" && history.length) return handle(undo);
+    // D leaves the review for the deck's page (also from the "done" screen).
+    if (key === "d") return handle(() => router.push(`/decks/${deck.id}`));
     if (!current) return;
     if (e.key === "?") return handle(() => setShortcutsOpen((o) => !o));
     if (e.key === "Escape" && shortcutsOpen) return handle(() => setShortcutsOpen(false));
@@ -157,7 +161,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
 
   const exit = (
     <div className="practice-top">
-      <Link href={`/decks/${deck.id}`} className="exit-btn">
+      <Link href={`/decks/${deck.id}`} className="exit-btn" title={`${dict.study.toDeck} (D)`}>
         {dict.practice.exit}
       </Link>
       <span className="session-label">{deck.title}</span>
@@ -226,6 +230,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
                 ["−", dict.study.bury],
                 ["A", dict.study.addCard],
                 ["E", dict.study.editCard],
+                ["D", dict.study.toDeck],
                 ["?", dict.study.shortcuts],
               ]}
             >
