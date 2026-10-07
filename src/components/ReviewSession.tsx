@@ -32,7 +32,7 @@ import type { Deck } from "@/lib/types";
 import { answerModeOf, checkTypedAnswer, suggestedGrade } from "@/lib/typedAnswer";
 import { CardDialog } from "./CardForm";
 import { Celebration } from "./Celebration";
-import { FlipCard, isTyping, StudyBar } from "./PracticeSession";
+import { FlipCard, isTyping, onFocusedControl, StudyBar, tabForHint } from "./PracticeSession";
 import { TypedAnswerInput, TypedVerdict } from "./TypedAnswer";
 
 const BUTTONS: { grade: Grade; key: "again" | "hard" | "good" | "easy" }[] = [
@@ -137,7 +137,8 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     if (e.key === "-" || e.key === "−") return handle(bury);
     if (key === "a") return handle(() => setDialog("add"));
     if (key === "e") return handle(() => setDialog("edit"));
-    if (e.key === "Tab" && !e.shiftKey && !flipped) return handle(() => setHintFor(hintKey));
+    if (tabForHint(e) && !flipped && hintFor !== hintKey) return handle(() => setHintFor(hintKey));
+    if ((e.key === " " || e.key === "Enter") && onFocusedControl(e)) return;
     if (!flipped) {
       // On a typed card the typing box handles Enter itself.
       if (!typedMode && (e.key === " " || e.key === "Enter")) handle(() => setFlipped(true));
@@ -163,11 +164,11 @@ export function ReviewSession({ deck }: { deck: Deck }) {
     </div>
   );
 
-  if (status === "loading") return <div className="practice">{exit}</div>;
+  if (status === "loading") return <main className="practice">{exit}</main>;
 
   if (!isDeckEnabled(data, deck.id)) {
     return (
-      <div className="practice">
+      <main className="practice">
         {exit}
         <section className="summary">
           <h2>{t.notEnabledTitle}</h2>
@@ -178,15 +179,15 @@ export function ReviewSession({ deck }: { deck: Deck }) {
             </button>
           </div>
         </section>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="practice">
+    <main className="practice">
       {exit}
       <div className="practice-main">
-        {status === "error" && <p className="notice error">{signedIn ? t.saveErrorRemote : t.saveErrorLocal}</p>}
+        {status === "error" && <p className="notice error" role="alert">{signedIn ? t.saveErrorRemote : t.saveErrorLocal}</p>}
 
         {card && current ? (
           <>
@@ -272,7 +273,7 @@ export function ReviewSession({ deck }: { deck: Deck }) {
           </section>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 

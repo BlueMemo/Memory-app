@@ -54,7 +54,7 @@ export function AdminReportsView() {
         <p>{t.adminLead}</p>
       </section>
       {data === null && <p className="muted">…</p>}
-      {data === "error" && <p className="form-error">{t.adminLoadError}</p>}
+      {data === "error" && <p className="form-error" role="alert">{t.adminLoadError}</p>}
       {data && data !== "error" && (
         <>
           <h2 className="section-title">{fill(t.openReports, { n: data.reports.length })}</h2>
@@ -151,7 +151,7 @@ function ReportCard({ report, onDone }: { report: Report; onDone: () => void }) 
           </button>
         </div>
       )}
-      {failed && <p className="form-error">{t.actionError}</p>}
+      {failed && <p className="form-error" role="alert">{t.actionError}</p>}
     </li>
   );
 }
@@ -184,7 +184,7 @@ function HiddenCard({ deck, onDone }: { deck: HiddenDeck; onDone: () => void }) 
           {t.restore}
         </button>
       </div>
-      {failed && <p className="form-error">{t.actionError}</p>}
+      {failed && <p className="form-error" role="alert">{t.actionError}</p>}
     </li>
   );
 }
@@ -226,7 +226,7 @@ function ProblemsSection() {
         </label>
       </div>
       {problems === null && <p className="muted">…</p>}
-      {problems === "error" && <p className="form-error">{t.problemsLoadError}</p>}
+      {problems === "error" && <p className="form-error" role="alert">{t.problemsLoadError}</p>}
       {problems && problems !== "error" && (problems.length === 0 ? (
         <p className="muted">{t.noProblems}</p>
       ) : (
@@ -281,7 +281,7 @@ function ProblemCard({ problem, onDone }: { problem: ProblemReport; onDone: () =
           {t.problemsDelete}
         </button>
       </div>
-      {failed && <p className="form-error">{t.actionError}</p>}
+      {failed && <p className="form-error" role="alert">{t.actionError}</p>}
     </li>
   );
 }

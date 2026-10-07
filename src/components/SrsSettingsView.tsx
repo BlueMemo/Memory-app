@@ -558,7 +558,7 @@ function AnswerStyleSection({ deck }: { deck: Deck }) {
           {t.setAllType}
         </button>
       </div>
-      {failed && <p className="form-error">{t.saveError}</p>}
+      {failed && <p className="form-error" role="alert">{t.saveError}</p>}
     </section>
   );
 }

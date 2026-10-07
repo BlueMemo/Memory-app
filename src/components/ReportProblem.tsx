@@ -45,7 +45,7 @@ function ReportProblemDialog({ detail, onClose }: { detail?: string; onClose: ()
         <h2>{t.title}</h2>
         {status === "sent" ? (
           <>
-            <p className="form-success">{t.thanks}</p>
+            <p className="form-success" role="status">{t.thanks}</p>
             <div className="controls left">
               <button type="button" className="btn accent" onClick={onClose}>
                 {t.close}
@@ -71,7 +71,7 @@ function ReportProblemDialog({ detail, onClose }: { detail?: string; onClose: ()
             <p className="consent-note">
               {t.included} {t.reply} <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
             </p>
-            {status === "error" && <p className="form-error">{t.error}</p>}
+            {status === "error" && <p className="form-error" role="alert">{t.error}</p>}
             <div className="controls left">
               <button type="submit" className="btn accent" disabled={status === "sending" || !message.trim()}>
                 {status === "sending" ? t.sending : t.send}

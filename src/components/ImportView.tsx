@@ -176,7 +176,7 @@ export function ImportView() {
           </label>
           <span className="muted">{fileName ? fill(t.fileLoaded, { name: fileName }) : t.dropHint}</span>
         </div>
-        {fileError && <p className="notice error">{fileError}</p>}
+        {fileError && <p className="notice error" role="alert">{fileError}</p>}
         <p className="hint">{t.exportTip}</p>
       </div>
 
@@ -223,7 +223,7 @@ export function ImportView() {
               </label>
             )}
           </div>
-          {roleError && <p className="notice error">{roleError}</p>}
+          {roleError && <p className="notice error" role="alert">{roleError}</p>}
           {kind === "ordered" && roles.includes("prompt") && <p className="hint">{t.promptIgnoredForRoute}</p>}
           {readyIndexes.length < included.filter(Boolean).length && <p className="notice">{fill(t.tooMany, { max: MAX_CARDS })}</p>}
 

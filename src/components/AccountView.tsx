@@ -128,14 +128,18 @@ function SignedOut({ t }: { t: T }) {
             <label htmlFor="acct-email">{t.emailLabel}</label>
             <input
               id="acct-email"
+              name="email"
               type="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t.emailPlaceholder}
             />
           </div>
-          {status && <p className={status.type === "error" ? "form-error" : "form-success"}>{status.message}</p>}
+          {status && <p className={status.type === "error" ? "form-error" : "form-success"} role={status.type === "error" ? "alert" : "status"}>{status.message}</p>}
           <div className="controls left">
             <button type="submit" className="btn accent" disabled={submitting}>
               {t.sendResetLink}
@@ -151,11 +155,11 @@ function SignedOut({ t }: { t: T }) {
 
   return (
     <div>
-      <div className="lang-switch" role="group">
-        <button className={mode === "signIn" ? "active" : ""} onClick={() => switchMode("signIn")}>
+      <div className="lang-switch" role="group" aria-label={t.title}>
+        <button type="button" className={mode === "signIn" ? "active" : ""} aria-pressed={mode === "signIn"} onClick={() => switchMode("signIn")}>
           {t.signInTab}
         </button>
-        <button className={mode === "signUp" ? "active" : ""} onClick={() => switchMode("signUp")}>
+        <button type="button" className={mode === "signUp" ? "active" : ""} aria-pressed={mode === "signUp"} onClick={() => switchMode("signUp")}>
           {t.signUpTab}
         </button>
       </div>
@@ -165,7 +169,11 @@ function SignedOut({ t }: { t: T }) {
           <label htmlFor="acct-email">{t.emailLabel}</label>
           <input
             id="acct-email"
+            name="email"
             type="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -177,7 +185,11 @@ function SignedOut({ t }: { t: T }) {
             <label htmlFor="acct-username">{t.usernameLabel}</label>
             <input
               id="acct-username"
+              name="username"
               type="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -189,7 +201,9 @@ function SignedOut({ t }: { t: T }) {
           <label htmlFor="acct-password">{t.passwordLabel}</label>
           <input
             id="acct-password"
+            name="password"
             type="password"
+            autoComplete={mode === "signUp" ? "new-password" : "current-password"}
             required
             minLength={6}
             value={password}
@@ -198,7 +212,7 @@ function SignedOut({ t }: { t: T }) {
           />
         </div>
         {mode === "signUp" && <p className="consent-note">{renderLegal(legal.signUpConsent)}</p>}
-        {status && <p className={status.type === "error" ? "form-error" : "form-success"}>{status.message}</p>}
+        {status && <p className={status.type === "error" ? "form-error" : "form-success"} role={status.type === "error" ? "alert" : "status"}>{status.message}</p>}
         <div className="controls left">
           <button type="submit" className="btn accent" disabled={submitting}>
             {mode === "signIn" ? t.signInButton : t.signUpButton}

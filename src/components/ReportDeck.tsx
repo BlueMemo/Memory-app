@@ -72,7 +72,7 @@ export function ReportDeck({ publishedId, authorId }: { publishedId: string; aut
         <label htmlFor="report-note">{t.noteLabel}</label>
         <textarea id="report-note" rows={3} maxLength={MAX_NOTE_LENGTH} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t.notePlaceholder} />
       </div>
-      {result === "error" && <p className="form-error">{t.error}</p>}
+      {result === "error" && <p className="form-error" role="alert">{t.error}</p>}
       <div className="controls left">
         <button type="submit" className="btn accent small" disabled={sending || !reason}>
           {sending ? t.sending : t.send}

@@ -48,6 +48,23 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Design audit (2026-10-07, branch `feature/design-audit`)**: the main screens were checked against Vercel's
+  Web Interface Guidelines (the `web-design-guidelines` skill, installed on Erik's computer only) and the
+  clear findings fixed. **Forms**: sign-in/up fields have `autocomplete`/`name` (password managers work),
+  no auto-capitalise on email/username; error and success messages are announced (`role="alert"` /
+  `"status"`). **Library list view**: each number carries its label as invisible text for screen readers.
+  **Skip to content** link (first Tab on every page, `SiteHeader`); the study screens are `<main>` now.
+  **Study screens** (`ReviewSession`, `PracticeSession`): Tab shows the hint once per card and only while
+  no control has focus (it used to make the bar's buttons unreachable); Space/Enter on a keyboard-focused
+  button is that button's click; when the focused button disappears, focus stays in the bar
+  (`StudyBar`); the bar's buttons don't take focus on mouse clicks (`noMouseFocus`), so Space keeps showing
+  the answer after clicking e.g. Bury. **Colours**: `--srs-*` are now button fills (Good/Hard darker, so
+  white text reads ≥ 4.5:1) and `--srs-*-text` are for coloured text (lighter in dark mode); the guided
+  practice's green/amber buttons have dark text. Deliberately left: single-key shortcuts without an off
+  switch, Discover filters not in the URL, `theme-color` stays dark in the light theme, the guidelines' Title
+  Case rule (doesn't suit Swedish or our style). Next optional step from the plan: try the
+  `design-taste-frontend` skill on the landing page only, with calm settings, and show the suggestions
+  before changing anything.
 - **Space starts studying on the deck page (2026-10-07, branch `feature/space-to-study`)**: Space does what
   "Study now" does (switches spaced repetition on if needed, opens the review); the button shows the key.
   Ignored while typing, with modifier keys, on key repeat, and when a button or link has focus (Space is

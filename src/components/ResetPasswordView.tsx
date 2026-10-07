@@ -36,7 +36,7 @@ export function ResetPasswordView() {
         <section className="page-intro">
           <h1>{t.newPasswordTitle}</h1>
         </section>
-        <p className="form-success">{t.passwordUpdated}</p>
+        <p className="form-success" role="status">{t.passwordUpdated}</p>
         <Link href="/library" className="tile-open">
           {t.goToLibrary}
         </Link>
@@ -64,7 +64,7 @@ export function ResetPasswordView() {
           <label htmlFor="new-password">{t.newPasswordLabel}</label>
           <input id="new-password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
-        {error && <p className="form-error">{error}</p>}
+        {error && <p className="form-error" role="alert">{error}</p>}
         <div className="controls left">
           <button type="submit" className="btn accent" disabled={submitting}>
             {t.updatePassword}

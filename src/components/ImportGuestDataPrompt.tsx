@@ -21,7 +21,7 @@ export function ImportGuestDataPrompt() {
 
   if (loading || !user || dismissed || deckCount === 0) return null;
 
-  if (imported) return <p className="form-success">{t.imported}</p>;
+  if (imported) return <p className="form-success" role="status">{t.imported}</p>;
 
   return (
     <div className="empty-state">

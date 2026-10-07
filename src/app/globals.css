@@ -14,11 +14,16 @@
   --good: #4cc185;
   --again: #e5a94a;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  /* Review answer and count colours: again red, hard grey, good green, easy/new blue. */
+  /* Review answer and count colours: again red, hard orange, good green, easy/new blue. The plain tokens fill
+     buttons (white text on them reads at 4.5:1 or more); the -text ones are for coloured text on the page. */
   --srs-again: #dc2626;
-  --srs-hard: #d9700a;
-  --srs-good: #16a34a;
+  --srs-hard: #b45309;
+  --srs-good: #15803d;
   --srs-easy: #2563eb;
+  --srs-again-text: #f87171;
+  --srs-hard-text: #d9700a;
+  --srs-good-text: #16a34a;
+  --srs-easy-text: #60a5fa;
   color-scheme: dark;
 }
 
@@ -35,9 +40,13 @@
   --again: #c0842a;
   --shadow: 0 10px 30px rgba(20, 22, 28, 0.12);
   --srs-again: #dc2626;
-  --srs-hard: #d9700a;
-  --srs-good: #16a34a;
+  --srs-hard: #b45309;
+  --srs-good: #15803d;
   --srs-easy: #2563eb;
+  --srs-again-text: #b91c1c;
+  --srs-hard-text: #b45309;
+  --srs-good-text: #15803d;
+  --srs-easy-text: #1d4ed8;
   color-scheme: light;
 }
 
@@ -91,6 +100,31 @@ h2:not(.section-title) {
 }
 
 /* ---------- Site header ---------- */
+
+/* "Skip to content": off screen until a keyboard user tabs to it, the first stop on every page. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 100;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--brand-blue);
+  color: var(--brand-on-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus-visible {
+  top: 8px;
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* The page area the skip link focuses is not a control, so it gets no focus ring of its own. */
+main[tabindex="-1"]:focus {
+  outline: none;
+}
 
 .site-header {
   display: grid;
@@ -496,10 +530,12 @@ a.btn {
 
 .btn.again {
   background: var(--again);
+  color: #121417;
 }
 
 .btn.good {
   background: var(--good);
+  color: #121417;
 }
 
 .btn.nav {
@@ -1377,15 +1413,15 @@ ul.overview-list {
 }
 
 .srs-count-new strong {
-  color: var(--srs-easy);
+  color: var(--srs-easy-text);
 }
 
 .srs-count-learning strong {
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .srs-count-review strong {
-  color: var(--srs-good);
+  color: var(--srs-good-text);
 }
 
 .srs-count.active strong {
@@ -1430,7 +1466,7 @@ ul.overview-list {
 
 .notice.error {
   border-color: var(--srs-again);
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .srs-panel {
@@ -1559,7 +1595,7 @@ ul.overview-list {
 }
 
 .field .hint.error {
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .saved-note {
@@ -1814,7 +1850,7 @@ ul.overview-list {
 .problem.blocking {
   background: transparent;
   border: 1px solid var(--srs-again);
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .cell-input {
@@ -2014,7 +2050,7 @@ ul.overview-list {
 }
 
 .link-button.danger {
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .link-button.inline {
@@ -2709,15 +2745,15 @@ ul.overview-list {
 }
 
 .deck-list-head .srs-count-learning {
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .deck-list-head .srs-count-review {
-  color: var(--srs-good);
+  color: var(--srs-good-text);
 }
 
 .deck-list-head .srs-count-new {
-  color: var(--srs-easy);
+  color: var(--srs-easy-text);
 }
 
 .deck-list-num {
@@ -2732,15 +2768,15 @@ ul.overview-list {
 }
 
 .deck-list-count.srs-count-learning {
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .deck-list-count.srs-count-review {
-  color: var(--srs-good);
+  color: var(--srs-good-text);
 }
 
 .deck-list-count.srs-count-new {
-  color: var(--srs-easy);
+  color: var(--srs-easy-text);
 }
 
 /* Nothing waiting: a quiet grey zero, so the numbers that matter stand out. */
@@ -3185,6 +3221,17 @@ main [id] {
   gap: 8px;
 }
 
+/* Holds keyboard focus when the focused button disappears (see StudyBar); a quiet ring shows where it is. */
+.study-bar-main:focus {
+  outline: none;
+}
+
+.study-bar-main:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 14px;
+}
+
 .study-bar-main .btn {
   min-width: 0;
   padding: 10px 18px;
@@ -3524,15 +3571,15 @@ main [id] {
 }
 
 .stat-tile.srs-count-learning .stat-value {
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .stat-tile.srs-count-review .stat-value {
-  color: var(--srs-good);
+  color: var(--srs-good-text);
 }
 
 .stat-tile.srs-count-new .stat-value {
-  color: var(--srs-easy);
+  color: var(--srs-easy-text);
 }
 
 /* More room between "Study now" and Browse on a deck's page. */
@@ -4121,16 +4168,16 @@ main [id] {
 }
 
 .typed-verdict.correct strong {
-  color: var(--srs-good);
+  color: var(--srs-good-text);
 }
 
 .typed-verdict.almost strong {
-  color: var(--srs-hard);
+  color: var(--srs-hard-text);
 }
 
 .typed-verdict.wrong strong,
 .typed-verdict.empty strong {
-  color: var(--srs-again);
+  color: var(--srs-again-text);
 }
 
 .typed-text {
@@ -4142,7 +4189,7 @@ main [id] {
 }
 
 .typed-wrong {
-  color: var(--srs-again);
+  color: var(--srs-again-text);
   text-decoration: underline wavy;
   text-underline-offset: 3px;
 }

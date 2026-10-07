@@ -225,10 +225,15 @@ function DeckCollection(props: {
               <Link href={`/decks/${deck.id}`} className="deck-list-title">
                 {deck.title}
               </Link>
-              <span className="deck-list-num deck-list-cards">{deck.cards.length}</span>
-              {/* Learning, due, new: only the numbers, right-aligned under the header's labels; zeros stay grey. */}
+              <span className="deck-list-num deck-list-cards">
+                <span className="visually-hidden">{dict.library.colCards}: </span>
+                {deck.cards.length}
+              </span>
+              {/* Learning, due, new: only the numbers, right-aligned under the header's labels; zeros stay grey.
+                  The header row is hidden from screen readers, so each number carries its label invisibly. */}
               {(["learning", "review", "new"] as const).map((key) => (
                 <span key={key} className={`deck-list-num deck-list-count srs-count-${key}${!due || due[key] === 0 ? " zero" : ""}`}>
+                  <span className="visually-hidden">{dict.srs[`${key}Count`]}: </span>
                   {due ? due[key] : "–"}
                 </span>
               ))}
