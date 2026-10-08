@@ -4724,16 +4724,17 @@ main [id] {
   background: var(--line);
 }
 
-/* Welcome screen, "paper and ink": a light paper page in both themes (on purpose, like a book cover), one
-   big black serif line and a black button; the title rises in, the button follows. */
+/* Welcome screen, "paper and ink": one big serif line and one solid button. It follows the theme like the
+   questions after it: paper with black ink in light mode, the dark page with light ink in dark mode (the
+   button is always the ink colour on the page colour). The title rises in, the button follows. */
 .onboarding-welcome {
   position: relative;
   display: flex;
   align-items: center;
   min-height: 100vh;
   padding: 72px clamp(24px, 8vw, 96px);
-  background: #f4efe4;
-  color: #16181c;
+  background: var(--bg);
+  color: var(--ink);
 }
 
 .welcome-corner {
@@ -4745,25 +4746,20 @@ main [id] {
   gap: 6px;
 }
 
-.onboarding-welcome .onboarding-close {
-  color: #5d5a52;
-}
-
 .onboarding-welcome .onboarding-close:hover {
-  color: #16181c;
-  background: rgba(22, 24, 28, 0.08);
+  background: var(--line);
 }
 
 .welcome-signin {
   padding: 6px 10px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #5d5a52;
+  color: var(--muted);
   text-decoration: none;
 }
 
 .welcome-signin:hover {
-  color: #16181c;
+  color: var(--ink);
 }
 
 .welcome-card {
@@ -4783,7 +4779,7 @@ main [id] {
   font-size: clamp(3rem, 9vw, 6.5rem);
   line-height: 0.98;
   letter-spacing: -0.025em;
-  color: #16181c;
+  color: var(--ink);
   animation: rise 0.9s var(--ease-out) both;
 }
 
@@ -4794,8 +4790,8 @@ main [id] {
   padding: 16px 28px;
   border: none;
   border-radius: 10px;
-  background: #16181c;
-  color: #f4efe4;
+  background: var(--ink);
+  color: var(--bg);
   font: inherit;
   font-size: 1.1rem;
   font-weight: 600;
@@ -4809,7 +4805,8 @@ main [id] {
 }
 
 .welcome-start:hover {
-  background: #2a55c7;
+  background: var(--accent);
+  color: var(--brand-on-blue);
 }
 
 .welcome-start:hover svg {
@@ -4821,6 +4818,6 @@ main [id] {
 }
 
 .welcome-start:focus-visible {
-  outline: 3px solid #2a55c7;
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }

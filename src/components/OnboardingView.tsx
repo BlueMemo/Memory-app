@@ -22,7 +22,7 @@ import type { Icon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { useI18n } from "@/i18n";
+import { dictionaries, languages, useI18n } from "@/i18n";
 import { toggleSavedDeck, useSavedDeckIds } from "@/lib/library";
 import {
   GOALS,
@@ -170,6 +170,7 @@ export function OnboardingView({ finalStep, skipWelcome }: { finalStep: boolean;
         >
           <span style={{ width: `${((index + 1) / (steps.length + 1)) * 100}%` }} />
         </div>
+        <LanguageSwitch />
         <CloseButton />
       </div>
 
@@ -212,6 +213,20 @@ function Option(props: { icon?: Icon; badge?: string; title: string; text?: stri
   );
 }
 
+/** EN / SV, as in the site header (which is hidden during the introduction). */
+function LanguageSwitch() {
+  const { lang, t, setLang } = useI18n();
+  return (
+    <div className="lang-switch" role="group" aria-label={t.header.language}>
+      {languages.map((l) => (
+        <button key={l} type="button" className={l === lang ? "active" : ""} aria-pressed={l === lang} title={dictionaries[l].languageName} onClick={() => setLang(l)}>
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /** Leaves the introduction for the home page and marks it done, so the home page doesn't send you back. */
 function CloseButton() {
   const t = useI18n().t.onboarding;
@@ -229,8 +244,9 @@ function CloseButton() {
 }
 
 /**
- * The first screen of the introduction, in "paper and ink" (chosen by the team): a light paper page with
- * one big serif line and one black button, nothing else apart from a quiet sign-in link and the close ✕.
+ * The first screen of the introduction, in "paper and ink" (chosen by the team): one big serif line and one
+ * solid button, nothing else apart from a quiet sign-in link and the close ✕. Follows the theme (paper in
+ * light mode, dark in dark mode). No autofocus: it drew a focus ring around the button on arrival.
  */
 function WelcomeStep({ onStart }: { onStart: () => void }) {
   const t = useI18n().t.onboarding;
@@ -238,6 +254,7 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
   return (
     <main className="onboarding-welcome">
       <div className="welcome-corner">
+        <LanguageSwitch />
         {!user && (
           <Link href="/account" className="welcome-signin">
             {t.signIn}
@@ -247,7 +264,7 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
       </div>
       <div className="welcome-card">
         <h1 className="welcome-title">{t.welcomeTitle}</h1>
-        <button type="button" className="welcome-start" onClick={onStart} autoFocus>
+        <button type="button" className="welcome-start" onClick={onStart}>
           {t.getStarted}
           <ArrowRight size={20} weight="bold" aria-hidden="true" />
         </button>
@@ -270,6 +287,7 @@ function AccountStep() {
         <div className="onboarding-progress" aria-hidden="true">
           <span style={{ width: "100%" }} />
         </div>
+        <LanguageSwitch />
         <CloseButton />
       </div>
       <section className="onboarding-question onboarding-tutorial">

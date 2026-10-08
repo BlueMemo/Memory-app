@@ -59,8 +59,9 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   `/` (not signed in, no decks, introduction not done) is sent straight to `/start` (client-side, so link
   previews still see the home page); the home page's button for such visitors is **Get started** (plus
   "I already have an account", → `/start?begin=1`). `/start` opens on a **welcome screen** in "paper and ink"
-  (picked by the team from four sketches: night sky, paper and ink, bold blue, doorway): a light paper page
-  in both themes, only the serif title "Step into your memory palace." / "Kliv in i ditt minnespalats." and a
+  (picked by the team from four sketches: night sky, paper and ink, bold blue, doorway); since 2026-10-08 it
+  **follows the theme** like the questions (paper in light mode, the dark page with light ink in dark mode),
+  has no autofocus (it drew a focus ring), and the introduction has an **EN/SV switch** top right; only the serif title "Step into your memory palace." / "Kliv in i ditt minnespalats." and a
   black **Get started** button (blue on hover), plus a quiet "Sign in" and the ✕ in the corner; the title
   rises in and the button follows. The serif is Newsreader as `--font-serif`, loaded without preloading
   (`layout.tsx`) so other pages don't download it. During the introduction the
