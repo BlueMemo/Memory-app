@@ -15,6 +15,7 @@ import { useMounted } from "@/lib/useMounted";
 import { addUserDeck, useUserDeck } from "@/lib/userDecks";
 import type { Card, Deck, Lang } from "@/lib/types";
 import { answerModeOf, majorityAnswerMode, type AnswerMode } from "@/lib/typedAnswer";
+import { CardFormTour } from "./CoachTour";
 import { DeckNotFound } from "./DeckNotFound";
 import { AnswerStyleToggle } from "./TypedAnswer";
 
@@ -394,8 +395,9 @@ function CardsStep({
           }
         }}
       >
+        <CardFormTour ordered={ordered} />
         {!ordered && (
-          <div className="field">
+          <div className="field" data-tour="card-prompt">
             <div className="field-label-row">
               <label htmlFor="card-prompt">{t.promptLabel}</label>
               <ImageAddButton t={t} title={t.promptImageLabel} value={promptImage} onChange={setPromptImage} />
@@ -411,7 +413,7 @@ function CardsStep({
           </div>
         )}
 
-        <div className="field">
+        <div className="field" data-tour="card-answer">
           <div className="field-label-row">
             <label htmlFor="card-answer">{ordered ? t.answerLabelOrdered : t.answerLabel}</label>
             <ImageAddButton t={t} title={t.answerImageLabel} value={answerImage} onChange={setAnswerImage} />
@@ -428,7 +430,7 @@ function CardsStep({
 
         <AnswerStyleToggle value={answerStyle} onChange={setAnswerStyle} hint={editingId ? undefined : ta.cardHint} />
 
-        <div className="field">
+        <div className="field" data-tour="card-cue">
           <div className="field-label-row">
             <label htmlFor="card-visualization">{t.memoryQueueLabel}</label>
             <ImageAddButton t={t} title={t.memoryQueueImageLabel} value={visualizationImage} onChange={setVisualizationImage} />
@@ -442,7 +444,7 @@ function CardsStep({
           <span className="hint">{t.memoryQueueHint}</span>
         </div>
 
-        <div className="field">
+        <div className="field" data-tour="card-note">
           <label htmlFor="card-note">{t.noteLabel}</label>
           <input id="card-note" type="text" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
         </div>

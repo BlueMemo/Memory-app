@@ -5,8 +5,7 @@ import { useI18n } from "@/i18n";
 import { saveEditedDeck, useAnyDeck } from "@/lib/editableDecks";
 import type { Card, Deck } from "@/lib/types";
 import { answerModeOf, majorityAnswerMode, type AnswerMode } from "@/lib/typedAnswer";
-import { useTourSeen } from "@/lib/tours";
-import { CoachTour } from "./CoachTour";
+import { CardFormTour } from "./CoachTour";
 import { AnswerStyleToggle } from "./TypedAnswer";
 
 /**
@@ -41,7 +40,6 @@ export function CardForm(props: {
   // A new card starts the way most of the deck's cards are answered; an existing card keeps its own.
   const [answerMode, setAnswerMode] = useState<AnswerMode>(() => (props.card ? answerModeOf(props.card) : majorityAnswerMode(deck?.cards ?? [])));
   const [saving, setSaving] = useState(false);
-  const tourSeen = useTourSeen("cardForm");
   if (!deck) return null;
   const valid = form.answer.trim() !== "" && (ordered || form.prompt.trim() !== "");
   const set = (patch: Partial<typeof form>) => setForm({ ...form, ...patch });
@@ -93,18 +91,7 @@ export function CardForm(props: {
           </select>
         </div>
       )}
-      {!tourSeen && (
-        <CoachTour
-          id="cardForm"
-          steps={[
-            { target: '[data-tour="card-prompt"]', title: dict.tour.promptTitle, text: dict.tour.promptText },
-            { target: '[data-tour="card-answer"]', title: dict.tour.answerTitle, text: ordered ? dict.tour.answerTextOrdered : dict.tour.answerText },
-            { target: '[data-tour="card-cue"]', title: dict.tour.cueTitle, text: dict.tour.cueText },
-            { target: '[data-tour="card-due"]', title: dict.tour.dueTitle, text: dict.tour.dueText },
-            { target: '[data-tour="card-note"]', title: dict.tour.noteTitle, text: dict.tour.noteText },
-          ]}
-        />
-      )}
+      <CardFormTour ordered={ordered} />
       {!ordered && (
         <div className="field" data-tour="card-prompt">
           <label htmlFor="card-prompt">{tc.promptLabel}</label>

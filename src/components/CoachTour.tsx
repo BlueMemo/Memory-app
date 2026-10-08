@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/i18n";
 import { fill } from "@/lib/practice";
-import { markTourSeen, type TourId } from "@/lib/tours";
+import { markTourSeen, useTourSeen, type TourId } from "@/lib/tours";
 
 export interface TourStep {
   /** CSS selector of the element the box points at; steps whose element isn't on the page are left out. */
@@ -97,5 +97,27 @@ export function CoachTour({ id, steps }: { id: TourId; steps: TourStep[] }) {
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * The card form's tour (question, answer, memory cue, learn-by date, note), shared by every card form: quick
+ * add, A/E while studying, and the deck creator's card step. Fields a form doesn't have are left out.
+ */
+export function CardFormTour({ ordered }: { ordered: boolean }) {
+  const t = useI18n().t.tour;
+  const seen = useTourSeen("cardForm");
+  if (seen) return null;
+  return (
+    <CoachTour
+      id="cardForm"
+      steps={[
+        { target: '[data-tour="card-prompt"]', title: t.promptTitle, text: t.promptText },
+        { target: '[data-tour="card-answer"]', title: t.answerTitle, text: ordered ? t.answerTextOrdered : t.answerText },
+        { target: '[data-tour="card-cue"]', title: t.cueTitle, text: t.cueText },
+        { target: '[data-tour="card-due"]', title: t.dueTitle, text: t.dueText },
+        { target: '[data-tour="card-note"]', title: t.noteTitle, text: t.noteText },
+      ]}
+    />
   );
 }

@@ -67,7 +67,9 @@ Sweden first.
   (`signup_sources`). Effects: "Recommended for you" in Discover, an exam-date prompt for school/exam
   learners, the Library's welcome line.
 - First-time tours (`CoachTour.tsx`, seen once, `lib/tours.ts`): the Library (when empty or `?welcome=1`)
-  and the card form. New accounts land on `/library?welcome=1`.
+  and the card form (`CardFormTour`: quick add, A/E while studying, the deck creator/editor's card step; one
+  "seen" flag for all; fields a form lacks are skipped). Not in the card browser. New accounts land on
+  `/library?welcome=1`.
 
 **Studying**
 - Spaced repetition = FSRS via `ts-fsrs` (`lib/srs/core.ts` pure and tested, `lib/srs/store.ts` data:
