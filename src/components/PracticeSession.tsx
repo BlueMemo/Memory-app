@@ -171,8 +171,9 @@ export function PracticeSession({ deck }: { deck: Deck }) {
   const tutorial = onboarding.tutorialPending && deck.id === TUTORIAL_DECK_ID;
 
   return (
-    <main className="practice">
-      {tutorial ? (
+    <main className={`practice${tutorial ? " tutorial" : ""}`}>
+      {/* While the instructions are open, they're the only thing on screen: no exit (the card closes them). */}
+      {showInstructions ? null : tutorial ? (
         <Link
           href="/"
           className="tutorial-close"

@@ -4843,7 +4843,7 @@ main [id] {
 }
 
 /* Without the header above it, the tutorial's card needs its own room at the top. */
-.practice:has(> .tutorial-close) {
+.practice.tutorial {
   padding-top: 72px;
 }
 
@@ -4960,16 +4960,16 @@ main [id] {
 }
 
 /* The introduction's tutorial doesn't scroll: everything fits on one screen, cards shrink on short ones. */
-html:has(.practice > .tutorial-close),
-html:has(.practice > .tutorial-close) body {
+html:has(.practice.tutorial),
+html:has(.practice.tutorial) body {
   overflow: hidden;
   height: 100%;
 }
 
-.practice:has(> .tutorial-close) .learn-card {
+.practice.tutorial .learn-card {
   min-height: min(430px, 50vh);
 }
 
-.practice:has(> .tutorial-close) .info {
+.practice.tutorial .info {
   min-height: min(430px, 62vh);
 }
