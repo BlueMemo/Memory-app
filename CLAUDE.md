@@ -48,6 +48,17 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **First-time tours (2026-10-09, branch `feature/coach-tours`)**: short "white box" tours (`CoachTour.tsx`: a
+  white box with an arrow pointing at one element, Skip / Back / Next / Got it, ringed target), seen once per
+  browser (`lib/tours.ts`, `tours.v1`). **Library tour** (2 steps: the Library tab, the Discover tab) shows
+  when the Library is empty or after `?welcome=1`; an empty Library also shows two big choices, **Find
+  decks** and **Create your own deck**. New accounts land there: the sign-up confirmation goes to
+  `/library?welcome=1` (`emailRedirectTo`, and `confirm-signup.html` — **paste it into Supabase again**, Erik),
+  and signing in after a cross-device confirmation (`/account?notice=confirmed`) goes there too.
+  **Card form tour** (question, answer, memory image, learn-by date, note) the first time `CardForm` is
+  shown (quick add, A/E while studying); not in the deck creator's own card step or the card browser.
+  Also fixed: another `}` lost in a keep-both CSS merge (end of `.my-shared-actions`), which had nested the
+  sign-up avatar CSS and everything after it on the live site.
 - **My shared decks in Discover (2026-10-09, branch `feature/my-shared-decks`)**: signed in, Discover has two
   tabs, **All decks** and **My shared decks**. The second lists the latest version of every deck you've
   published (`myPublishedDecks`), with its version, Discover/link-only and copies, and whether your deck has
