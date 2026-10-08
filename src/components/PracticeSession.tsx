@@ -22,6 +22,7 @@ import { recordPracticeResult } from "@/lib/practiceResults";
 import { renderBold, renderCapsHighlight } from "@/lib/rich-text";
 import type { Card, Deck } from "@/lib/types";
 import { CardDialog } from "./CardForm";
+import { Flag } from "./Flag";
 import { ThoughtBubble } from "./Illustration";
 
 /** How long learners get to invent their own object before a suggestion is offered. */
@@ -277,10 +278,12 @@ export function PracticeSession({ deck }: { deck: Deck }) {
               flipped={state.flipped}
               onFlip={() => dispatch({ type: "flip" })}
               showHint={hintFor === cardKey}
+              boxed
               t={t}
             />
             <StudyBar
               t={dict.study}
+              minimal
               canUndo={history.length > 0}
               onUndo={undo}
               onAdd={() => setDialog("add")}
@@ -300,10 +303,10 @@ export function PracticeSession({ deck }: { deck: Deck }) {
             >
               {state.flipped ? (
                 <>
-                  <button className="btn again" onClick={() => grade("again")}>
+                  <button className="btn srs-again grade-big" onClick={() => grade("again")}>
                     {state.phase === "test" ? t.missedIt : t.again}
                   </button>
-                  <button className="btn good" onClick={() => grade("known")}>
+                  <button className="btn srs-good grade-big" onClick={() => grade("known")}>
                     {state.phase === "test" ? t.knewIt : t.gotIt}
                   </button>
                 </>
@@ -606,6 +609,8 @@ export function FlipCard(props: {
   frontExtra?: ReactNode;
   /** Shown above the answer once revealed (the verdict on what was typed). */
   backExtra?: ReactNode;
+  /** A real card (the guided practice), like the walkthrough's, instead of the bare study layout. */
+  boxed?: boolean;
   t: T;
 }) {
   const { deck, card, position: n, test, flipped, onFlip, t } = props;
@@ -651,7 +656,7 @@ export function FlipCard(props: {
   // the session's keyboard listener). "Show answer", hint and grading live in the StudyBar below.
   return (
     <div
-      className={`study-card deal${flipped ? " revealed" : ""}`}
+      className={`study-card deal${flipped ? " revealed" : ""}${props.boxed ? " boxed face learn-card" : ""}`}
       role={flipped || props.typed ? undefined : "button"}
       tabIndex={flipped || props.typed ? undefined : 0}
       aria-label={flipped || props.typed ? undefined : t.clickToFlip}
@@ -669,6 +674,7 @@ export function FlipCard(props: {
       {flipped && (
         <div className="study-answer" aria-live="polite">
           {props.backExtra}
+          {card.flag && <Flag code={card.flag} className="answer-flag" />}
           <p className={`study-text answer${back.titleClass ? ` ${back.titleClass}` : ""}`}>{back.title}</p>
           <CardImage src={back.image} />
           {back.sub && <p className="sub">{back.sub}</p>}
@@ -697,6 +703,8 @@ export function StudyBar(props: {
   shortcuts: [key: string, action: string][];
   shortcutsOpen: boolean;
   onToggleShortcuts: () => void;
+  /** Only the main buttons: no undo/add/edit tools or shortcuts list (the guided practice; keys still work). */
+  minimal?: boolean;
 }) {
   const { t } = props;
   // The focused button often disappears (Show answer turns into the grade buttons, grading moves on to the
@@ -710,7 +718,7 @@ export function StudyBar(props: {
   });
   return (
     <div className="study-bar" onMouseDown={noMouseFocus}>
-      {props.shortcutsOpen && (
+      {props.shortcutsOpen && !props.minimal && (
         <div className="shortcuts-panel" role="dialog" aria-label={t.shortcuts}>
           <dl>
             {props.shortcuts.map(([key, action]) => (
@@ -736,6 +744,7 @@ export function StudyBar(props: {
         >
           {props.children}
         </div>
+        {!props.minimal && (
         <div className="study-bar-tools">
           <button type="button" disabled={!props.canUndo} onClick={props.onUndo}>
             {t.undo}
@@ -755,6 +764,7 @@ export function StudyBar(props: {
             {t.shortcuts} <kbd>?</kbd>
           </button>
         </div>
+        )}
       </div>
     </div>
   );

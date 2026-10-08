@@ -20,6 +20,8 @@ export interface Card {
   /** A free-form note from the deck author. */
   note?: string;
   illustration?: { name: IllustrationName; side?: "left" | "right" };
+  /** A country flag shown with the answer in revision and the test, by code (see components/Flag.tsx). */
+  flag?: string;
   /** "YYYY-MM-DD": spaced repetition makes sure the card comes up again before this day (e.g. a test). */
   dueBy?: string;
   /** When the card was created (ISO). Cards made before 2026-10-05 don't have it. */

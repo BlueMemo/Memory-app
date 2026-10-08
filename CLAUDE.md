@@ -48,6 +48,14 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Guided practice revision/test looks like a card, with flags (2026-10-08, branch `feature/welcome-theme`)**:
+  in the guided practice (walkthrough → revision → test, the landing demo and tutorial) revision and test
+  cards are a real boxed card like the walkthrough's (`FlipCard boxed`), the bottom bar shows only the
+  main buttons (`StudyBar minimal`: no Undo/Add/Edit/Shortcuts; keys still work), Again is red and Got it
+  green (`srs-again`/`srs-good`), both larger (`.grade-big`). Cards can have a **`flag`** (country code):
+  `components/Flag.tsx` draws ten flags on a pole like the Nigerian one, shown with the answer (also in
+  spaced-repetition reviews). The 10 countries deck has them all. Spaced-repetition reviews keep the bare
+  study layout and full bar.
 - **Tutorial without header, bigger practice cards (2026-10-08, branch `feature/welcome-theme`)**: when the 10
   countries practice runs as the introduction's tutorial (`tutorialPending`), the site header is hidden
   (`SiteHeader`) and "Exit" is replaced by a big ✕ fixed in the top-left corner (`.tutorial-close`, goes
