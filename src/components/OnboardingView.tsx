@@ -213,8 +213,8 @@ function Option(props: { icon?: Icon; badge?: string; title: string; text?: stri
   );
 }
 
-/** EN / SV, as in the site header (which is hidden during the introduction). */
-function LanguageSwitch() {
+/** EN / SV, as in the site header (hidden during the introduction and on the sign-in page). */
+export function LanguageSwitch() {
   const { lang, t, setLang } = useI18n();
   return (
     <div className="lang-switch" role="group" aria-label={t.header.language}>

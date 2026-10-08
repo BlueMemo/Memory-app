@@ -1,5 +1,7 @@
 "use client";
 
+import { X } from "@phosphor-icons/react/ssr";
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
@@ -8,6 +10,7 @@ import { checkUsername, isValidUsername } from "@/lib/supabase/profiles";
 import { useUser } from "@/lib/supabase/useUser";
 import { AccountDashboard } from "./AccountDashboard";
 import { renderLegal } from "./LegalView";
+import { LanguageSwitch } from "./OnboardingView";
 
 type Mode = "signIn" | "signUp" | "forgotPassword";
 type T = Dict["account"];
@@ -22,7 +25,9 @@ function mapAuthError(message: string, t: T): string {
   return t.errorGeneric;
 }
 
-export function AccountView({ startWithSignUp = false }: { startWithSignUp?: boolean }) {
+export type AccountNotice = "confirmed" | "reset-link" | "link-error";
+
+export function AccountView({ startWithSignUp = false, notice = null }: { startWithSignUp?: boolean; notice?: AccountNotice | null }) {
   const t = useI18n().t.account;
   const { user, username, avatarUrl, loading, configured } = useUser();
 
@@ -45,10 +50,22 @@ export function AccountView({ startWithSignUp = false }: { startWithSignUp?: boo
 
   return (
     <main className="page narrow">
+      {/* The header is hidden here (SiteHeader): the language and a ✕ back to the home page instead. */}
+      <div className="account-corner">
+        <LanguageSwitch />
+        <Link href="/" className="onboarding-close" aria-label={t.close} title={t.close}>
+          <X size={20} weight="bold" aria-hidden="true" />
+        </Link>
+      </div>
       <section className="page-intro">
         <h1>{t.title}</h1>
         <p>{t.lead}</p>
       </section>
+      {notice && (
+        <p className={`notice ${notice === "confirmed" ? "success" : "error"}`} role="status">
+          {notice === "confirmed" ? t.noticeConfirmed : notice === "reset-link" ? t.noticeResetLink : t.noticeLinkError}
+        </p>
+      )}
       <SignedOut t={t} startWithSignUp={startWithSignUp} />
     </main>
   );
