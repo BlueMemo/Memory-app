@@ -792,6 +792,7 @@ export const en = {
     backToSignIn: "← Back to sign in",
     resetLinkSent: "Check your email for a reset link.",
     confirmEmailSent: "Check your email and click the link to confirm your account (it works on any device, e.g. your phone). Then sign in here.",
+    close: "Close",
     noticeConfirmed: "Your email is confirmed. Sign in with your email and password, on any device.",
     noticeResetLink: "That password-reset link only works in the browser where you asked for it, or it has expired. Ask for a new one below and open it in this browser.",
     noticeLinkError: "That link didn't work: it may have expired or been used already. If you just confirmed your email, try signing in.",

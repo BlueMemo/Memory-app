@@ -5014,3 +5014,14 @@ html:has(.practice.locked) body {
   font-size: 1.15rem;
   border-radius: 999px;
 }
+
+/* Sign-in page (signed out): no header, so the language switch and a ✕ sit in the top-right corner. */
+.account-corner {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

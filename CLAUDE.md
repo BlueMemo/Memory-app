@@ -57,6 +57,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   **`/auth/confirm`** verifies `token_hash` links on the server (any device, which is then signed in);
   the templates in `supabase/email-templates/` now use it — **paste them into Supabase** (Erik) and make
   sure Site URL is `https://bluememo.eu`. The sign-up message says the link works on any device.
+  The **sign-in page** (`/account` while signed out) has **no header/tabs** either: EN/SV and a ✕ (home) sit
+  in the top-right corner (`.account-corner`); signed in, the account page has the header as usual.
 - **Guided practice revision/test looks like a card, with flags (2026-10-08, branch `feature/welcome-theme`)**:
   in the guided practice (walkthrough → revision → test, the landing demo and tutorial) revision and test
   cards are a real boxed card like the walkthrough's (`FlipCard boxed`), the bottom bar shows only the

@@ -792,6 +792,7 @@ export const sv: Dict = {
     backToSignIn: "← Tillbaka till inloggning",
     resetLinkSent: "Kolla din e-post för en återställningslänk.",
     confirmEmailSent: "Kolla din e-post och klicka på länken för att bekräfta ditt konto (den fungerar på vilken enhet som helst, t.ex. din mobil). Logga sedan in här.",
+    close: "Stäng",
     noticeConfirmed: "Din e-post är bekräftad. Logga in med din e-post och ditt lösenord, på vilken enhet som helst.",
     noticeResetLink: "Den länken för att återställa lösenordet fungerar bara i webbläsaren där du bad om den, eller så har den gått ut. Be om en ny nedan och öppna den i den här webbläsaren.",
     noticeLinkError: "Länken fungerade inte: den kan ha gått ut eller redan använts. Om du precis bekräftade din e-post, prova att logga in.",

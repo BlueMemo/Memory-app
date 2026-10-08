@@ -68,6 +68,7 @@ export function SiteHeader() {
   // The introduction's tutorial (the 10 countries practice started from /start) hides the header too.
   const onboarding = useOnboarding();
   const inTutorial = onboarding.tutorialPending && pathname === `/decks/${TUTORIAL_DECK_ID}/practice`;
+  const { user } = useUser();
   useEffect(() => watchSystemTheme(), []);
 
   // Deck pages are reached from Discover or from the learner's own Library; user-created decks
@@ -93,7 +94,9 @@ export function SiteHeader() {
   };
 
   // The introduction (/start) is a focused, full-page flow: no tabs, only its own close button.
-  if (pathname === "/start" || inTutorial) return <AuthSync />;
+  // Signing in / creating an account (signed out on /account) is focused too: no tabs, just a ✕ to leave.
+  const signingIn = pathname === "/account" && !user;
+  if (pathname === "/start" || inTutorial || signingIn) return <AuthSync />;
 
   return (
     <header className="site-header">
