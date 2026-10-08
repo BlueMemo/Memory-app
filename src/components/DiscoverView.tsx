@@ -99,7 +99,7 @@ function MySharedDecks() {
               <li key={p.id} className="my-shared-row">
                 <div className="my-shared-main">
                   <Link href={`/shared/${p.id}`} className="my-shared-title">
-                    {p.title}
+                    {deck?.title ?? p.title}
                   </Link>
                   <span className="muted">
                     {fill(dict.share.published, { n: p.version })} · {p.listed ? dict.share.publishedListed : dict.share.publishedLink}
