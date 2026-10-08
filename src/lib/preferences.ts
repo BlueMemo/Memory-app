@@ -21,7 +21,8 @@ export interface Preferences {
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
-  theme: "dark",
+  // Follows the device by default (2026-10-08); dark and light can still be chosen under Settings.
+  theme: "system",
   textSize: "normal",
   reduceMotion: false,
   librarySort: "recent",

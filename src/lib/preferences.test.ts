@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_PREFERENCES, parsePreferences } from "./preferences";
 
 describe("preferences", () => {
-  it("defaults to the dark theme", () => {
+  it("defaults to following the device's theme", () => {
     expect(parsePreferences(null)).toEqual(DEFAULT_PREFERENCES);
-    expect(DEFAULT_PREFERENCES.theme).toBe("dark");
+    expect(DEFAULT_PREFERENCES.theme).toBe("system");
   });
 
   it("keeps valid saved values and replaces unknown ones", () => {

@@ -48,6 +48,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Theme follows the device by default (2026-10-08, branch `feature/welcome-theme`)**: the default theme is
+  now "system" (was dark, the 2026-10-05 brand decision): light devices get paper and ink, dark devices the
+  charcoal dark. `THEME_SCRIPT` treats no saved theme as "system". Caveat: `setPreferences` saves every
+  field, so anyone who changed *any* appearance setting before has `theme: "dark"` stored and stays dark
+  until they pick "Match device" under Settings.
 - **Colours: lighter dark, paper light (2026-10-08, branch `homepage`)**: the site keeps its current look and
   dark stays the default, but **dark is lifted a little** (`--bg #15181d`, cards `#1c2026`, lines
   `#2d333b`; was near-black `#0d0f12`) and **light mode is "paper and ink"**: the welcome page's warm paper
