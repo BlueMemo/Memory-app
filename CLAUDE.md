@@ -56,7 +56,7 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   The **thought bubble** sits beside the walkthrough card on wide screens (≥1100px: to the right, centred,
   300×216, tail pointing at the card; narrower: above it, a bit bigger). The **tutorial doesn't scroll**
   (`html:has(.practice.tutorial)` hides overflow; its cards shrink on short screens to fit). While the
-  instructions card is open, neither the ✕ nor Exit is shown.
+  instructions are on screen (the first card or opened with the button), neither the ✕ nor Exit is shown.
 - **Theme follows the device by default (2026-10-08, branch `feature/welcome-theme`)**: the default theme is
   now "system" (was dark, the 2026-10-05 brand decision): light devices get paper and ink, dark devices the
   charcoal dark. `THEME_SCRIPT` treats no saved theme as "system". Caveat: `setPreferences` saves every

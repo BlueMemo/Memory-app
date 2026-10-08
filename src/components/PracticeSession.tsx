@@ -172,8 +172,9 @@ export function PracticeSession({ deck }: { deck: Deck }) {
 
   return (
     <main className={`practice${tutorial ? " tutorial" : ""}`}>
-      {/* While the instructions are open, they're the only thing on screen: no exit (the card closes them). */}
-      {showInstructions ? null : tutorial ? (
+      {/* Whenever the instructions are on screen (the first card, or opened with the Instructions button),
+          they're the only thing there: no ✕ / Exit. */}
+      {showInstructions || state.phase === "intro" ? null : tutorial ? (
         <Link
           href="/"
           className="tutorial-close"
