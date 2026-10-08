@@ -289,6 +289,43 @@ export async function unpublishDeck(sourceDeckId: string): Promise<boolean> {
   return !error;
 }
 
+/** JSON with sorted keys (the database's jsonb doesn't keep key order), for comparing deck content. */
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object")
+    return `{${Object.keys(value)
+      .filter((k) => (value as Record<string, unknown>)[k] !== undefined)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${stableJson((value as Record<string, unknown>)[k])}`)
+      .join(",")}}`;
+  return JSON.stringify(value ?? null);
+}
+
+const contentOf = (deck: Deck) => stableJson({ title: deck.title, description: deck.description ?? "", kind: deck.kind, language: deck.language, cards: deck.cards });
+
+/** Whether the learner's deck has changed since this version was published (title, description, kind, language or cards). */
+export const hasUnpublishedChanges = (deck: Deck, published: PublishedDeck) => contentOf(deck) !== contentOf(published.deck);
+
+/** The latest version, with cards, of every deck the signed-in learner has published (null: not available). */
+export async function myPublishedDecks(): Promise<PublishedDeck[] | null> {
+  const supabase = getSupabaseBrowserClient();
+  const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+  if (!supabase || !user) return null;
+  const query = (columns: string) => supabase.from("published_decks_latest").select(columns).eq("author_id", user.id).order("created_at", { ascending: false });
+  let { data, error } = await query(`${COLUMNS}, total_copies`);
+  if (error) ({ data, error } = await query(LEGACY_COLUMNS));
+  if (error || !data) return null;
+  return (data as unknown as Row[]).map((r) => toPublished(r, {}));
+}
+
+/** Publishes the deck's current content as the next version, with the same options (and settings) as the latest one. */
+export const publishUpdate = (deck: Deck, latest: PublishedSummary) =>
+  publishDeck(
+    deck,
+    { listed: latest.listed, showAvatar: latest.showAvatar, includeSettings: latest.deckSettings !== null, official: latest.official },
+    latest.deckSettings ?? undefined,
+  );
+
 type Publication = { loading: boolean; latest: PublishedSummary | null; available: boolean };
 
 async function loadPublication(sourceDeckId: string, userId: string | null): Promise<Publication> {
