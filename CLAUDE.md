@@ -48,6 +48,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **A created date on every card (2026-10-09, branch `feature/card-created-dates`)**: cards without their own
+  `createdAt` (made before 2026-10-05, e.g. early imports) show the **deck's** date in Browse and the card
+  browser (and sort by it): `Deck.createdAt`, from the `decks.created_at` column for accounts (always set)
+  and stamped on creation for guests (kept through edits). Guest decks made before today and official/saved
+  decks have no deck date, so those still show "–".
 - **Email links across devices (2026-10-08, branch `feature/email-confirm-fix`)**: confirmation links used the
   PKCE flow (`{{ .ConfirmationURL }}` → `/auth/callback?code=…`), which only works in the browser that
   signed up; opened on a phone it failed with no explanation, so people thought confirming hadn't worked

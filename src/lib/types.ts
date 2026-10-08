@@ -50,6 +50,11 @@ export interface Deck {
   id: string;
   title: string;
   description: string;
+  /**
+   * When the learner created or imported the deck (ISO): the decks table's created_at for accounts, set on
+   * creation for guests. Cards without their own createdAt show this date. Official decks don't have it.
+   */
+  createdAt?: string;
   /** Language of the deck's own content (cards, instructions), independent of the site language. */
   language: Lang;
   /**

@@ -31,7 +31,7 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
       card,
       position: i + 1,
       question: ordered ? fill(t.stop, { n: i + 1 }) : (card.prompt ?? ""),
-      createdAt: card.createdAt,
+      createdAt: card.createdAt ?? deck.createdAt,
       enabled,
       stored: srs.cards[cardKey(deck.id, card.id)],
     }))
@@ -86,7 +86,7 @@ export function DeckCardsTable({ deck, editable }: { deck: Deck; editable: boole
                 <td title={r.question}>{r.question}</td>
                 <td title={r.card.answer}>{r.card.answer}</td>
                 {enabled && <td className="col-due">{due(r)}</td>}
-                <td className="col-created">{created(r.card.createdAt)}</td>
+                <td className="col-created">{created(r.card.createdAt ?? deck.createdAt)}</td>
               </tr>
             ))}
           </tbody>

@@ -80,12 +80,14 @@ export function CardBrowserView() {
     }
   };
 
+  // A card's own date, or else the date its deck was created or imported (cards made before 2026-10-05).
+  const createdOf = (r: Row) => r.card.createdAt ?? r.deck.createdAt;
   const question = (r: Row) => (r.deck.kind === "ordered" ? fill(t.stop, { n: r.position }) : (r.card.prompt ?? ""));
   // Same sort orders as a deck's "What's inside" table; A–Z on a memory route uses what's at the stop.
   const sortable = (r: Row) => ({
     question: r.deck.kind === "ordered" ? r.card.answer : question(r),
     position: r.order + 1,
-    createdAt: r.card.createdAt,
+    createdAt: r.card.createdAt ?? r.deck.createdAt,
     enabled: r.enabled,
     stored: r.stored,
   });
@@ -170,7 +172,7 @@ export function CardBrowserView() {
                       <td>{r.card.answer}</td>
                       <td className="col-deck">{r.deck.title}</td>
                       <td className="col-due">{dueLabel(r)}</td>
-                      <td className="col-created">{r.card.createdAt ? new Date(r.card.createdAt).toLocaleDateString(dateLocale(lang)) : "–"}</td>
+                      <td className="col-created">{createdOf(r) ? new Date(createdOf(r)!).toLocaleDateString(dateLocale(lang)) : "–"}</td>
                     </tr>
                   ))}
                 </tbody>
