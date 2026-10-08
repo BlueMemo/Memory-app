@@ -5026,6 +5026,74 @@ html:has(.practice.locked) body {
   gap: 6px;
 }
 
+/* Discover: All decks / My shared decks */
+.discover-views {
+  display: flex;
+  gap: 0.25rem;
+  padding-bottom: 0;
+  padding-top: 1.25rem;
+}
+.discover-views button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.5rem 0.9rem;
+}
+.discover-views button:hover {
+  color: var(--ink);
+}
+.discover-views button.active {
+  border-bottom-color: var(--brand-blue);
+  color: var(--ink);
+}
+.my-shared {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.my-shared-row {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-surface);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+}
+.my-shared-main {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.my-shared-title {
+  color: var(--ink);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.my-shared-state {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.my-shared-state.changed {
+  color: var(--brand-blue);
+  font-weight: 600;
+}
+.my-shared-state.error {
+  color: var(--srs-again-text, #e5534b);
+}
+.my-shared-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 /* Sign-up: the chosen (or generated) picture beside a button that opens the picture grid. */
 .signup-avatar {
   display: flex;

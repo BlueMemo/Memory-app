@@ -48,6 +48,14 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **My shared decks in Discover (2026-10-09, branch `feature/my-shared-decks`)**: signed in, Discover has two
+  tabs, **All decks** and **My shared decks**. The second lists the latest version of every deck you've
+  published (`myPublishedDecks`), with its version, Discover/link-only and copies, and whether your deck has
+  changed since ("3 new cards since this version" / "Changed" / "Up to date"; `hasUnpublishedChanges`
+  compares title, description, kind, language and cards, key-order-proof since jsonb reorders keys).
+  **Publish update** publishes the current deck as the next version with the latest version's options and
+  settings (`publishUpdate`); "Share settings" opens the deck's Share section for anything else. No schema
+  change. Not tested signed in locally (no test account on this computer): check it on the preview.
 - **A created date on every card (2026-10-09, branch `feature/card-created-dates`)**: cards without their own
   `createdAt` (made before 2026-10-05, e.g. early imports) show the **deck's** date in Browse and the card
   browser (and sort by it): `Deck.createdAt`, from the `decks.created_at` column for accounts (always set)

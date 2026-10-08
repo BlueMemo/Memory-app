@@ -2,19 +2,144 @@
 
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/ssr";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { officialDecks } from "@/decks";
 import { dictionaries, languages, useI18n } from "@/i18n";
 import { officialDeckFor, recommendationKeywords, useOnboarding, type Goals } from "@/lib/onboarding";
 import { fill } from "@/lib/practice";
-import { deckSearchText, matchesQuery, searchPublishedDecks, type PublishedSummary, type SearchFilters } from "@/lib/publishedDecks";
+import {
+  deckSearchText,
+  hasUnpublishedChanges,
+  matchesQuery,
+  myPublishedDecks,
+  publishUpdate,
+  searchPublishedDecks,
+  type PublishedDeck,
+  type PublishedSummary,
+  type SearchFilters,
+} from "@/lib/publishedDecks";
+import { useUser } from "@/lib/supabase/useUser";
+import { useUserDecks } from "@/lib/userDecks";
 import { Avatar } from "./Avatar";
 import { DeckTile } from "./DeckTile";
 import { PageTabs } from "./PageTabs";
 
 const SEARCH_DELAY_MS = 300;
 
+/** Discover has two views: every deck, and (signed in) the decks you've shared yourself. */
 export function DiscoverView() {
+  const t = useI18n().t.discover;
+  const { user } = useUser();
+  const [view, setView] = useState<"all" | "mine">("all");
+  const mine = view === "mine" && !!user;
+  return (
+    <>
+      {user && (
+        <div className="discover-views page" role="tablist" aria-label={t.viewsLabel}>
+          <button type="button" role="tab" aria-selected={!mine} className={!mine ? "active" : ""} onClick={() => setView("all")}>
+            {t.viewAll}
+          </button>
+          <button type="button" role="tab" aria-selected={mine} className={mine ? "active" : ""} onClick={() => setView("mine")}>
+            {t.viewMine}
+          </button>
+        </div>
+      )}
+      {mine ? <MySharedDecks /> : <AllDecks />}
+    </>
+  );
+}
+
+/**
+ * The decks the learner has published, each with whether their deck has changed since (new cards, edits)
+ * and a button that publishes those changes as the next version with the same options.
+ */
+function MySharedDecks() {
+  const { t: dict } = useI18n();
+  const t = dict.discover;
+  const own = useUserDecks();
+  const [state, setState] = useState<{ status: "loading" | "ready" | "error"; decks: PublishedDeck[] }>({ status: "loading", decks: [] });
+  const [busy, setBusy] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const load = useCallback(() => myPublishedDecks().then((decks) => setState(decks ? { status: "ready", decks } : { status: "error", decks: [] })), []);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function update(p: PublishedDeck) {
+    const deck = own.find((d) => d.id === p.sourceDeckId);
+    if (!deck) return;
+    setBusy(p.id);
+    const result = await publishUpdate(deck, p);
+    setNotes((n) => ({ ...n, [p.sourceDeckId]: result ? fill(t.updated, { n: result.version }) : dict.share.error }));
+    await load();
+    setBusy(null);
+  }
+
+  return (
+    <main className="page">
+      <section className="hero">
+        <h1>{t.mineTitle}</h1>
+        <p>{t.mineLead}</p>
+      </section>
+      {state.status === "loading" ? (
+        <p className="empty-state">{t.searching}</p>
+      ) : state.status === "error" ? (
+        <p className="empty-state">{t.communityUnavailable}</p>
+      ) : state.decks.length === 0 ? (
+        <p className="empty-state">
+          {t.mineEmpty}
+        </p>
+      ) : (
+        <ul className="my-shared">
+          {state.decks.map((p) => {
+            const deck = own.find((d) => d.id === p.sourceDeckId);
+            const changed = !!deck && hasUnpublishedChanges(deck, p);
+            const added = deck ? deck.cards.length - p.cardCount : 0;
+            return (
+              <li key={p.id} className="my-shared-row">
+                <div className="my-shared-main">
+                  <Link href={`/shared/${p.id}`} className="my-shared-title">
+                    {p.title}
+                  </Link>
+                  <span className="muted">
+                    {fill(dict.share.published, { n: p.version })} · {p.listed ? dict.share.publishedListed : dict.share.publishedLink}
+                    {p.copies > 0 && <> · {fill(t.copies, { n: p.copies })}</>}
+                  </span>
+                  {p.hidden ? (
+                    <span className="my-shared-state error">{t.mineHidden}</span>
+                  ) : !deck ? (
+                    <span className="my-shared-state">{t.mineDeckGone}</span>
+                  ) : changed ? (
+                    <span className="my-shared-state changed">
+                      {added > 0 ? fill(t.mineNewCards, { n: added }) : t.mineChanged}
+                    </span>
+                  ) : (
+                    <span className="my-shared-state">{t.mineUpToDate}</span>
+                  )}
+                  {notes[p.sourceDeckId] && <span className="hint" role="status">{notes[p.sourceDeckId]}</span>}
+                </div>
+                <div className="my-shared-actions">
+                  {deck && changed && !p.hidden && (
+                    <button type="button" className="btn accent" disabled={busy !== null} onClick={() => void update(p)}>
+                      {busy === p.id ? dict.share.publishing : t.publishUpdate}
+                    </button>
+                  )}
+                  {deck && (
+                    <Link href={`/library/settings?deck=${encodeURIComponent(deck.id)}#share`} className="btn nav">
+                      {t.shareSettings}
+                    </Link>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </main>
+  );
+}
+
+function AllDecks() {
   const { t: dict, lang } = useI18n();
   const t = dict.discover;
   const [filters, setFilters] = useState<SearchFilters>({ query: "", language: "all", type: "all", sort: "popular" });
