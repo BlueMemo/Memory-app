@@ -4894,3 +4894,82 @@ main [id] {
 .hint {
   font-size: 0.95rem;
 }
+
+/* Thought bubble beside the card on wide screens (2026-10-08): bigger, to the right of the walkthrough card
+   and vertically centred on it, with its tail of small bubbles pointing back at the card. The card no
+   longer needs headroom above it. Narrower screens keep the bubble above the card, a little bigger. */
+@media (min-width: 1100px) {
+  .learn-wrap.has-bubble {
+    margin-top: 0;
+  }
+
+  .bubble,
+  .bubble-left,
+  .bubble-right {
+    top: 50%;
+    left: calc(100% + 48px);
+    right: auto;
+    width: 300px;
+    height: 216px;
+    margin-top: -108px;
+  }
+
+  .bubble svg {
+    width: 220px;
+    height: 165px;
+  }
+
+  .bubble::before,
+  .bubble-left::before,
+  .bubble-right::before {
+    width: 26px;
+    height: 26px;
+    left: -30px;
+    right: auto;
+    top: 62%;
+    bottom: auto;
+  }
+
+  .bubble::after,
+  .bubble-left::after,
+  .bubble-right::after {
+    width: 14px;
+    height: 14px;
+    left: -50px;
+    right: auto;
+    top: 70%;
+    bottom: auto;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 1099px) {
+  .bubble {
+    width: 230px;
+    height: 164px;
+    top: -146px;
+  }
+
+  .bubble svg {
+    width: 160px;
+    height: 120px;
+  }
+
+  .learn-wrap.has-bubble {
+    margin-top: 140px;
+  }
+}
+
+/* The introduction's tutorial doesn't scroll: everything fits on one screen, cards shrink on short ones. */
+html:has(.practice > .tutorial-close),
+html:has(.practice > .tutorial-close) body {
+  overflow: hidden;
+  height: 100%;
+}
+
+.practice:has(> .tutorial-close) .learn-card {
+  min-height: min(430px, 50vh);
+}
+
+.practice:has(> .tutorial-close) .info {
+  min-height: min(430px, 62vh);
+}
