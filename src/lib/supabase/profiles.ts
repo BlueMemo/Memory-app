@@ -1,5 +1,7 @@
 "use client";
 
+import type { User } from "@supabase/supabase-js";
+import { presetAvatarFor } from "@/lib/avatars";
 import { getSupabaseBrowserClient } from "./client";
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/;
@@ -46,4 +48,20 @@ export async function claimUsername(userId: string, username: string): Promise<{
   if (!supabase) return { error: "not configured" };
   const { error } = await supabase.from("profiles").insert({ id: userId, username });
   return { error: error ? error.message : null };
+}
+
+/**
+ * A picture chosen while signing up (user metadata `avatar`, e.g. "avatar:owl") can't be saved then: there's
+ * no session until the email is confirmed. So the first time that user is signed in, it goes onto the
+ * profile (unless they already have a picture) and is cleared from the metadata, so removing it later sticks.
+ */
+export async function applySignupAvatar(user: User): Promise<boolean> {
+  const chosen = user.user_metadata?.avatar;
+  if (typeof chosen !== "string" || !presetAvatarFor(chosen)) return false;
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return false;
+  const { data } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle();
+  const applied = !data?.avatar_url && (await saveAvatar(user.id, chosen));
+  await supabase.auth.updateUser({ data: { avatar: null } });
+  return applied;
 }

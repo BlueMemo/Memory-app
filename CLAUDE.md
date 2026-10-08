@@ -53,6 +53,12 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   browser (and sort by it): `Deck.createdAt`, from the `decks.created_at` column for accounts (always set)
   and stamped on creation for guests (kept through edits). Guest decks made before today and official/saved
   decks have no deck date, so those still show "–".
+- **Profile picture at sign-up (2026-10-08, branch `feature/signup-avatar`)**: the create-account form has a
+  "Profile picture" field: a preview (the generated default until one is picked) and "Choose a picture",
+  which opens the 25 ready-made pictures. The choice travels as user metadata `avatar` (no session exists
+  before the email is confirmed), and `applySignupAvatar` (`lib/supabase/profiles.ts`, called from
+  AuthSync) puts it on the profile at the first sign-in if they have no picture yet, then clears the
+  metadata. No schema change. Not tested end to end with a real sign-up.
 - **Email links across devices (2026-10-08, branch `feature/email-confirm-fix`)**: confirmation links used the
   PKCE flow (`{{ .ConfirmationURL }}` → `/auth/callback?code=…`), which only works in the browser that
   signed up; opened on a phone it failed with no explanation, so people thought confirming hadn't worked
