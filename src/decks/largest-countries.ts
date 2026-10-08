@@ -37,7 +37,7 @@ export const largestCountries: Deck = {
       answer: "India",
       details: "≈ 1.46 billion people",
       object: "Tikka masala",
-      visualization: "A pile of tikka masala next to your front door.",
+      visualization: "Imagine a pile of tikka masala next to your front door.",
       illustration: { name: "tikka-door" },
     },
     {
