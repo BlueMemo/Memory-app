@@ -37,7 +37,9 @@ type StudyT = Dict["study"];
  * object), or there is none, it's the answer's first letter instead.
  */
 export function memoryHint(deck: Deck, card: Card, test: boolean, t: StudyT): ReactNode {
-  const firstLetter = (word: string) => fill(t.firstLetter, { letter: word.trim().charAt(0).toUpperCase() });
+  // The first letter of the object itself, past any article: "The Big Bang" → B, "A football" → F.
+  const firstLetter = (word: string) =>
+    fill(t.firstLetter, { letter: word.trim().replace(/^(a|an|the|en|ett)\s+/i, "").charAt(0).toUpperCase() });
   if (test) {
     if (card.object) return card.object;
     if (card.visualization) return renderCapsHighlight(card.visualization);
@@ -173,7 +175,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
   const tutorial = onboarding.tutorialPending && deck.id === TUTORIAL_DECK_ID;
 
   return (
-    <main className={`practice${tutorial ? " tutorial" : ""}`}>
+    <main className={`practice${tutorial ? " tutorial" : ""}${tutorial && state.phase !== "results" ? " locked" : ""}`}>
       {/* Whenever the instructions are on screen (the first card, or opened with the Instructions button),
           they're the only thing there: no ✕ / Exit. */}
       {showInstructions || state.phase === "intro" ? null : tutorial ? (

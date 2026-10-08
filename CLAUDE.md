@@ -65,7 +65,9 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   (instructions, overview, walkthrough) are one size up: 600px wide, taller, and larger text.
   The **thought bubble** sits beside the walkthrough card on wide screens (≥1100px: to the right, centred,
   300×216, tail pointing at the card; narrower: above it, a bit bigger). The **tutorial doesn't scroll**
-  (`html:has(.practice.tutorial)` hides overflow; its cards shrink on short screens to fit). While the
+  (`html:has(.practice.locked)` hides overflow; `locked` is left off on the test results, which can be
+  long; its cards shrink on short screens to fit). Memory-route hints (Tab) give the first letter of the
+  object past any article ("The Big Bang" → B). While the
   instructions are on screen (the first card or opened with the button), neither the ✕ nor Exit is shown.
   While revising, the Instructions button opens the **revision** instructions (the "Time to revise" card's
   text) instead of the technique ones, and it sits above the study bar (it used to hide behind it).

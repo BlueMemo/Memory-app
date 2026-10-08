@@ -4963,8 +4963,9 @@ main [id] {
 }
 
 /* The introduction's tutorial doesn't scroll: everything fits on one screen, cards shrink on short ones. */
-html:has(.practice.tutorial),
-html:has(.practice.tutorial) body {
+/* (The test results can be long, so they scroll: `locked` is left off there.) */
+html:has(.practice.locked),
+html:has(.practice.locked) body {
   overflow: hidden;
   height: 100%;
 }
