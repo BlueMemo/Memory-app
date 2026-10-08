@@ -48,6 +48,34 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Guided practice revision/test looks like a card, with flags (2026-10-08, branch `feature/welcome-theme`)**:
+  in the guided practice (walkthrough → revision → test, the landing demo and tutorial) revision and test
+  cards are a real boxed card like the walkthrough's (`FlipCard boxed`), the bottom bar shows only the
+  main buttons (`StudyBar minimal`: no Undo/Add/Edit/Shortcuts; keys still work), Again is red and Got it
+  green (`srs-again`/`srs-good`), both larger (`.grade-big`). Cards can have a **`flag`** (country code):
+  `components/Flag.tsx` draws ten flags on a pole like the Nigerian one, shown with the answer (also in
+  spaced-repetition reviews). The 10 countries deck has them all. Spaced-repetition reviews keep the bare
+  study layout and full bar.
+  While revising (cards, round summaries, "All remembered") the header shows only the badge, and the
+  "Start over from the beginning" link is gone.
+- **Tutorial without header, bigger practice cards (2026-10-08, branch `feature/welcome-theme`)**: when the 10
+  countries practice runs as the introduction's tutorial (`tutorialPending`), the site header is hidden
+  (`SiteHeader`) and "Exit" is replaced by a big ✕ fixed in the top-left corner (`.tutorial-close`, goes
+  home and marks the introduction done). Normal practice keeps the header and Exit. The practice cards
+  (instructions, overview, walkthrough) are one size up: 600px wide, taller, and larger text.
+  The **thought bubble** sits beside the walkthrough card on wide screens (≥1100px: to the right, centred,
+  300×216, tail pointing at the card; narrower: above it, a bit bigger). The **tutorial doesn't scroll**
+  (`html:has(.practice.locked)` hides overflow; `locked` is left off on the test results, which can be
+  long; its cards shrink on short screens to fit). Memory-route hints (Tab) give the first letter of the
+  object past any article ("The Big Bang" → B). While the
+  instructions are on screen (the first card or opened with the button), neither the ✕ nor Exit is shown.
+  While revising, the Instructions button opens the **revision** instructions (the "Time to revise" card's
+  text) instead of the technique ones, and it sits above the study bar (it used to hide behind it).
+- **Theme follows the device by default (2026-10-08, branch `feature/welcome-theme`)**: the default theme is
+  now "system" (was dark, the 2026-10-05 brand decision): light devices get paper and ink, dark devices the
+  charcoal dark. `THEME_SCRIPT` treats no saved theme as "system". Caveat: `setPreferences` saves every
+  field, so anyone who changed *any* appearance setting before has `theme: "dark"` stored and stays dark
+  until they pick "Match device" under Settings.
 - **Colours: lighter dark, paper light (2026-10-08, branch `homepage`)**: the site keeps its current look and
   dark stays the default, but **dark is lifted a little** (`--bg #15181d`, cards `#1c2026`, lines
   `#2d333b`; was near-black `#0d0f12`) and **light mode is "paper and ink"**: the welcome page's warm paper
@@ -59,8 +87,9 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   `/` (not signed in, no decks, introduction not done) is sent straight to `/start` (client-side, so link
   previews still see the home page); the home page's button for such visitors is **Get started** (plus
   "I already have an account", → `/start?begin=1`). `/start` opens on a **welcome screen** in "paper and ink"
-  (picked by the team from four sketches: night sky, paper and ink, bold blue, doorway): a light paper page
-  in both themes, only the serif title "Step into your memory palace." / "Kliv in i ditt minnespalats." and a
+  (picked by the team from four sketches: night sky, paper and ink, bold blue, doorway); since 2026-10-08 it
+  **follows the theme** like the questions (paper in light mode, the dark page with light ink in dark mode),
+  has no autofocus (it drew a focus ring), and the introduction has an **EN/SV switch** top right; only the serif title "Step into your memory palace." / "Kliv in i ditt minnespalats." and a
   black **Get started** button (blue on hover), plus a quiet "Sign in" and the ✕ in the corner; the title
   rises in and the button follows. The serif is Newsreader as `--font-serif`, loaded without preloading
   (`layout.tsx`) so other pages don't download it. During the introduction the

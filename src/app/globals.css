@@ -1053,19 +1053,22 @@ ul.overview-list {
   left: 16px;
   bottom: 16px;
   z-index: 10;
-  font-size: 0.85rem;
+  /* Easy to spot (2026-10-08): bigger, brand-blue outline and text on a tinted fill. */
+  font-size: 1rem;
   font-weight: 600;
-  padding: 8px 14px;
+  padding: 11px 20px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--ink);
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
   box-shadow: var(--shadow);
   cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
 }
 
 .help-btn:hover {
-  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--brand-on-blue);
 }
 
 /* Summaries and results */
@@ -4724,16 +4727,17 @@ main [id] {
   background: var(--line);
 }
 
-/* Welcome screen, "paper and ink": a light paper page in both themes (on purpose, like a book cover), one
-   big black serif line and a black button; the title rises in, the button follows. */
+/* Welcome screen, "paper and ink": one big serif line and one solid button. It follows the theme like the
+   questions after it: paper with black ink in light mode, the dark page with light ink in dark mode (the
+   button is always the ink colour on the page colour). The title rises in, the button follows. */
 .onboarding-welcome {
   position: relative;
   display: flex;
   align-items: center;
   min-height: 100vh;
   padding: 72px clamp(24px, 8vw, 96px);
-  background: #f4efe4;
-  color: #16181c;
+  background: var(--bg);
+  color: var(--ink);
 }
 
 .welcome-corner {
@@ -4745,25 +4749,20 @@ main [id] {
   gap: 6px;
 }
 
-.onboarding-welcome .onboarding-close {
-  color: #5d5a52;
-}
-
 .onboarding-welcome .onboarding-close:hover {
-  color: #16181c;
-  background: rgba(22, 24, 28, 0.08);
+  background: var(--line);
 }
 
 .welcome-signin {
   padding: 6px 10px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #5d5a52;
+  color: var(--muted);
   text-decoration: none;
 }
 
 .welcome-signin:hover {
-  color: #16181c;
+  color: var(--ink);
 }
 
 .welcome-card {
@@ -4783,7 +4782,7 @@ main [id] {
   font-size: clamp(3rem, 9vw, 6.5rem);
   line-height: 0.98;
   letter-spacing: -0.025em;
-  color: #16181c;
+  color: var(--ink);
   animation: rise 0.9s var(--ease-out) both;
 }
 
@@ -4794,8 +4793,8 @@ main [id] {
   padding: 16px 28px;
   border: none;
   border-radius: 10px;
-  background: #16181c;
-  color: #f4efe4;
+  background: var(--ink);
+  color: var(--bg);
   font: inherit;
   font-size: 1.1rem;
   font-weight: 600;
@@ -4809,7 +4808,8 @@ main [id] {
 }
 
 .welcome-start:hover {
-  background: #2a55c7;
+  background: var(--accent);
+  color: var(--brand-on-blue);
 }
 
 .welcome-start:hover svg {
@@ -4821,6 +4821,191 @@ main [id] {
 }
 
 .welcome-start:focus-visible {
-  outline: 3px solid #2a55c7;
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
+}
+
+/* The tutorial's only control besides the cards: a big ✕ in the top-left corner (no header, no "Exit"). */
+.tutorial-close {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.tutorial-close:hover {
+  color: var(--ink);
+  background: var(--line);
+}
+
+/* Without the header above it, the tutorial's card needs its own room at the top. */
+.practice.tutorial {
+  padding-top: 72px;
+}
+
+/* Practice cards (instructions, overview, walkthrough) one size up, text included (2026-10-08). */
+.info,
+.learn-wrap {
+  max-width: 600px;
+}
+
+.info {
+  min-height: 430px;
+  padding: 36px 32px;
+}
+
+.learn-card {
+  min-height: 430px;
+  padding: 32px;
+}
+
+.info h2 {
+  font-size: 2rem;
+}
+
+.instructions,
+.learn-text {
+  max-width: 460px;
+  font-size: 1.15rem;
+}
+
+.big {
+  font-size: 2.7rem;
+}
+
+.big.sentence {
+  font-size: 1.9rem;
+  max-width: 460px;
+}
+
+.sub {
+  font-size: 1.3rem;
+}
+
+.cue {
+  max-width: 440px;
+  font-size: 1.25rem;
+}
+
+.hint {
+  font-size: 0.95rem;
+}
+
+/* Thought bubble beside the card on wide screens (2026-10-08): bigger, to the right of the walkthrough card
+   and vertically centred on it, with its tail of small bubbles pointing back at the card. The card no
+   longer needs headroom above it. Narrower screens keep the bubble above the card, a little bigger. */
+@media (min-width: 1100px) {
+  .learn-wrap.has-bubble {
+    margin-top: 0;
+  }
+
+  .bubble,
+  .bubble-left,
+  .bubble-right {
+    top: 50%;
+    left: calc(100% + 48px);
+    right: auto;
+    width: 300px;
+    height: 216px;
+    margin-top: -108px;
+  }
+
+  .bubble svg {
+    width: 220px;
+    height: 165px;
+  }
+
+  .bubble::before,
+  .bubble-left::before,
+  .bubble-right::before {
+    width: 26px;
+    height: 26px;
+    left: -30px;
+    right: auto;
+    top: 62%;
+    bottom: auto;
+  }
+
+  .bubble::after,
+  .bubble-left::after,
+  .bubble-right::after {
+    width: 14px;
+    height: 14px;
+    left: -50px;
+    right: auto;
+    top: 70%;
+    bottom: auto;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 1099px) {
+  .bubble {
+    width: 230px;
+    height: 164px;
+    top: -146px;
+  }
+
+  .bubble svg {
+    width: 160px;
+    height: 120px;
+  }
+
+  .learn-wrap.has-bubble {
+    margin-top: 140px;
+  }
+}
+
+/* The introduction's tutorial doesn't scroll: everything fits on one screen, cards shrink on short ones. */
+/* (The test results can be long, so they scroll: `locked` is left off there.) */
+html:has(.practice.locked),
+html:has(.practice.locked) body {
+  overflow: hidden;
+  height: 100%;
+}
+
+.practice.tutorial .learn-card {
+  min-height: min(430px, 50vh);
+}
+
+.practice.tutorial .info {
+  min-height: min(430px, 62vh);
+}
+
+/* While a study bar is at the bottom (revision, test), the Instructions button sits above it instead of
+   behind it, just as visible as in the walkthrough. */
+.practice:has(.study-bar) .help-btn {
+  bottom: 84px;
+}
+
+/* Guided practice revision and test (2026-10-08): a real card like the walkthrough's, the country's flag
+   with the answer, and big Again (red) / Got it (green) buttons; the bar has no tools or shortcuts list. */
+.study-card.boxed {
+  max-width: 600px;
+  min-height: min(430px, 52vh);
+  justify-content: center;
+  gap: 14px;
+  padding: 32px;
+  margin-top: 8px;
+}
+
+.answer-flag {
+  width: 150px;
+  height: auto;
+  padding: 6px 8px 2px;
+  border-radius: 14px;
+  background: #fffaf2;
+}
+
+.study-bar .btn.grade-big {
+  min-width: 170px;
+  padding: 15px 34px;
+  font-size: 1.15rem;
+  border-radius: 999px;
 }

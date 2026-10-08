@@ -411,7 +411,7 @@ export const en = {
     testText: "Recall each answer, show it to check, then be honest!",
     number: "No. {n}",
     missedIt: "Missed it",
-    knewIt: "Knew it",
+    knewIt: "Got it",
 
     resultsTitle: "Test results",
     resultsText: "Here's how many you remembered.",

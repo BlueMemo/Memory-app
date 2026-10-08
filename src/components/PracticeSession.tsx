@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { useEffect, useEffectEvent, useMemo, useRef, useReducer, useState, type MouseEvent, type ReactNode } from "react";
 import { useI18n } from "@/i18n";
@@ -16,11 +17,12 @@ import {
   type SessionState,
   type Step,
 } from "@/lib/practice";
-import { TUTORIAL_DECK_ID, useOnboarding } from "@/lib/onboarding";
+import { setOnboarding, TUTORIAL_DECK_ID, useOnboarding } from "@/lib/onboarding";
 import { recordPracticeResult } from "@/lib/practiceResults";
 import { renderBold, renderCapsHighlight } from "@/lib/rich-text";
 import type { Card, Deck } from "@/lib/types";
 import { CardDialog } from "./CardForm";
+import { Flag } from "./Flag";
 import { ThoughtBubble } from "./Illustration";
 
 /** How long learners get to invent their own object before a suggestion is offered. */
@@ -35,7 +37,9 @@ type StudyT = Dict["study"];
  * object), or there is none, it's the answer's first letter instead.
  */
 export function memoryHint(deck: Deck, card: Card, test: boolean, t: StudyT): ReactNode {
-  const firstLetter = (word: string) => fill(t.firstLetter, { letter: word.trim().charAt(0).toUpperCase() });
+  // The first letter of the object itself, past any article: "The Big Bang" → B, "A football" → F.
+  const firstLetter = (word: string) =>
+    fill(t.firstLetter, { letter: word.trim().replace(/^(a|an|the|en|ett)\s+/i, "").charAt(0).toUpperCase() });
   if (test) {
     if (card.object) return card.object;
     if (card.visualization) return renderCapsHighlight(card.visualization);
@@ -164,18 +168,42 @@ export function PracticeSession({ deck }: { deck: Deck }) {
   }, []);
 
   const header = headerFor(state, ordered, t);
+  const revisionPhase = state.phase === "revision" || state.phase === "roundSummary" || state.phase === "mastered";
   const inFlow = state.phase !== "intro";
+  // The introduction's tutorial (/start): no site header (SiteHeader hides it), just a big ✕ in the corner.
+  const onboarding = useOnboarding();
+  const tutorial = onboarding.tutorialPending && deck.id === TUTORIAL_DECK_ID;
 
   return (
-    <main className="practice">
-      <div className="practice-top">
-        <Link href={`/decks/${deck.id}`} className="exit-btn">
-          {t.exit}
+    <main className={`practice${tutorial ? " tutorial" : ""}${tutorial && state.phase !== "results" ? " locked" : ""}`}>
+      {/* Whenever the instructions are on screen (the first card, or opened with the Instructions button),
+          they're the only thing there: no ✕ / Exit. */}
+      {showInstructions || state.phase === "intro" ? null : tutorial ? (
+        <Link
+          href="/"
+          className="tutorial-close"
+          aria-label={dict.onboarding.close}
+          title={dict.onboarding.close}
+          onClick={() => setOnboarding({ tutorialPending: false, completedAt: new Date().toISOString() })}
+        >
+          <X size={26} weight="bold" aria-hidden="true" />
         </Link>
-      </div>
+      ) : (
+        <div className="practice-top">
+          <Link href={`/decks/${deck.id}`} className="exit-btn">
+            {t.exit}
+          </Link>
+        </div>
+      )}
 
       {showInstructions && (
-        <InstructionsCard deck={deck} t={t} hint={t.clickToGoBack} onClick={() => setShowInstructions(false)} />
+        <InstructionsCard
+          deck={deck}
+          t={t}
+          hint={t.clickToGoBack}
+          onClick={() => setShowInstructions(false)}
+          revising={state.phase === "revision" || state.phase === "roundSummary" || state.phase === "mastered"}
+        />
       )}
 
       <div className="practice-main" style={showInstructions ? { display: "none" } : undefined}>
@@ -183,8 +211,9 @@ export function PracticeSession({ deck }: { deck: Deck }) {
           <header className={`practice-header${studying ? " compact" : ""}`}>
             {header.badge && <span className="badge">{header.badge}</span>}
             {/* While answering cards, only the badge and progress show: the card itself is the focus. */}
-            {!studying && <h1>{header.title}</h1>}
-            {!studying && <p>{header.text}</p>}
+            {/* While revising (cards, round summaries, "All remembered") only the badge: the screen says the rest. */}
+            {!studying && !revisionPhase && <h1>{header.title}</h1>}
+            {!studying && !revisionPhase && <p>{header.text}</p>}
           </header>
         )}
         {inFlow && <Progress deck={deck} state={state} steps={steps} />}
@@ -253,10 +282,12 @@ export function PracticeSession({ deck }: { deck: Deck }) {
               flipped={state.flipped}
               onFlip={() => dispatch({ type: "flip" })}
               showHint={hintFor === cardKey}
+              boxed
               t={t}
             />
             <StudyBar
               t={dict.study}
+              minimal
               canUndo={history.length > 0}
               onUndo={undo}
               onAdd={() => setDialog("add")}
@@ -276,10 +307,10 @@ export function PracticeSession({ deck }: { deck: Deck }) {
             >
               {state.flipped ? (
                 <>
-                  <button className="btn again" onClick={() => grade("again")}>
+                  <button className="btn srs-again grade-big" onClick={() => grade("again")}>
                     {state.phase === "test" ? t.missedIt : t.again}
                   </button>
-                  <button className="btn good" onClick={() => grade("known")}>
+                  <button className="btn srs-good grade-big" onClick={() => grade("known")}>
                     {state.phase === "test" ? t.knewIt : t.gotIt}
                   </button>
                 </>
@@ -332,9 +363,6 @@ export function PracticeSession({ deck }: { deck: Deck }) {
                   {t.takeTest}
                 </button>
               </div>
-              <button className="link-button" onClick={() => dispatch({ type: "startWalkthrough" })}>
-                {t.restart}
-              </button>
             </div>
           </section>
         )}
@@ -409,15 +437,20 @@ function Progress({ deck, state, steps }: { deck: Deck; state: SessionState; ste
   );
 }
 
-function InstructionsCard({ deck, t, hint, onClick }: { deck: Deck; t: T; hint: string; onClick: () => void }) {
+/**
+ * The instructions: how the technique works, or, once revising, how revision works (the same text as the
+ * card shown before the first revision round).
+ */
+function InstructionsCard({ deck, t, hint, onClick, revising = false }: { deck: Deck; t: T; hint: string; onClick: () => void; revising?: boolean }) {
+  const paragraphs = revising ? [deck.kind === "ordered" ? t.reviseBodyOrdered : t.reviseBodyUnordered] : deck.instructions;
   return (
     <div className="info-wrap">
       {/* Space/Enter are handled by the session's keyboard listener. */}
       <div className="info face deal" role="button" tabIndex={0} onClick={onClick}>
-        <span className="badge">{t.instructionsBadge}</span>
-        <h2>{t.instructionsTitle}</h2>
+        <span className="badge">{revising ? t.reviseBadge : t.instructionsBadge}</span>
+        <h2>{revising ? t.reviseTitle : t.instructionsTitle}</h2>
         <div className="instructions">
-          {deck.instructions.map((p, i) => (
+          {paragraphs.map((p, i) => (
             <p key={i}>{renderBold(p)}</p>
           ))}
         </div>
@@ -469,7 +502,8 @@ function WalkStep({ deck, step, t }: { deck: Deck; step: Step; t: T }) {
             <p className="big">{t.ownObject}</p>
             <CardImage src={card.answerImage} />
             <p className="learn-text muted">
-              {fill(ordered ? t.ownObjectOrdered : t.ownObjectUnordered, { answer: card.answer })}
+              {/* The answer in bold, so it's clear what's to be remembered (e.g. "Ethiopia"). */}
+              {renderBold(fill(ordered ? t.ownObjectOrdered : t.ownObjectUnordered, { answer: `**${card.answer}**` }))}
             </p>
             {card.suggestion && <SuggestionReveal suggestion={card.suggestion} t={t} />}
           </>
@@ -576,6 +610,8 @@ export function FlipCard(props: {
   frontExtra?: ReactNode;
   /** Shown above the answer once revealed (the verdict on what was typed). */
   backExtra?: ReactNode;
+  /** A real card (the guided practice), like the walkthrough's, instead of the bare study layout. */
+  boxed?: boolean;
   t: T;
 }) {
   const { deck, card, position: n, test, flipped, onFlip, t } = props;
@@ -621,7 +657,7 @@ export function FlipCard(props: {
   // the session's keyboard listener). "Show answer", hint and grading live in the StudyBar below.
   return (
     <div
-      className={`study-card deal${flipped ? " revealed" : ""}`}
+      className={`study-card deal${flipped ? " revealed" : ""}${props.boxed ? " boxed face learn-card" : ""}`}
       role={flipped || props.typed ? undefined : "button"}
       tabIndex={flipped || props.typed ? undefined : 0}
       aria-label={flipped || props.typed ? undefined : t.clickToFlip}
@@ -639,6 +675,7 @@ export function FlipCard(props: {
       {flipped && (
         <div className="study-answer" aria-live="polite">
           {props.backExtra}
+          {card.flag && <Flag code={card.flag} className="answer-flag" />}
           <p className={`study-text answer${back.titleClass ? ` ${back.titleClass}` : ""}`}>{back.title}</p>
           <CardImage src={back.image} />
           {back.sub && <p className="sub">{back.sub}</p>}
@@ -667,6 +704,8 @@ export function StudyBar(props: {
   shortcuts: [key: string, action: string][];
   shortcutsOpen: boolean;
   onToggleShortcuts: () => void;
+  /** Only the main buttons: no undo/add/edit tools or shortcuts list (the guided practice; keys still work). */
+  minimal?: boolean;
 }) {
   const { t } = props;
   // The focused button often disappears (Show answer turns into the grade buttons, grading moves on to the
@@ -680,7 +719,7 @@ export function StudyBar(props: {
   });
   return (
     <div className="study-bar" onMouseDown={noMouseFocus}>
-      {props.shortcutsOpen && (
+      {props.shortcutsOpen && !props.minimal && (
         <div className="shortcuts-panel" role="dialog" aria-label={t.shortcuts}>
           <dl>
             {props.shortcuts.map(([key, action]) => (
@@ -706,6 +745,7 @@ export function StudyBar(props: {
         >
           {props.children}
         </div>
+        {!props.minimal && (
         <div className="study-bar-tools">
           <button type="button" disabled={!props.canUndo} onClick={props.onUndo}>
             {t.undo}
@@ -725,6 +765,7 @@ export function StudyBar(props: {
             {t.shortcuts} <kbd>?</kbd>
           </button>
         </div>
+        )}
       </div>
     </div>
   );
