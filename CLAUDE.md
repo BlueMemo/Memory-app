@@ -57,6 +57,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   300×216, tail pointing at the card; narrower: above it, a bit bigger). The **tutorial doesn't scroll**
   (`html:has(.practice.tutorial)` hides overflow; its cards shrink on short screens to fit). While the
   instructions are on screen (the first card or opened with the button), neither the ✕ nor Exit is shown.
+  While revising, the Instructions button opens the **revision** instructions (the "Time to revise" card's
+  text) instead of the technique ones, and it sits above the study bar (it used to hide behind it).
 - **Theme follows the device by default (2026-10-08, branch `feature/welcome-theme`)**: the default theme is
   now "system" (was dark, the 2026-10-05 brand decision): light devices get paper and ink, dark devices the
   charcoal dark. `THEME_SCRIPT` treats no saved theme as "system". Caveat: `setPreferences` saves every

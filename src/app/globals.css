@@ -4976,3 +4976,9 @@ html:has(.practice.tutorial) body {
 .practice.tutorial .info {
   min-height: min(430px, 62vh);
 }
+
+/* While a study bar is at the bottom (revision, test), the Instructions button sits above it instead of
+   behind it, just as visible as in the walkthrough. */
+.practice:has(.study-bar) .help-btn {
+  bottom: 84px;
+}

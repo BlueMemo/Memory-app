@@ -193,7 +193,13 @@ export function PracticeSession({ deck }: { deck: Deck }) {
       )}
 
       {showInstructions && (
-        <InstructionsCard deck={deck} t={t} hint={t.clickToGoBack} onClick={() => setShowInstructions(false)} />
+        <InstructionsCard
+          deck={deck}
+          t={t}
+          hint={t.clickToGoBack}
+          onClick={() => setShowInstructions(false)}
+          revising={state.phase === "revision" || state.phase === "roundSummary" || state.phase === "mastered"}
+        />
       )}
 
       <div className="practice-main" style={showInstructions ? { display: "none" } : undefined}>
@@ -427,15 +433,20 @@ function Progress({ deck, state, steps }: { deck: Deck; state: SessionState; ste
   );
 }
 
-function InstructionsCard({ deck, t, hint, onClick }: { deck: Deck; t: T; hint: string; onClick: () => void }) {
+/**
+ * The instructions: how the technique works, or, once revising, how revision works (the same text as the
+ * card shown before the first revision round).
+ */
+function InstructionsCard({ deck, t, hint, onClick, revising = false }: { deck: Deck; t: T; hint: string; onClick: () => void; revising?: boolean }) {
+  const paragraphs = revising ? [deck.kind === "ordered" ? t.reviseBodyOrdered : t.reviseBodyUnordered] : deck.instructions;
   return (
     <div className="info-wrap">
       {/* Space/Enter are handled by the session's keyboard listener. */}
       <div className="info face deal" role="button" tabIndex={0} onClick={onClick}>
-        <span className="badge">{t.instructionsBadge}</span>
-        <h2>{t.instructionsTitle}</h2>
+        <span className="badge">{revising ? t.reviseBadge : t.instructionsBadge}</span>
+        <h2>{revising ? t.reviseTitle : t.instructionsTitle}</h2>
         <div className="instructions">
-          {deck.instructions.map((p, i) => (
+          {paragraphs.map((p, i) => (
             <p key={i}>{renderBold(p)}</p>
           ))}
         </div>
