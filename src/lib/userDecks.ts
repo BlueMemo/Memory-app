@@ -70,6 +70,7 @@ interface DeckRow {
   order_label: string | null;
   instructions: unknown;
   cards: unknown;
+  created_at?: string;
 }
 
 function rowToDeck(row: DeckRow): Deck {
@@ -82,6 +83,7 @@ function rowToDeck(row: DeckRow): Deck {
     ...(row.order_label ? { orderLabel: row.order_label } : {}),
     instructions: Array.isArray(row.instructions) ? (row.instructions as string[]) : [],
     cards: Array.isArray(row.cards) ? (row.cards as Card[]) : [],
+    ...(row.created_at ? { createdAt: row.created_at } : {}),
   };
 }
 
@@ -154,7 +156,8 @@ export async function addUserDeck(deck: Deck) {
       return;
     }
   }
-  writeLocalDecks([deck, ...readLocalDecks()]);
+  // Guests have no created_at column, so the date is kept on the deck itself.
+  writeLocalDecks([{ ...deck, createdAt: deck.createdAt ?? new Date().toISOString() }, ...readLocalDecks()]);
 }
 
 export async function updateUserDeck(deck: Deck) {
@@ -166,7 +169,8 @@ export async function updateUserDeck(deck: Deck) {
       return;
     }
   }
-  writeLocalDecks(readLocalDecks().map((d) => (d.id === deck.id ? deck : d)));
+  // Edits keep the deck's creation date (the editor builds a fresh deck object without it).
+  writeLocalDecks(readLocalDecks().map((d) => (d.id === deck.id ? { ...deck, createdAt: deck.createdAt ?? d.createdAt } : d)));
 }
 
 export async function deleteUserDeck(id: string) {

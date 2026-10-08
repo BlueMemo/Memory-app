@@ -5094,4 +5094,9 @@ html:has(.practice.locked) body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+/* Sign-up: the chosen (or generated) picture beside a button that opens the picture grid. */
+.signup-avatar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }

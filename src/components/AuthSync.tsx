@@ -9,7 +9,8 @@ import { setActiveUserForPracticeResults } from "@/lib/practiceResults";
 import { maybeAutoOptimize } from "@/lib/srs/optimize";
 import { setActiveUserForSrs, useSrsData, useSrsStatus } from "@/lib/srs/store";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useUser } from "@/lib/supabase/useUser";
+import { applySignupAvatar } from "@/lib/supabase/profiles";
+import { notifyProfileChanged, useUser } from "@/lib/supabase/useUser";
 import { setActiveUserForDecks } from "@/lib/userDecks";
 
 /** Mounted once in SiteHeader: the single place that tells the data layer who's signed in. */
@@ -25,6 +26,8 @@ export function AuthSync() {
     setActiveUserForSrs(id);
     setActiveUserForDeckOverrides(id);
     void setActiveUserForOnboarding(id);
+    // A picture chosen while signing up goes onto the profile at the first sign-in.
+    if (user) void applySignupAvatar(user).then((applied) => applied && notifyProfileChanged());
   }, [user, loading]);
 
   // Background FSRS re-optimisation once the signed-in user's SRS data has loaded (it rate-limits itself).
