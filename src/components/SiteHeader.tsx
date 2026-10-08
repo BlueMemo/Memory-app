@@ -10,6 +10,7 @@ import { fill } from "@/lib/practice";
 import { watchSystemTheme } from "@/lib/preferences";
 import { deckCounts } from "@/lib/srs/core";
 import { isDeckEnabled, useSrsData } from "@/lib/srs/store";
+import { TUTORIAL_DECK_ID, useOnboarding } from "@/lib/onboarding";
 import { useUser } from "@/lib/supabase/useUser";
 import { useNow } from "@/lib/useNow";
 import { AuthSync } from "./AuthSync";
@@ -64,6 +65,9 @@ function DueBadge({ label }: { label: string }) {
 export function SiteHeader() {
   const { lang, t, setLang } = useI18n();
   const pathname = usePathname();
+  // The introduction's tutorial (the 10 countries practice started from /start) hides the header too.
+  const onboarding = useOnboarding();
+  const inTutorial = onboarding.tutorialPending && pathname === `/decks/${TUTORIAL_DECK_ID}/practice`;
   useEffect(() => watchSystemTheme(), []);
 
   // Deck pages are reached from Discover or from the learner's own Library; user-created decks
@@ -89,7 +93,7 @@ export function SiteHeader() {
   };
 
   // The introduction (/start) is a focused, full-page flow: no tabs, only its own close button.
-  if (pathname === "/start") return <AuthSync />;
+  if (pathname === "/start" || inTutorial) return <AuthSync />;
 
   return (
     <header className="site-header">

@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { useEffect, useEffectEvent, useMemo, useRef, useReducer, useState, type MouseEvent, type ReactNode } from "react";
 import { useI18n } from "@/i18n";
@@ -16,7 +17,7 @@ import {
   type SessionState,
   type Step,
 } from "@/lib/practice";
-import { TUTORIAL_DECK_ID, useOnboarding } from "@/lib/onboarding";
+import { setOnboarding, TUTORIAL_DECK_ID, useOnboarding } from "@/lib/onboarding";
 import { recordPracticeResult } from "@/lib/practiceResults";
 import { renderBold, renderCapsHighlight } from "@/lib/rich-text";
 import type { Card, Deck } from "@/lib/types";
@@ -165,14 +166,29 @@ export function PracticeSession({ deck }: { deck: Deck }) {
 
   const header = headerFor(state, ordered, t);
   const inFlow = state.phase !== "intro";
+  // The introduction's tutorial (/start): no site header (SiteHeader hides it), just a big ✕ in the corner.
+  const onboarding = useOnboarding();
+  const tutorial = onboarding.tutorialPending && deck.id === TUTORIAL_DECK_ID;
 
   return (
     <main className="practice">
-      <div className="practice-top">
-        <Link href={`/decks/${deck.id}`} className="exit-btn">
-          {t.exit}
+      {tutorial ? (
+        <Link
+          href="/"
+          className="tutorial-close"
+          aria-label={dict.onboarding.close}
+          title={dict.onboarding.close}
+          onClick={() => setOnboarding({ tutorialPending: false, completedAt: new Date().toISOString() })}
+        >
+          <X size={26} weight="bold" aria-hidden="true" />
         </Link>
-      </div>
+      ) : (
+        <div className="practice-top">
+          <Link href={`/decks/${deck.id}`} className="exit-btn">
+            {t.exit}
+          </Link>
+        </div>
+      )}
 
       {showInstructions && (
         <InstructionsCard deck={deck} t={t} hint={t.clickToGoBack} onClick={() => setShowInstructions(false)} />

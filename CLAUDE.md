@@ -48,6 +48,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Tutorial without header, bigger practice cards (2026-10-08, branch `feature/welcome-theme`)**: when the 10
+  countries practice runs as the introduction's tutorial (`tutorialPending`), the site header is hidden
+  (`SiteHeader`) and "Exit" is replaced by a big ✕ fixed in the top-left corner (`.tutorial-close`, goes
+  home and marks the introduction done). Normal practice keeps the header and Exit. The practice cards
+  (instructions, overview, walkthrough) are one size up: 600px wide, taller, and larger text.
 - **Theme follows the device by default (2026-10-08, branch `feature/welcome-theme`)**: the default theme is
   now "system" (was dark, the 2026-10-05 brand decision): light devices get paper and ink, dark devices the
   charcoal dark. `THEME_SCRIPT` treats no saved theme as "system". Caveat: `setPreferences` saves every

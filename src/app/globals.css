@@ -4821,3 +4821,76 @@ main [id] {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
+
+/* The tutorial's only control besides the cards: a big ✕ in the top-left corner (no header, no "Exit"). */
+.tutorial-close {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.tutorial-close:hover {
+  color: var(--ink);
+  background: var(--line);
+}
+
+/* Without the header above it, the tutorial's card needs its own room at the top. */
+.practice:has(> .tutorial-close) {
+  padding-top: 72px;
+}
+
+/* Practice cards (instructions, overview, walkthrough) one size up, text included (2026-10-08). */
+.info,
+.learn-wrap {
+  max-width: 600px;
+}
+
+.info {
+  min-height: 430px;
+  padding: 36px 32px;
+}
+
+.learn-card {
+  min-height: 430px;
+  padding: 32px;
+}
+
+.info h2 {
+  font-size: 2rem;
+}
+
+.instructions,
+.learn-text {
+  max-width: 460px;
+  font-size: 1.15rem;
+}
+
+.big {
+  font-size: 2.7rem;
+}
+
+.big.sentence {
+  font-size: 1.9rem;
+  max-width: 460px;
+}
+
+.sub {
+  font-size: 1.3rem;
+}
+
+.cue {
+  max-width: 440px;
+  font-size: 1.25rem;
+}
+
+.hint {
+  font-size: 0.95rem;
+}
