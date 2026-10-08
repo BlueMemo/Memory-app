@@ -48,6 +48,11 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **A created date on every card (2026-10-09, branch `feature/card-created-dates`)**: cards without their own
+  `createdAt` (made before 2026-10-05, e.g. early imports) show the **deck's** date in Browse and the card
+  browser (and sort by it): `Deck.createdAt`, from the `decks.created_at` column for accounts (always set)
+  and stamped on creation for guests (kept through edits). Guest decks made before today and official/saved
+  decks have no deck date, so those still show "–".
 - **Profile picture at sign-up (2026-10-08, branch `feature/signup-avatar`)**: the create-account form has a
   "Profile picture" field: a preview (the generated default until one is picked) and "Choose a picture",
   which opens the 25 ready-made pictures. The choice travels as user metadata `avatar` (no session exists
