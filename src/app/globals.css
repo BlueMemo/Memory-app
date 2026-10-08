@@ -1053,19 +1053,22 @@ ul.overview-list {
   left: 16px;
   bottom: 16px;
   z-index: 10;
-  font-size: 0.85rem;
+  /* Easy to spot (2026-10-08): bigger, brand-blue outline and text on a tinted fill. */
+  font-size: 1rem;
   font-weight: 600;
-  padding: 8px 14px;
+  padding: 11px 20px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--ink);
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
   box-shadow: var(--shadow);
   cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
 }
 
 .help-btn:hover {
-  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--brand-on-blue);
 }
 
 /* Summaries and results */
