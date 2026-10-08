@@ -486,7 +486,8 @@ function WalkStep({ deck, step, t }: { deck: Deck; step: Step; t: T }) {
             <p className="big">{t.ownObject}</p>
             <CardImage src={card.answerImage} />
             <p className="learn-text muted">
-              {fill(ordered ? t.ownObjectOrdered : t.ownObjectUnordered, { answer: card.answer })}
+              {/* The answer in bold, so it's clear what's to be remembered (e.g. "Ethiopia"). */}
+              {renderBold(fill(ordered ? t.ownObjectOrdered : t.ownObjectUnordered, { answer: `**${card.answer}**` }))}
             </p>
             {card.suggestion && <SuggestionReveal suggestion={card.suggestion} t={t} />}
           </>
