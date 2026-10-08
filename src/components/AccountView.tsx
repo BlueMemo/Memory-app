@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useI18n } from "@/i18n";
 import type { Dict } from "@/i18n/en";
+import { PRESET_AVATARS, presetAvatarValue } from "@/lib/avatars";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { checkUsername, isValidUsername } from "@/lib/supabase/profiles";
 import { useUser } from "@/lib/supabase/useUser";
 import { AccountDashboard } from "./AccountDashboard";
+import { Avatar } from "./Avatar";
 import { renderLegal } from "./LegalView";
 import { LanguageSwitch } from "./OnboardingView";
 
@@ -77,6 +79,9 @@ function SignedOut({ t, startWithSignUp }: { t: T; startWithSignUp: boolean }) {
   const [mode, setMode] = useState<Mode>(startWithSignUp ? "signUp" : "signIn");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  // A ready-made profile picture, chosen while signing up (null: one is picked from the user id later).
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [pickingAvatar, setPickingAvatar] = useState(false);
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<Status>(null);
@@ -114,7 +119,9 @@ function SignedOut({ t, startWithSignUp }: { t: T; startWithSignUp: boolean }) {
       password,
       options: {
         // lang picks the language of account emails (supabase/email-templates).
-        data: { username, lang },
+        // The picture is stored on the profile at the first sign-in (there's no session before the email is
+        // confirmed), see applySignupAvatar in AuthSync.
+        data: { username, lang, ...(avatar ? { avatar } : {}) },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`,
       },
     });
@@ -212,6 +219,36 @@ function SignedOut({ t, startWithSignUp }: { t: T; startWithSignUp: boolean }) {
               onChange={(e) => setUsername(e.target.value)}
               placeholder={t.usernamePlaceholder}
             />
+          </div>
+        )}
+        {mode === "signUp" && (
+          <div className="field">
+            <span className="field-heading">{t.avatarLabel}</span>
+            <div className="signup-avatar">
+              <Avatar url={avatar} name={null} size={56} seed={username || "bluememo"} />
+              <button type="button" className="btn nav small" aria-expanded={pickingAvatar} onClick={() => setPickingAvatar((p) => !p)}>
+                {avatar ? t.avatarChange : t.avatarChoose}
+              </button>
+            </div>
+            {pickingAvatar && (
+              <div className="avatar-picker" role="group" aria-label={t.avatarLabel}>
+                {PRESET_AVATARS.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    className={avatar === presetAvatarValue(a.id) ? "selected" : undefined}
+                    aria-pressed={avatar === presetAvatarValue(a.id)}
+                    aria-label={a.id}
+                    onClick={() => {
+                      setAvatar(presetAvatarValue(a.id));
+                      setPickingAvatar(false);
+                    }}
+                  >
+                    <Avatar url={presetAvatarValue(a.id)} name={null} size={44} />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
         <div className="field">
