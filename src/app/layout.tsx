@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/og/meta";
 import { SiteAnalytics } from "@/components/SiteAnalytics";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -18,6 +18,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// The introduction's welcome page ("paper and ink") sets its title in this serif. Not preloaded, so the
+// rest of the site (all Geist) doesn't download it.
+const newsreader = Newsreader({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  axes: ["opsz"],
+  preload: false,
+});
+
 export const metadata: Metadata = {
   // Makes the link-preview image and URLs absolute, which WhatsApp, Instagram and the rest require.
   metadataBase: new URL(SITE_URL),
@@ -28,12 +37,12 @@ export const metadata: Metadata = {
 };
 
 // Matches the dark-first background, so mobile browser bars blend in.
-export const viewport: Viewport = { themeColor: "#0d0f12" };
+export const viewport: Viewport = { themeColor: "#15181d" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // The theme script sets data-* attributes on <html> before React hydrates, hence suppressHydrationWarning.
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

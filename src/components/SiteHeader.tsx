@@ -88,6 +88,9 @@ export function SiteHeader() {
     main.focus();
   };
 
+  // The introduction (/start) is a focused, full-page flow: no tabs, only its own close button.
+  if (pathname === "/start") return <AuthSync />;
+
   return (
     <header className="site-header">
       <a href="#main" className="skip-link" onClick={skipToContent}>

@@ -2,14 +2,15 @@
   /* Dark-first (brand decision 2026-10-05), cool neutrals and one brand blue, no other brand colour.
      Shape rule (taste redesign 2026-10-07): buttons, tags and switches are pills; surfaces (cards,
      tiles, panels) use --radius-surface; form fields use --radius-field. */
-  --bg: #0d0f12;
-  --card: #15181d;
-  --surface-2: #1b1f25;
+  /* Dark lifted a little (2026-10-08): a soft charcoal rather than near-black. */
+  --bg: #15181d;
+  --card: #1c2026;
+  --surface-2: #23282f;
   --ink: #eceef1;
-  --muted: #9ba2ac;
-  --line: #252a31;
+  --muted: #a0a7b1;
+  --line: #2d333b;
   --brand-blue: #6f9cff;
-  --brand-on-blue: #0d0f12;
+  --brand-on-blue: #15181d;
   --radius-surface: 16px;
   --radius-field: 10px;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -17,7 +18,7 @@
   --accent-soft: rgba(111, 156, 255, 0.14);
   --good: #4cc185;
   --again: #e5a94a;
-  --shadow: 0 12px 32px rgba(3, 6, 12, 0.5);
+  --shadow: 0 12px 32px rgba(3, 6, 12, 0.4);
   /* Review answer and count colours: again red, hard orange, good green, easy/new blue. The plain tokens fill
      buttons (white text on them reads at 4.5:1 or more); the -text ones are for coloured text on the page. */
   --srs-again: #dc2626;
@@ -32,18 +33,19 @@
 }
 
 :root[data-theme="light"] {
-  --bg: #f5f6f8;
-  --card: #ffffff;
-  --surface-2: #eceef2;
-  --ink: #11141a;
-  --muted: #5b626c;
-  --line: #e2e5ea;
+  /* Light mode is "paper and ink" (2026-10-08): the welcome page's warm paper white, ink-black text. */
+  --bg: #f4efe4;
+  --card: #fbf8f1;
+  --surface-2: #ece5d6;
+  --ink: #16181c;
+  --muted: #5d5a52;
+  --line: #e2dccd;
   --brand-blue: #2a55c7;
   --brand-on-blue: #ffffff;
   --accent-soft: rgba(42, 85, 199, 0.1);
   --good: #2f8f5b;
   --again: #c0842a;
-  --shadow: 0 12px 32px rgba(17, 24, 39, 0.08);
+  --shadow: 0 12px 32px rgba(60, 45, 20, 0.08);
   --srs-again: #dc2626;
   --srs-hard: #b45309;
   --srs-good: #15803d;
@@ -2454,6 +2456,11 @@ ul.overview-list {
   overflow: hidden;
 }
 
+/* On paper (light mode) the plate is warm too, so it doesn't read as a grey box. */
+:root[data-theme="light"] .route-plate {
+  background: #ece5d6;
+}
+
 .route-drawing {
   width: 78%;
   height: auto;
@@ -4498,7 +4505,7 @@ main [id] {
 .page.onboarding {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 140px);
+  min-height: 100vh;
   padding-top: 20px;
 }
 
@@ -4700,14 +4707,120 @@ main [id] {
   margin-top: 16px;
 }
 
-.onboarding-skip {
+/* The only way out of the introduction (the site's header is hidden on /start). */
+.onboarding-close {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
   color: var(--muted);
   text-decoration: none;
 }
 
-.onboarding-skip:hover {
+.onboarding-close:hover {
   color: var(--ink);
+  background: var(--line);
+}
+
+/* Welcome screen, "paper and ink": a light paper page in both themes (on purpose, like a book cover), one
+   big black serif line and a black button; the title rises in, the button follows. */
+.onboarding-welcome {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  padding: 72px clamp(24px, 8vw, 96px);
+  background: #f4efe4;
+  color: #16181c;
+}
+
+.welcome-corner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.onboarding-welcome .onboarding-close {
+  color: #5d5a52;
+}
+
+.onboarding-welcome .onboarding-close:hover {
+  color: #16181c;
+  background: rgba(22, 24, 28, 0.08);
+}
+
+.welcome-signin {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5d5a52;
+  text-decoration: none;
+}
+
+.welcome-signin:hover {
+  color: #16181c;
+}
+
+.welcome-card {
+  display: grid;
+  justify-items: start;
+  gap: 36px;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.welcome-title {
+  margin: 0;
+  max-width: 11ch;
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  font-size: clamp(3rem, 9vw, 6.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  color: #16181c;
+  animation: rise 0.9s var(--ease-out) both;
+}
+
+.welcome-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 28px;
+  border: none;
+  border-radius: 10px;
+  background: #16181c;
+  color: #f4efe4;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  animation: rise 0.9s var(--ease-out) 0.18s both;
+  transition: transform 0.15s var(--ease-out), background-color 0.15s;
+}
+
+.welcome-start svg {
+  transition: transform 0.2s var(--ease-out);
+}
+
+.welcome-start:hover {
+  background: #2a55c7;
+}
+
+.welcome-start:hover svg {
+  transform: translateX(4px);
+}
+
+.welcome-start:active {
+  transform: scale(0.98);
+}
+
+.welcome-start:focus-visible {
+  outline: 3px solid #2a55c7;
+  outline-offset: 3px;
 }

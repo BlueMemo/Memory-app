@@ -2,6 +2,7 @@
 
 import {
   ArrowLeft,
+  ArrowRight,
   Backpack,
   ChalkboardTeacher,
   DotsThreeOutline,
@@ -14,6 +15,7 @@ import {
   TiktokLogo,
   Translate,
   UsersThree,
+  X,
   YoutubeLogo,
 } from "@phosphor-icons/react/ssr";
 import type { Icon } from "@phosphor-icons/react";
@@ -60,7 +62,7 @@ const LANGUAGE_CODES: Record<StudyLanguage, string> = { english: "EN", spanish: 
  * (then which language, or where you study), where you heard about BlueMemo, then the 10 countries
  * tutorial (the guided practice; its results lead back here) and finally an offer to create an account.
  */
-export function OnboardingView({ finalStep }: { finalStep: boolean }) {
+export function OnboardingView({ finalStep, skipWelcome }: { finalStep: boolean; skipWelcome: boolean }) {
   const { t: dict } = useI18n();
   const t = dict.onboarding;
   const router = useRouter();
@@ -68,8 +70,11 @@ export function OnboardingView({ finalStep }: { finalStep: boolean }) {
   const saved = useSavedDeckIds().includes(TUTORIAL_DECK_ID);
   const [source, setSource] = useState<Source | null>(null);
   const [index, setIndex] = useState(0);
+  // The welcome screen comes first, unless "Get started" was already pressed on the home page.
+  const [welcomed, setWelcomed] = useState(skipWelcome);
 
   if (finalStep) return <AccountStep />;
+  if (!welcomed) return <WelcomeStep onStart={() => setWelcomed(true)} />;
 
   const followUp: Step[] = state.goal === "languages" ? ["language"] : state.goal === "school" ? ["level"] : [];
   const steps: Step[] = ["goal", ...followUp, "source", "tutorial"];
@@ -165,9 +170,7 @@ export function OnboardingView({ finalStep }: { finalStep: boolean }) {
         >
           <span style={{ width: `${((index + 1) / (steps.length + 1)) * 100}%` }} />
         </div>
-        <Link href="/" className="onboarding-skip" onClick={() => setOnboarding({ completedAt: new Date().toISOString(), tutorialPending: false })}>
-          {t.skip}
-        </Link>
+        <CloseButton />
       </div>
 
       {/* Keyed by step, so each question plays its entrance. */}
@@ -209,6 +212,50 @@ function Option(props: { icon?: Icon; badge?: string; title: string; text?: stri
   );
 }
 
+/** Leaves the introduction for the home page and marks it done, so the home page doesn't send you back. */
+function CloseButton() {
+  const t = useI18n().t.onboarding;
+  return (
+    <Link
+      href="/"
+      className="onboarding-close"
+      aria-label={t.close}
+      title={t.close}
+      onClick={() => setOnboarding({ completedAt: new Date().toISOString(), tutorialPending: false })}
+    >
+      <X size={20} weight="bold" aria-hidden="true" />
+    </Link>
+  );
+}
+
+/**
+ * The first screen of the introduction, in "paper and ink" (chosen by the team): a light paper page with
+ * one big serif line and one black button, nothing else apart from a quiet sign-in link and the close ✕.
+ */
+function WelcomeStep({ onStart }: { onStart: () => void }) {
+  const t = useI18n().t.onboarding;
+  const { user } = useUser();
+  return (
+    <main className="onboarding-welcome">
+      <div className="welcome-corner">
+        {!user && (
+          <Link href="/account" className="welcome-signin">
+            {t.signIn}
+          </Link>
+        )}
+        <CloseButton />
+      </div>
+      <div className="welcome-card">
+        <h1 className="welcome-title">{t.welcomeTitle}</h1>
+        <button type="button" className="welcome-start" onClick={onStart} autoFocus>
+          {t.getStarted}
+          <ArrowRight size={20} weight="bold" aria-hidden="true" />
+        </button>
+      </div>
+    </main>
+  );
+}
+
 /** The last step, after the tutorial: create a free account, or carry on as a guest. */
 function AccountStep() {
   const t = useI18n().t.onboarding;
@@ -223,6 +270,7 @@ function AccountStep() {
         <div className="onboarding-progress" aria-hidden="true">
           <span style={{ width: "100%" }} />
         </div>
+        <CloseButton />
       </div>
       <section className="onboarding-question onboarding-tutorial">
         <h1>{signedIn ? t.accountDoneTitle : t.accountTitle}</h1>

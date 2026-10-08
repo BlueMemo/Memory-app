@@ -48,12 +48,24 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Colours: lighter dark, paper light (2026-10-08, branch `homepage`)**: the site keeps its current look and
+  dark stays the default, but **dark is lifted a little** (`--bg #15181d`, cards `#1c2026`, lines
+  `#2d333b`; was near-black `#0d0f12`) and **light mode is "paper and ink"**: the welcome page's warm paper
+  white (`--bg #f4efe4`, cards `#fbf8f1`, lines `#e2dccd`, ink `#16181c`). Only the tokens in
+  `globals.css` changed (plus `themeColor` and a warm drawing plate in light mode). A fuller paper-and-ink
+  home page was sketched (serif headings, black buttons) but the team chose this lighter touch instead.
 - **Introduction / onboarding (2026-10-07, branch `feature/onboarding`)** — Duolingo-style, decided with the
   team via questionnaires. **Order: questions → tutorial → account offer → home page.** A first visit to
   `/` (not signed in, no decks, introduction not done) is sent straight to `/start` (client-side, so link
   previews still see the home page); the home page's button for such visitors is **Get started** (plus
-  "I already have an account"). Every question screen has **Skip** (marks it done, goes home); the first
-  has no back arrow. One question per screen with a
+  "I already have an account", → `/start?begin=1`). `/start` opens on a **welcome screen** in "paper and ink"
+  (picked by the team from four sketches: night sky, paper and ink, bold blue, doorway): a light paper page
+  in both themes, only the serif title "Step into your memory palace." / "Kliv in i ditt minnespalats." and a
+  black **Get started** button (blue on hover), plus a quiet "Sign in" and the ✕ in the corner; the title
+  rises in and the button follows. The serif is Newsreader as `--font-serif`, loaded without preloading
+  (`layout.tsx`) so other pages don't download it. During the introduction the
+  **site header is hidden** (`SiteHeader` renders only `AuthSync` on `/start`); a small **✕** in the corner
+  is the only way out (marks it done, goes home). The first question has no back arrow. One question per screen with a
   progress bar (`OnboardingView.tsx`): what you mainly study (languages / school subjects / exams like
   Högskoleprovet / general knowledge & fun) → which language, or where you study (high school /
   university / other) → where you heard about BlueMemo (TikTok, Instagram, YouTube, friend/family,
