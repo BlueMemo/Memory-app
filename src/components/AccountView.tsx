@@ -68,12 +68,12 @@ export function AccountView({ startWithSignUp = false, notice = null }: { startW
           {notice === "confirmed" ? t.noticeConfirmed : notice === "reset-link" ? t.noticeResetLink : t.noticeLinkError}
         </p>
       )}
-      <SignedOut t={t} startWithSignUp={startWithSignUp} />
+      <SignedOut t={t} startWithSignUp={startWithSignUp} justConfirmed={notice === "confirmed"} />
     </main>
   );
 }
 
-function SignedOut({ t, startWithSignUp }: { t: T; startWithSignUp: boolean }) {
+function SignedOut({ t, startWithSignUp, justConfirmed }: { t: T; startWithSignUp: boolean; justConfirmed: boolean }) {
   const { lang, t: dict } = useI18n();
   const legal = dict.legal;
   const [mode, setMode] = useState<Mode>(startWithSignUp ? "signUp" : "signIn");
@@ -98,6 +98,8 @@ function SignedOut({ t, startWithSignUp }: { t: T; startWithSignUp: boolean }) {
     const { error } = await getSupabaseBrowserClient()!.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) setStatus({ type: "error", message: mapAuthError(error.message, t) });
+    // First sign-in after confirming on another device: start in the Library, like a confirmation link does.
+    else if (justConfirmed) window.location.assign("/library?welcome=1");
   };
 
   const handleSignUp = async (e: FormEvent) => {
@@ -122,7 +124,7 @@ function SignedOut({ t, startWithSignUp }: { t: T; startWithSignUp: boolean }) {
         // The picture is stored on the profile at the first sign-in (there's no session before the email is
         // confirmed), see applySignupAvatar in AuthSync.
         data: { username, lang, ...(avatar ? { avatar } : {}) },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/library?welcome=1")}`,
       },
     });
     setSubmitting(false);

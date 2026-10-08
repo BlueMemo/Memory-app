@@ -5094,9 +5094,131 @@ html:has(.practice.locked) body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
 /* Sign-up: the chosen (or generated) picture beside a button that opens the picture grid. */
 .signup-avatar {
   display: flex;
   align-items: center;
   gap: 14px;
+}
+
+/* Coach tour: a white box with an arrow pointing at one part of the page (CoachTour.tsx) */
+.coach-box {
+  position: fixed;
+  z-index: 120;
+  background: #ffffff;
+  color: #16181c;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  padding: 1rem 1.1rem 0.9rem;
+  animation: coach-in 0.18s ease-out;
+}
+.coach-box.above {
+  transform: translateY(-100%);
+}
+.coach-arrow {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  transform: translateX(-50%) rotate(45deg);
+}
+.coach-box.below .coach-arrow {
+  top: -7px;
+}
+.coach-box.above .coach-arrow {
+  bottom: -7px;
+}
+.coach-box h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.3rem;
+  color: #16181c;
+}
+.coach-box p {
+  margin: 0;
+  font-size: 0.93rem;
+  line-height: 1.45;
+  color: #3a3d44;
+}
+.coach-box .coach-count {
+  font-size: 0.75rem;
+  color: #6b6f78;
+  margin-bottom: 0.25rem;
+}
+.coach-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+.coach-actions button {
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 0.4rem 0.95rem;
+  border: 0;
+  background: none;
+  color: #4a4e57;
+}
+.coach-actions .coach-skip {
+  margin-right: auto;
+  padding-left: 0;
+}
+.coach-actions .coach-back {
+  border: 1px solid #d6d8dd;
+}
+.coach-actions .coach-next {
+  background: var(--brand-blue);
+  color: var(--brand-on-blue, #fff);
+  font-weight: 600;
+}
+.coach-target {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+@keyframes coach-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coach-box {
+    animation: none;
+  }
+}
+
+/* Empty Library: find decks / create your own */
+.library-start {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+.library-start-option {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.25rem 1.35rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.library-start-option svg {
+  color: var(--brand-blue);
+}
+.library-start-option strong {
+  font-size: 1.1rem;
+}
+.library-start-option span {
+  color: var(--muted);
+}
+.library-start-option:hover {
+  border-color: var(--brand-blue);
+  transform: translateY(-2px);
 }

@@ -111,6 +111,7 @@ export function SiteHeader() {
         {tabs.map((tab) => (
           <Link
             key={tab.href}
+            data-tour={tab.href.slice(1)}
             href={tab.href}
             className={tab.active ? "active" : tab.highlight ? "tab-highlight" : undefined}
             aria-current={tab.active ? "page" : undefined}

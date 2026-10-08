@@ -5,6 +5,8 @@ import { useI18n } from "@/i18n";
 import { saveEditedDeck, useAnyDeck } from "@/lib/editableDecks";
 import type { Card, Deck } from "@/lib/types";
 import { answerModeOf, majorityAnswerMode, type AnswerMode } from "@/lib/typedAnswer";
+import { useTourSeen } from "@/lib/tours";
+import { CoachTour } from "./CoachTour";
 import { AnswerStyleToggle } from "./TypedAnswer";
 
 /**
@@ -39,6 +41,7 @@ export function CardForm(props: {
   // A new card starts the way most of the deck's cards are answered; an existing card keeps its own.
   const [answerMode, setAnswerMode] = useState<AnswerMode>(() => (props.card ? answerModeOf(props.card) : majorityAnswerMode(deck?.cards ?? [])));
   const [saving, setSaving] = useState(false);
+  const tourSeen = useTourSeen("cardForm");
   if (!deck) return null;
   const valid = form.answer.trim() !== "" && (ordered || form.prompt.trim() !== "");
   const set = (patch: Partial<typeof form>) => setForm({ ...form, ...patch });
@@ -90,26 +93,38 @@ export function CardForm(props: {
           </select>
         </div>
       )}
+      {!tourSeen && (
+        <CoachTour
+          id="cardForm"
+          steps={[
+            { target: '[data-tour="card-prompt"]', title: dict.tour.promptTitle, text: dict.tour.promptText },
+            { target: '[data-tour="card-answer"]', title: dict.tour.answerTitle, text: ordered ? dict.tour.answerTextOrdered : dict.tour.answerText },
+            { target: '[data-tour="card-cue"]', title: dict.tour.cueTitle, text: dict.tour.cueText },
+            { target: '[data-tour="card-due"]', title: dict.tour.dueTitle, text: dict.tour.dueText },
+            { target: '[data-tour="card-note"]', title: dict.tour.noteTitle, text: dict.tour.noteText },
+          ]}
+        />
+      )}
       {!ordered && (
-        <div className="field">
+        <div className="field" data-tour="card-prompt">
           <label htmlFor="card-prompt">{tc.promptLabel}</label>
           <input id="card-prompt" type="text" autoFocus={props.autoFocus} value={form.prompt} onChange={(e) => set({ prompt: e.target.value })} />
         </div>
       )}
-      <div className="field">
+      <div className="field" data-tour="card-answer">
         <label htmlFor="card-answer">{ordered ? tc.answerLabelOrdered : tc.answerLabel}</label>
         <input id="card-answer" type="text" autoFocus={props.autoFocus && ordered} value={form.answer} onChange={(e) => set({ answer: e.target.value })} />
       </div>
       <AnswerStyleToggle value={answerMode} onChange={setAnswerMode} />
-      <div className="field">
+      <div className="field" data-tour="card-cue">
         <label htmlFor="card-cue">{tc.memoryQueueLabel}</label>
         <textarea id="card-cue" value={form.visualization} placeholder={tc.memoryQueuePlaceholder} onChange={(e) => set({ visualization: e.target.value })} />
       </div>
-      <div className="field">
+      <div className="field" data-tour="card-note">
         <label htmlFor="card-note">{tc.noteLabel}</label>
         <input id="card-note" type="text" value={form.note} onChange={(e) => set({ note: e.target.value })} />
       </div>
-      <div className="field">
+      <div className="field" data-tour="card-due">
         <label htmlFor="card-due">{t.dueByLabel}</label>
         <input id="card-due" type="date" value={form.dueBy} onChange={(e) => set({ dueBy: e.target.value })} />
         <span className="hint">{t.dueByHint}</span>

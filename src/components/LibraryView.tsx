@@ -14,7 +14,10 @@ import { useUserDecks } from "@/lib/userDecks";
 import type { Deck } from "@/lib/types";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { MagnifyingGlass, PencilSimpleLine } from "@phosphor-icons/react/ssr";
+import { useTourSeen } from "@/lib/tours";
+import { CoachTour } from "./CoachTour";
 import { GearIcon } from "./GearIcon";
 import { PageTabs } from "./PageTabs";
 import { isTyping } from "./PracticeSession";
@@ -31,8 +34,14 @@ function useWelcome(fallback: string): string {
   return goal ? intro.welcome[goal] : fallback;
 }
 
+const noSubscribe = () => () => {};
+
 export function LibraryView() {
-  const t = useI18n().t.library;
+  const { t: dict } = useI18n();
+  const t = dict.library;
+  // The tabs tour: the first time the Library is empty, or straight after confirming a new account (?welcome=1).
+  const tourSeen = useTourSeen("library");
+  const welcomed = useSyncExternalStore(noSubscribe, () => new URLSearchParams(window.location.search).has("welcome"), () => false);
   const welcome = useWelcome(t.lead);
   const { user } = useUser();
   const savedDecks = useSavedDecks();
@@ -98,6 +107,31 @@ export function LibraryView() {
       </section>
 
       <ImportGuestDataPrompt />
+
+      {userDecks.length + savedDecks.length === 0 && (
+        <section className="library-start" aria-label={t.startLabel}>
+          <Link href="/discover" className="library-start-option">
+            <MagnifyingGlass size={30} weight="duotone" aria-hidden="true" />
+            <strong>{t.startFind}</strong>
+            <span>{t.startFindText}</span>
+          </Link>
+          <Link href="/library/new" className="library-start-option">
+            <PencilSimpleLine size={30} weight="duotone" aria-hidden="true" />
+            <strong>{t.startCreate}</strong>
+            <span>{t.startCreateText}</span>
+          </Link>
+        </section>
+      )}
+
+      {!tourSeen && (welcomed || userDecks.length + savedDecks.length === 0) && (
+        <CoachTour
+          id="library"
+          steps={[
+            { target: '.site-header [data-tour="library"]', title: dict.tour.libraryTitle, text: dict.tour.libraryText },
+            { target: '.site-header [data-tour="discover"]', title: dict.tour.discoverTitle, text: dict.tour.discoverText },
+          ]}
+        />
+      )}
 
       <PageTabs label={t.title} tabs={sections.map((section) => ({ id: `group-${section.key}`, title: section.title }))} />
 
