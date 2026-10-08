@@ -149,10 +149,11 @@ export const toSummary = (r: Row, people: Authors): PublishedSummary => ({
   official: r.official === true,
   hidden: r.hidden === true,
   hiddenReason: r.hidden_reason ?? null,
-  title: r.title,
-  description: r.description ?? "",
-  kind: r.kind,
-  language: r.language,
+  // Full-deck queries don't select the summary columns: read them from the deck itself.
+  title: r.title ?? r.deck?.title ?? "",
+  description: r.description ?? r.deck?.description ?? "",
+  kind: r.kind ?? r.deck?.kind,
+  language: r.language ?? r.deck?.language,
   cardCount: r.card_count ?? r.deck?.cards.length ?? 0,
 });
 
