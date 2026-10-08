@@ -48,6 +48,12 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Colours: lighter dark, paper light (2026-10-08, branch `homepage`)**: the site keeps its current look and
+  dark stays the default, but **dark is lifted a little** (`--bg #15181d`, cards `#1c2026`, lines
+  `#2d333b`; was near-black `#0d0f12`) and **light mode is "paper and ink"**: the welcome page's warm paper
+  white (`--bg #f4efe4`, cards `#fbf8f1`, lines `#e2dccd`, ink `#16181c`). Only the tokens in
+  `globals.css` changed (plus `themeColor` and a warm drawing plate in light mode). A fuller paper-and-ink
+  home page was sketched (serif headings, black buttons) but the team chose this lighter touch instead.
 - **Introduction / onboarding (2026-10-07, branch `feature/onboarding`)** — Duolingo-style, decided with the
   team via questionnaires. **Order: questions → tutorial → account offer → home page.** A first visit to
   `/` (not signed in, no decks, introduction not done) is sent straight to `/start` (client-side, so link

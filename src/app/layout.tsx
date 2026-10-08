@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 };
 
 // Matches the dark-first background, so mobile browser bars blend in.
-export const viewport: Viewport = { themeColor: "#0d0f12" };
+export const viewport: Viewport = { themeColor: "#15181d" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
