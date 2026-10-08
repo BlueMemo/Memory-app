@@ -25,7 +25,11 @@ email, once with the site in Swedish and once in English.
 
 ## Notes
 
-- Keep `{{ .ConfirmationURL }}` as the link: it carries the redirect the site asked for (`/auth/callback`).
+- Links go to **`{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=…`** (since 2026-10-08), not
+  `{{ .ConfirmationURL }}`: the default link (PKCE) only works in the browser where the account was made,
+  so opening the email on a phone failed. The token-hash link is verified on the server and works on any
+  device. **Site URL** (Authentication → URL Configuration) must be `https://bluememo.eu`. Until these
+  templates are pasted in, the old links still confirm the email; the site then says "confirmed, sign in".
 - The logo is loaded from `https://bluememo.eu/apple-icon`, so it shows once the site is live there.
 - `{{ if .Data.lang }}` comes before `eq` on purpose: comparing a missing value fails in Go templates.
 - Light colours on purpose: many email apps break dark backgrounds.

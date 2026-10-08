@@ -22,7 +22,9 @@ function mapAuthError(message: string, t: T): string {
   return t.errorGeneric;
 }
 
-export function AccountView({ startWithSignUp = false }: { startWithSignUp?: boolean }) {
+export type AccountNotice = "confirmed" | "reset-link" | "link-error";
+
+export function AccountView({ startWithSignUp = false, notice = null }: { startWithSignUp?: boolean; notice?: AccountNotice | null }) {
   const t = useI18n().t.account;
   const { user, username, avatarUrl, loading, configured } = useUser();
 
@@ -49,6 +51,11 @@ export function AccountView({ startWithSignUp = false }: { startWithSignUp?: boo
         <h1>{t.title}</h1>
         <p>{t.lead}</p>
       </section>
+      {notice && (
+        <p className={`notice ${notice === "confirmed" ? "success" : "error"}`} role="status">
+          {notice === "confirmed" ? t.noticeConfirmed : notice === "reset-link" ? t.noticeResetLink : t.noticeLinkError}
+        </p>
+      )}
       <SignedOut t={t} startWithSignUp={startWithSignUp} />
     </main>
   );

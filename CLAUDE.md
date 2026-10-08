@@ -48,6 +48,15 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
 
 ## Current status
 
+- **Email links across devices (2026-10-08, branch `feature/email-confirm-fix`)**: confirmation links used the
+  PKCE flow (`{{ .ConfirmationURL }}` → `/auth/callback?code=…`), which only works in the browser that
+  signed up; opened on a phone it failed with no explanation, so people thought confirming hadn't worked
+  and made new accounts. But Supabase confirms the email *before* redirecting, so: `/auth/callback` now
+  sends a failed exchange to `/account?notice=confirmed` ("Your email is confirmed, sign in"), or
+  `notice=reset-link` for password resets (which really do need the same browser). And new
+  **`/auth/confirm`** verifies `token_hash` links on the server (any device, which is then signed in);
+  the templates in `supabase/email-templates/` now use it — **paste them into Supabase** (Erik) and make
+  sure Site URL is `https://bluememo.eu`. The sign-up message says the link works on any device.
 - **Guided practice revision/test looks like a card, with flags (2026-10-08, branch `feature/welcome-theme`)**:
   in the guided practice (walkthrough → revision → test, the landing demo and tutorial) revision and test
   cards are a real boxed card like the walkthrough's (`FlipCard boxed`), the bottom bar shows only the

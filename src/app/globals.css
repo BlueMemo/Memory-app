@@ -1481,6 +1481,11 @@ ul.overview-list {
   border: 1px solid var(--line);
 }
 
+.notice.success {
+  border-color: var(--good);
+  color: var(--good);
+}
+
 .notice.error {
   border-color: var(--srs-again);
   color: var(--srs-again-text);
