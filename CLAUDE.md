@@ -56,6 +56,8 @@ familiar place (a memory palace). Text-first by design: images are rare, so lear
   `components/Flag.tsx` draws ten flags on a pole like the Nigerian one, shown with the answer (also in
   spaced-repetition reviews). The 10 countries deck has them all. Spaced-repetition reviews keep the bare
   study layout and full bar.
+  While revising (cards, round summaries, "All remembered") the header shows only the badge, and the
+  "Start over from the beginning" link is gone.
 - **Tutorial without header, bigger practice cards (2026-10-08, branch `feature/welcome-theme`)**: when the 10
   countries practice runs as the introduction's tutorial (`tutorialPending`), the site header is hidden
   (`SiteHeader`) and "Exit" is replaced by a big ✕ fixed in the top-left corner (`.tutorial-close`, goes

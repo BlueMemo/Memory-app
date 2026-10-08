@@ -166,6 +166,7 @@ export function PracticeSession({ deck }: { deck: Deck }) {
   }, []);
 
   const header = headerFor(state, ordered, t);
+  const revisionPhase = state.phase === "revision" || state.phase === "roundSummary" || state.phase === "mastered";
   const inFlow = state.phase !== "intro";
   // The introduction's tutorial (/start): no site header (SiteHeader hides it), just a big ✕ in the corner.
   const onboarding = useOnboarding();
@@ -208,8 +209,9 @@ export function PracticeSession({ deck }: { deck: Deck }) {
           <header className={`practice-header${studying ? " compact" : ""}`}>
             {header.badge && <span className="badge">{header.badge}</span>}
             {/* While answering cards, only the badge and progress show: the card itself is the focus. */}
-            {!studying && <h1>{header.title}</h1>}
-            {!studying && <p>{header.text}</p>}
+            {/* While revising (cards, round summaries, "All remembered") only the badge: the screen says the rest. */}
+            {!studying && !revisionPhase && <h1>{header.title}</h1>}
+            {!studying && !revisionPhase && <p>{header.text}</p>}
           </header>
         )}
         {inFlow && <Progress deck={deck} state={state} steps={steps} />}
@@ -359,9 +361,6 @@ export function PracticeSession({ deck }: { deck: Deck }) {
                   {t.takeTest}
                 </button>
               </div>
-              <button className="link-button" onClick={() => dispatch({ type: "startWalkthrough" })}>
-                {t.restart}
-              </button>
             </div>
           </section>
         )}
